@@ -1,0 +1,34 @@
+# Build directories
+build/
+Build/
+
+# CMake build artifacts
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.cmake
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+*.tmp
+*.temp
+
+# Binary files
+*.a
+*.so
+*.dylib
+*.exe
+*.out
+
+# Debug files
+*.dSYM/
+
+# Test output files
+*.log
+*.trs
