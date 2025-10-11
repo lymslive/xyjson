@@ -23,7 +23,7 @@ jobs:
       run: cmake -B build -S . -DUSE_FETCHCONTENT=ON
     
     - name: Build project
-      run: cmake --build build --config Release
+      run: cd build && make VERBOSE=1
     
     - name: Run tests
       run: ./build/utxyjson --cout=silent
