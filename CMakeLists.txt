@@ -1,28 +1,14 @@
-cmake_minimum_required(VERSION 3.10)
-project(xyjson)
+cmake_minimum_required(VERSION 3.15)
+project(xyjson VERSION 1.0.0 LANGUAGES CXX)
 
 # Set C++ standard
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Include directories
-include_directories(include)
-include_directories(/usr/local/include)
-
-# Find yyjson library (assumed to be installed system-wide)
-find_library(YYJSON_LIB yyjson)
-if(NOT YYJSON_LIB)
-    message(FATAL_ERROR "yyjson library not found. Please install yyjson library.")
-endif()
-
-# Find couttast library
-find_library(COUTTAST_LIB couttast PATHS ~/lib)
-if(NOT COUTTAST_LIB)
-    message(FATAL_ERROR "couttast library not found. Please install couttast library.")
-endif()
-
-# Add include path for couttast
-include_directories(~/include)
+# Add $HOME to search paths for some dependent libs may install there
+list(APPEND CMAKE_PREFIX_PATH "$ENV{HOME}")
+find_package(yyjson REQUIRED)
+find_package(couttast REQUIRED)
 
 # Source files for static library
 set(LIB_SOURCES
@@ -31,7 +17,8 @@ set(LIB_SOURCES
 
 # Create static library
 add_library(xyjson STATIC ${LIB_SOURCES})
-target_link_libraries(xyjson ${YYJSON_LIB})
+target_include_directories(xyjson PUBLIC include)
+target_link_libraries(xyjson PUBLIC yyjson)
 
 # Source files for test executable
 set(TEST_SOURCES
@@ -40,7 +27,7 @@ set(TEST_SOURCES
 
 # Create test executable
 add_executable(utxyjson ${TEST_SOURCES})
-target_link_libraries(utxyjson xyjson ${COUTTAST_LIB} ${YYJSON_LIB})
+target_link_libraries(utxyjson PRIVATE xyjson couttast)
 
 # Install library and headers
 install(TARGETS xyjson
