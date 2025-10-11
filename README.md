@@ -52,12 +52,12 @@ int age = doc / "age" | 0;
 git clone <repository-url>
 cd xyjson
 
-# 构建
+# 构建（如果未安装依赖将自动下载）
 mkdir build && cd build
 cmake .. && make
 
 # 运行测试
-./utxyjson --cout=silent
+./build/utxyjson --cout=silent
 ```
 
 ## 核心用法
@@ -144,6 +144,18 @@ target_include_directories(your-target PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/includ
 - **C++ 标准**: C++17 或更高
 - **依赖**: yyjson, couttast (测试)
 - **平台**: Linux, macOS, Windows (MinGW)
+- **自动依赖**: FetchContent 自动下载依赖库
+
+### 持续集成
+
+项目配置了 GitHub Actions CI/CD 流水线：
+
+- ✅ **自动构建**: main 分支提交时自动构建
+- ✅ **自动测试**: 运行所有单元测试
+- ✅ **依赖管理**: 自动下载并构建依赖库
+- ✅ **跨平台**: 支持 Ubuntu Linux 环境
+
+查看 [Actions](https://github.com/lymslive/xyjson/actions) 页面获取构建状态。
 
 ## 示例项目
 
