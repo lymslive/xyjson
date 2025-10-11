@@ -1,6 +1,7 @@
 # Build directories
 build/
 Build/
+build_*/
 
 # CMake build artifacts
 CMakeCache.txt
@@ -18,6 +19,7 @@ Makefile
 # Temporary files
 *.tmp
 *.temp
+*bak
 
 # Binary files
 *.a

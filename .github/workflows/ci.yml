@@ -26,4 +26,4 @@ jobs:
       run: cmake --build build --config Release
     
     - name: Run tests
-      run: ./build/utxyjson
+      run: ./build/utxyjson --cout=silent
