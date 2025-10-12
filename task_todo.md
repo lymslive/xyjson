@@ -65,3 +65,59 @@ utest/t_xyjson.cpp 文件。
 
 虽然我的第一想法是放在头文件的 namespace yyjson 后面，但这可以再议。请从代码可
 读性及 AI Agent 方便读取掌握代码结构等角度分析放哪里更好。
+
+## TODO 2025-10-13/1: 完全 head-only 化之一
+
+目标是将 src/xyjsion.cpp 的方法实现全部移到 include/xyjson.h 头文件中。
+现在还有三块代码放在 cpp 文件中：
+
+- Document/MutableDocument 的 read/write 方法，最初觉得 doc 类使用远不如 value
+  结点类使用频繁，就把它们放在 cpp 文件了。
+- Value/MutableValue 的 toNumberCast 方法 ，用于将一个 json 标量结点转为整数使用
+  ，实现代码较长，当初觉得不宜内联放在头文件。
+- Value/MutableValue 的 pathex 方法，用于解析 json pointer 风格的多层路径，也
+  比较长的实现。
+
+其中第一块的代码比较容易迁移，都是一些较小的函数，可以拷回头文件加上 inline 前
+缀，分别置于 Section 4.2 与 Section 4.4 的位置，额外加次级 Group .
+
+## TODO 2025-10-13/2: 完全 head-only 化之二
+
+两个类的 toNumberCast 方法实现很类似，增加一个非类模板函数，模板类型参数适配
+Value 或 MutableValue 类，然后在各自的 toNumber 类中调用新的模板函数。
+
+新的模板函数也可命名为 toNumberCast ，而将原来的 toNumberCast 方法删去。
+
+## TODO 2025-10-13/3: 完全 head-only 化之三
+
+对于 pathex 方法，也可弃之不用，yyjson 库支持 json pointer ，可直接调用，不必
+自己实现。但是 json pointer 标准要求参数必须以 `/` 开头，这将稍微改变原功能。
+
+上层 pathto(const char* path) 方法调整实现逻辑：
+- 如果参数为空，返回自身
+- 如果参数以 `/` 开头，按 json pointer 处理
+- 否则按单层 index 处理
+- 删去 pathex 方法及其调用
+
+可能会破坏原单元测试个别断言，须纠正单元测试适应新功能。
+也需要专门增加用例测试 pathto 方法与 `/` 操作符对于单层 index 与多层 pointer
+的场景。
+
+yyjson 按 json pointer 取值的 API 有：
+yyjson_ptr_get yyjson_ptr_getn yyjson_mut_ptr_get yyjson_mut_ptr_getn 
+开发环境一般安装于 /usr/local/include/yyjson.h
+
+如此，xxjson.cpp 的代码功能全部返回头文件，该 cpp 可删。
+cmake 也要相应调整，xyjson 目标不再需要编译为静态库，是纯粹的 head-only 库。
+安装也只需要头文件。不想用 cmake 系统安装的用户也可简单拷贝 xyjson.h 头文件到
+其他项目中与 yyjson.h 一起使用。
+
+## TODO: 简化 Document 类不必持有根结点
+
+## TODO: getor 与 | 操作符可取底层 C 结构体指针
+
+## TODO: 增加 isType 方法与 & 操作符判断 json 结点类型
+
+## TODO: 设计模板类的 KeyValue 优化对象容器的插入
+
+## TODO: 考虑条件编译宏过滤不用的功能
