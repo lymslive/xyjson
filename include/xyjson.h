@@ -19,7 +19,11 @@
 #include <yyjson.h>
 #include <functional>
 
-namespace yyjson {
+namespace yyjson
+{
+
+/* @Part 1: Front Definitions */
+/* ======================================================================== */
 
 // Forward declarations for classes
 class Value;
@@ -27,13 +31,17 @@ class Document;
 class MutableValue;
 class MutableDocument;
 class KeyValue;
+class StringRef;
 class ArrayIterator;
 class ObjectIterator;
 class MutableArrayIterator;
 class MutableObjectIterator;
 
-/* ============================================================ */
-// class declarations
+/* @Part 2: Class Definitions */
+/* ======================================================================== */
+
+/* @Section 2.1: Read-only Json Model */
+/* ------------------------------------------------------------------------ */
 
 /** 
  * @brief Simple wrapper for yyjson_val with operator overloading
@@ -148,134 +156,6 @@ private:
     yyjson_val* m_val = nullptr;
 };
 
-/**
- * @brief Iterator for JSON array elements
- * Provides efficient iteration over array elements
- * 
- * Supported operators:
- * - Dereference: *iter, iter-> (access current item)
- * - Increment: ++iter (calls next()), iter++ (calls Next())
- * - Advance: iter + n, iter += n (calls advance(n))
- * - Position: iter % n , iter %= n (calls seek(n))
- * - Comparison: ==, != (calls equal())
- * - Boolean: if (iter), !iter
- */
-class ArrayIterator
-{
-public:
-    struct Item
-    {
-        size_t key = 0; // Array index (0-based)
-        Value value;    // Current array element value
-    };
-    
-    ArrayIterator() : m_root(nullptr), m_iter({}) {}
-    explicit ArrayIterator(yyjson_val* root);
-    
-    // Check if iterator is valid
-    bool isValid() const { return m_current.value.isValid(); }
-    
-    // Boolean conversion for conditional checks
-    explicit operator bool() const { return isValid(); }
-    bool operator!() const { return !isValid(); }
-    
-    // Check if two iterators are equal
-    bool equal(const ArrayIterator& other) const
-    {
-        return m_current.value.get() == other.m_current.value.get();
-    }
-    
-    // Move to next element
-    ArrayIterator& next();
-    
-    // Create a copy of current state, then move to next element (for postfix ++)
-    ArrayIterator Next();
-    
-    // Get current item
-    Item& operator*() { return m_current; }
-    const Item& operator*() const { return m_current; }
-    
-    // Get current item pointer
-    Item* operator->() { return &m_current; }
-    const Item* operator->() const { return &m_current; }
-    
-    // Position manipulation
-    ArrayIterator& advance(size_t steps = 1);          // Advance iterator by n steps
-    ArrayIterator& seek(size_t index, bool reset = false); // Seek to specific index
-    
-    // Rewind to beginning
-    ArrayIterator& rewind();
-    
-private:
-    yyjson_val* m_root = nullptr;  // Root array for context  
-    yyjson_arr_iter m_iter;        // Native yyjson array iterator (read-only)
-    Item m_current;                // Current item (index and value)
-};
-
-/**
- * @brief Iterator for JSON object key-value pairs
- * Provides efficient iteration over object properties
- * 
- * Supported operators:
- * - Dereference: *iter, iter-> (access current key-value pair)
- * - Increment: ++iter (calls next()), iter++ (calls Next())
- * - Advance: iter + n, iter += n (calls advance(n))
- * - Position: iter % key , iter %= key (calls seek(key))
- * - Comparison: ==, != (calls equal())
- * - Boolean: if (iter), !iter
- */
-class ObjectIterator
-{
-public:
-    struct Item
-    {
-        const char* key = nullptr; // Object key
-        Value value;               // Current value
-    };
-    
-    ObjectIterator() : m_root(nullptr), m_iter({}) {}
-    explicit ObjectIterator(yyjson_val* root);
-    
-    // Check if iterator is valid
-    bool isValid() const { return m_current.value.isValid(); }
-    
-    // Boolean conversion for conditional checks
-    explicit operator bool() const { return isValid(); }
-    bool operator!() const { return !isValid(); }
-    
-    // Check if two iterators are equal
-    bool equal(const ObjectIterator& other) const
-    {
-        return m_current.value.get() == other.m_current.value.get();
-    }
-
-    // Move to next key-value pair
-    ObjectIterator& next();
-    
-    // Create a copy of current state, then move to next element (for postfix ++)
-    ObjectIterator Next();
-    
-    // Get current item
-    Item& operator*() { return m_current; }
-    const Item& operator*() const { return m_current; }
-    
-    // Get current item pointer
-    Item* operator->() { return &m_current; }
-    const Item* operator->() const { return &m_current; }
-    
-    // Position manipulation  
-    ObjectIterator& advance(size_t steps = 1);          // Advance iterator by n steps
-    ObjectIterator& seek(const char* key, bool reset = false); // Seek to specific key
-    
-    // Rewind to beginning
-    ObjectIterator& rewind();
-    
-private:
-    yyjson_val* m_root = nullptr;  // Root object for context
-    yyjson_obj_iter m_iter;        // Native yyjson object iterator (read-only)
-    Item m_current;                // Current item (key and value)
-};
-
 /** 
  * @brief Wrapper for yyjson_doc with operator overloading
  */
@@ -354,34 +234,8 @@ private:
     Value m_root;
 };
 
-/* ------------------------------------------------------------ */
-// Mutable model wrapper classes
-
-/// Helper class to optimize create json node from string literal.
-struct StringRef
-{
-    const char* str = nullptr;
-    size_t len = 0;
-
-    template <size_t N> 
-    StringRef(const char(&value)[N]) : str(value), len(N-1)
-    {
-    }
-
-    explicit StringRef(const char* value) : str(value), len(::strlen(value))
-    {
-    }
-
-    explicit StringRef(const char* value, size_t n) : str(value), len(n)
-    {
-    }
-
-    operator const char *() const { return str; }
-
-private:
-    template <size_t N> 
-    StringRef(char(&value)[N]);
-};
+/* @Section 2.2: Mutable Json Model */
+/* ------------------------------------------------------------------------ */
 
 /** 
  * @brief Writable wrapper for yyjson_mut_val
@@ -598,6 +452,129 @@ private:
     friend class MutableDocument;
 };
 
+/**
+ * @brief Mutable JSON document wrapper for yyjson_mut_doc
+ * Provides read-write access to JSON data with operator overloading
+ * 
+ * Supported operators:
+ * - Unary: +doc (access root), -doc (convert to string), ~doc (convert to read-only)
+ * - Path: doc / "key" (path access), doc[index] (index access)
+ * - Stream: doc << input, doc >> output (serialization)
+ * - Create: doc * value (quick node creation)
+ * - Boolean: if (doc), !doc (error checking)
+ */
+class MutableDocument
+{
+public:
+    using value_type = MutableValue;
+    
+    // Constructors.
+    MutableDocument() : MutableDocument("{}") {}
+    explicit MutableDocument(yyjson_mut_doc* doc);
+    explicit MutableDocument(const char* str, size_t len = 0);
+    explicit MutableDocument(const std::string& str) : MutableDocument(str.c_str(), str.size()) {}
+    
+    // Free the document
+    void free();
+    ~MutableDocument() { free(); }
+
+    // Disable copy operations to prevent double-free issues
+    MutableDocument(const MutableDocument&) = delete;
+    MutableDocument& operator=(const MutableDocument&) = delete;
+
+    // Error checking
+    bool isValid() const { return m_doc != nullptr; }
+    bool hasError() const { return !isValid(); }
+    bool operator!() const { return hasError(); }
+    explicit operator bool() const { return isValid(); }
+
+    // Access root value reference
+    void syncRoot() { m_root = MutableValue(yyjson_mut_doc_get_root(m_doc), m_doc); }
+    MutableValue& root() { return m_root; }
+    const MutableValue& root() const { return m_root; }
+
+    // Set root value
+    void setRoot(MutableValue val);
+
+    // Read from various source, string, file.
+    bool read(const char* str, size_t len = 0);
+    bool read(const std::string& str) { return read(str.c_str(), str.size()); }
+    bool read(FILE* fp);
+    bool read(std::ifstream& ifs);
+    bool readFile(const char* path);
+    
+    // Write to various target, string, file.
+    bool write(std::string& output) const;
+    bool write(FILE* fp) const;
+    bool write(std::ofstream& ofs) const;
+    bool writeFile(const char* path) const;
+    
+    // Create methods for various types to create JSON nodes
+    MutableValue create(yyjson_mut_val* value) const;
+    MutableValue create() const;       // null
+    MutableValue createArray() const;  // []
+    MutableValue createObject() const; // {}
+    MutableValue createRef(const char* value) const; // string without copy
+    // T: bool | int | string | (Mutable)Document | (Mutable)Value
+    template <typename T> MutableValue create(const T& value) const;
+
+    // String conversion
+    std::string toString() const;
+
+    // Index access - const version for read-only access
+    template <typename T>
+    MutableValue operator[](const T& index) const
+    {
+        return root().index(index);
+    }
+    
+    // Index access - non-const version for automatic insertion
+    template <typename T>
+    MutableValue operator[](const T& index)
+    {
+        return root().index(index);
+    }
+
+    // Convert to read-only document
+    Document freeze() const;
+    
+    // Comparison method
+    bool equal(const MutableDocument& other) const;
+
+private:
+    yyjson_mut_doc* m_doc = nullptr;
+    MutableValue m_root;
+};
+
+/* @Section 2.3: Helper Class for Mutable Json */
+/* ------------------------------------------------------------------------ */
+
+/// Helper class to optimize create json node from string literal.
+struct StringRef
+{
+    const char* str = nullptr;
+    size_t len = 0;
+
+    template <size_t N> 
+    StringRef(const char(&value)[N]) : str(value), len(N-1)
+    {
+    }
+
+    explicit StringRef(const char* value) : str(value), len(::strlen(value))
+    {
+    }
+
+    explicit StringRef(const char* value, size_t n) : str(value), len(n)
+    {
+    }
+
+    operator const char *() const { return str; }
+
+private:
+    template <size_t N> 
+    StringRef(char(&value)[N]);
+};
+
 /** 
  * @brief Key-Value pair for optimized object insertion
  * Simple structure containing key and value for efficient object insertion
@@ -615,6 +592,137 @@ struct KeyValue
     bool isValid() const { return key && value; }
     explicit operator bool() const { return isValid(); }
     bool operator!() const { return !isValid(); }
+};
+
+/* @Section 2.4: Iterator Json */
+/* ------------------------------------------------------------------------ */
+
+/**
+ * @brief Iterator for JSON array elements
+ * Provides efficient iteration over array elements
+ * 
+ * Supported operators:
+ * - Dereference: *iter, iter-> (access current item)
+ * - Increment: ++iter (calls next()), iter++ (calls Next())
+ * - Advance: iter + n, iter += n (calls advance(n))
+ * - Position: iter % n , iter %= n (calls seek(n))
+ * - Comparison: ==, != (calls equal())
+ * - Boolean: if (iter), !iter
+ */
+class ArrayIterator
+{
+public:
+    struct Item
+    {
+        size_t key = 0; // Array index (0-based)
+        Value value;    // Current array element value
+    };
+    
+    ArrayIterator() : m_root(nullptr), m_iter({}) {}
+    explicit ArrayIterator(yyjson_val* root);
+    
+    // Check if iterator is valid
+    bool isValid() const { return m_current.value.isValid(); }
+    
+    // Boolean conversion for conditional checks
+    explicit operator bool() const { return isValid(); }
+    bool operator!() const { return !isValid(); }
+    
+    // Check if two iterators are equal
+    bool equal(const ArrayIterator& other) const
+    {
+        return m_current.value.get() == other.m_current.value.get();
+    }
+    
+    // Move to next element
+    ArrayIterator& next();
+    
+    // Create a copy of current state, then move to next element (for postfix ++)
+    ArrayIterator Next();
+    
+    // Get current item
+    Item& operator*() { return m_current; }
+    const Item& operator*() const { return m_current; }
+    
+    // Get current item pointer
+    Item* operator->() { return &m_current; }
+    const Item* operator->() const { return &m_current; }
+    
+    // Position manipulation
+    ArrayIterator& advance(size_t steps = 1);          // Advance iterator by n steps
+    ArrayIterator& seek(size_t index, bool reset = false); // Seek to specific index
+    
+    // Rewind to beginning
+    ArrayIterator& rewind();
+    
+private:
+    yyjson_val* m_root = nullptr;  // Root array for context  
+    yyjson_arr_iter m_iter;        // Native yyjson array iterator (read-only)
+    Item m_current;                // Current item (index and value)
+};
+
+/**
+ * @brief Iterator for JSON object key-value pairs
+ * Provides efficient iteration over object properties
+ * 
+ * Supported operators:
+ * - Dereference: *iter, iter-> (access current key-value pair)
+ * - Increment: ++iter (calls next()), iter++ (calls Next())
+ * - Advance: iter + n, iter += n (calls advance(n))
+ * - Position: iter % key , iter %= key (calls seek(key))
+ * - Comparison: ==, != (calls equal())
+ * - Boolean: if (iter), !iter
+ */
+class ObjectIterator
+{
+public:
+    struct Item
+    {
+        const char* key = nullptr; // Object key
+        Value value;               // Current value
+    };
+    
+    ObjectIterator() : m_root(nullptr), m_iter({}) {}
+    explicit ObjectIterator(yyjson_val* root);
+    
+    // Check if iterator is valid
+    bool isValid() const { return m_current.value.isValid(); }
+    
+    // Boolean conversion for conditional checks
+    explicit operator bool() const { return isValid(); }
+    bool operator!() const { return !isValid(); }
+    
+    // Check if two iterators are equal
+    bool equal(const ObjectIterator& other) const
+    {
+        return m_current.value.get() == other.m_current.value.get();
+    }
+
+    // Move to next key-value pair
+    ObjectIterator& next();
+    
+    // Create a copy of current state, then move to next element (for postfix ++)
+    ObjectIterator Next();
+    
+    // Get current item
+    Item& operator*() { return m_current; }
+    const Item& operator*() const { return m_current; }
+    
+    // Get current item pointer
+    Item* operator->() { return &m_current; }
+    const Item* operator->() const { return &m_current; }
+    
+    // Position manipulation  
+    ObjectIterator& advance(size_t steps = 1);          // Advance iterator by n steps
+    ObjectIterator& seek(const char* key, bool reset = false); // Seek to specific key
+    
+    // Rewind to beginning
+    ObjectIterator& rewind();
+    
+private:
+    yyjson_val* m_root = nullptr;  // Root object for context
+    yyjson_obj_iter m_iter;        // Native yyjson object iterator (read-only)
+    Item m_current;                // Current item (key and value)
 };
 
 /** 
@@ -747,106 +855,8 @@ private:
     Item m_current;                    // Current item (key and mutable value)
 };
 
-/** 
- * @brief Writable wrapper for yyjson_mut_doc
- * Provides read-write access to yyjson documents
- */
-/**
- * @brief Mutable JSON document wrapper for yyjson_mut_doc
- * Provides read-write access to JSON data with operator overloading
- * 
- * Supported operators:
- * - Unary: +doc (access root), -doc (convert to string), ~doc (convert to read-only)
- * - Path: doc / "key" (path access), doc[index] (index access)
- * - Stream: doc << input, doc >> output (serialization)
- * - Create: doc * value (quick node creation)
- * - Boolean: if (doc), !doc (error checking)
- */
-class MutableDocument
-{
-public:
-    using value_type = MutableValue;
-    
-    // Constructors.
-    MutableDocument() : MutableDocument("{}") {}
-    explicit MutableDocument(yyjson_mut_doc* doc);
-    explicit MutableDocument(const char* str, size_t len = 0);
-    explicit MutableDocument(const std::string& str) : MutableDocument(str.c_str(), str.size()) {}
-    
-    // Free the document
-    void free();
-    ~MutableDocument() { free(); }
-
-    // Disable copy operations to prevent double-free issues
-    MutableDocument(const MutableDocument&) = delete;
-    MutableDocument& operator=(const MutableDocument&) = delete;
-
-    // Error checking
-    bool isValid() const { return m_doc != nullptr; }
-    bool hasError() const { return !isValid(); }
-    bool operator!() const { return hasError(); }
-    explicit operator bool() const { return isValid(); }
-
-    // Access root value reference
-    void syncRoot() { m_root = MutableValue(yyjson_mut_doc_get_root(m_doc), m_doc); }
-    MutableValue& root() { return m_root; }
-    const MutableValue& root() const { return m_root; }
-
-    // Set root value
-    void setRoot(MutableValue val);
-
-    // Read from various source, string, file.
-    bool read(const char* str, size_t len = 0);
-    bool read(const std::string& str) { return read(str.c_str(), str.size()); }
-    bool read(FILE* fp);
-    bool read(std::ifstream& ifs);
-    bool readFile(const char* path);
-    
-    // Write to various target, string, file.
-    bool write(std::string& output) const;
-    bool write(FILE* fp) const;
-    bool write(std::ofstream& ofs) const;
-    bool writeFile(const char* path) const;
-    
-    // Create methods for various types to create JSON nodes
-    MutableValue create(yyjson_mut_val* value) const;
-    MutableValue create() const;       // null
-    MutableValue createArray() const;  // []
-    MutableValue createObject() const; // {}
-    MutableValue createRef(const char* value) const; // string without copy
-    // T: bool | int | string | (Mutable)Document | (Mutable)Value
-    template <typename T> MutableValue create(const T& value) const;
-
-    // String conversion
-    std::string toString() const;
-
-    // Index access - const version for read-only access
-    template <typename T>
-    MutableValue operator[](const T& index) const
-    {
-        return root().index(index);
-    }
-    
-    // Index access - non-const version for automatic insertion
-    template <typename T>
-    MutableValue operator[](const T& index)
-    {
-        return root().index(index);
-    }
-
-    // Convert to read-only document
-    Document freeze() const;
-    
-    // Comparison method
-    bool equal(const MutableDocument& other) const;
-
-private:
-    yyjson_mut_doc* m_doc = nullptr;
-    MutableValue m_root;
-};
-
-/* ------------------------------------------------------------ */
-// @Type Traits {
+/* @Section 2.5: Type Traits */
+/* ------------------------------------------------------------------------ */
 
 /**
  * @brief Type traits for yyjson wrapper classes
@@ -894,13 +904,11 @@ using enable_if_document_t = typename std::enable_if<is_document<T>::value, T>::
 template<typename T>
 using enable_if_iterator_t = typename std::enable_if<is_iterator<T>::value, T>::type;
 
-// @Type Traits }
+/* @Part 3: Non-Class Functions */
+/* ======================================================================== */
 
-/* ============================================================ */
-// class implementations
-
-/**************************************************************/
-// Underlying yyjson_mut_val creation @{
+/* @Section 3.1: Underlying yyjson_mut_val Creation */
+/* ------------------------------------------------------------------------ */
 
 inline yyjson_mut_val* create(yyjson_mut_doc* doc, std::nullptr_t = nullptr)
 {
@@ -1020,13 +1028,14 @@ inline yyjson_mut_val* create(yyjson_mut_doc* doc, const MutableDocument& src)
     return create(doc, src.root());
 }
 
-// @}
+/* @Part 4: Class Implementations */
+/* ======================================================================== */
 
-/* ------------------------------------------------------------ */
-// @Value {
+/* @Section 4.1: Value Methods */
+/* ------------------------------------------------------------------------ */
 
-/**************************************************************/
-// Value class get and getor method implementations
+/* @Group 4.1.1: get and getor */
+/* ************************************************************************ */
 
 inline bool Value::get(bool& result) const
 {
@@ -1098,8 +1107,8 @@ inline T Value::getor(const T& defaultValue) const
     return get(result) ? result : defaultValue;
 }
 
-/**************************************************************/
-// Value class size and index method implementations
+/* @Group 4.1.2: size and index/path */
+/* ************************************************************************ */
 
 inline size_t Value::size() const
 {
@@ -1138,8 +1147,8 @@ inline Value Value::pathto(const char* path) const
     return pathex(path);
 }
 
-/**************************************************************/
-// Value iterator create
+/* @Group 4.1.3: create iterator */
+/* ************************************************************************ */
 
 inline ArrayIterator Value::arrayIter(size_t startIndex) const
 {
@@ -1185,10 +1194,8 @@ inline ObjectIterator Value::endObject() const
     return ObjectIterator();
 }
 
-
-
-/**************************************************************/
-// Value conversion
+/* @Group 4.1.4: others */
+/* ************************************************************************ */
 
 inline std::string Value::toString(bool quoteStr) const
 {
@@ -1222,10 +1229,8 @@ inline bool Value::equal(const Value& other) const
     return (m_val == other.m_val) || yyjson_equals(m_val, other.m_val);
 }
 
-// @Value }
-
-/* ------------------------------------------------------------ */
-// @Document {
+/* @Section 4.2: Document Methods */
+/* ------------------------------------------------------------------------ */
 
 inline Document::Document(yyjson_doc* doc) : m_doc(doc)
 {
@@ -1268,13 +1273,11 @@ inline bool Document::equal(const Document& other) const
     return (m_doc == other.m_doc) || root().equal(other.root());
 }
 
-// @Document }
+/* @Section 4.3: MutableValue Methods */
+/* ------------------------------------------------------------------------ */
 
-/* ------------------------------------------------------------ */
-// @MutableValue {
-
-/**************************************************************/
-// MutableValue class get and getor method implementations
+/* @Group 4.3.1: get and getor */
+/* ************************************************************************ */
 
 inline bool MutableValue::get(bool& result) const
 {
@@ -1346,8 +1349,8 @@ inline T MutableValue::getor(const T& defaultValue) const
     return get(result) ? result : defaultValue;
 }
 
-/**************************************************************/
-// MutableValue class size and index method implementations
+/* @Group 4.3.2: size and index/path */
+/* ************************************************************************ */
 
 inline size_t MutableValue::size() const
 {
@@ -1415,8 +1418,8 @@ inline MutableValue MutableValue::pathto(const char* path) const
     return pathex(path);
 }
 
-/**************************************************************/
-// Assignment operators implementation for MutableValue
+/* @Group 4.3.3: assignment set */
+/* ************************************************************************ */
 
 inline MutableValue& MutableValue::set(std::nullptr_t value)
 {
@@ -1541,8 +1544,8 @@ inline MutableValue& MutableValue::setObject()
     return *this;
 }
 
-/**************************************************************/
-// Append operators implementation for MutableValue
+/* @Group 4.3.4: array append */
+/* ************************************************************************ */
 
 inline MutableValue& MutableValue::append(yyjson_mut_val* value)
 {
@@ -1575,8 +1578,8 @@ inline MutableValue& MutableValue::append(const T& value)
     return append(create(m_doc, value));
 }
 
-/**************************************************************/
-// MutableValue add methods implementation
+/* @Group 4.3.5: object add */
+/* ************************************************************************ */
 
 inline MutableValue& MutableValue::add(yyjson_mut_val* name, yyjson_mut_val* value)
 {
@@ -1622,8 +1625,8 @@ inline MutableValue& MutableValue::add(const char* name, const T& value)
     return add(name, create(m_doc, value));
 }
 
-/**************************************************************/
-// KeyValue creation methods implementation
+/* @Group 4.3.6: tag create KeyValue */
+/* ************************************************************************ */
 
 inline KeyValue MutableValue::tag(const char* key) const
 {
@@ -1656,9 +1659,8 @@ inline KeyValue MutableValue::tagCopy(const char* key, size_t len) const
 }
 
 
-
-/**************************************************************/
-// MutableValue input operation
+/* @Group 4.3.7: smart input */
+/* ************************************************************************ */
 
 inline MutableValue& MutableValue::input(StringRef value)
 {
@@ -1726,8 +1728,8 @@ inline MutableValue& MutableValue::input(const T& value)
     return *this;
 }
 
-/**************************************************************/
-// MutableValue iterator creation
+/* @Group 4.3.8: create iterator */
+/* ************************************************************************ */
 
 inline MutableArrayIterator MutableValue::arrayIter(size_t startIndex) const
 {
@@ -1773,10 +1775,8 @@ inline MutableObjectIterator MutableValue::endObject() const
     return MutableObjectIterator();
 }
 
-
-
-/**************************************************************/
-// MutableValue conversion
+/* @Group 4.3.9: others */
+/* ************************************************************************ */
 
 inline std::string MutableValue::toString(bool quoteStr) const
 {
@@ -1810,10 +1810,11 @@ inline bool MutableValue::equal(const MutableValue& other) const
     return (m_val == other.m_val) || yyjson_mut_equals(m_val, other.m_val);
 }
 
-// @MutableValue }
+/* @Section 4.4: MutableDocument Methods */
+/* ------------------------------------------------------------------------ */
 
-/* ------------------------------------------------------------ */
-// @MutableDocument {
+/* @Group 4.4.1: primary manage */
+/* ************************************************************************ */
 
 inline MutableDocument::MutableDocument(yyjson_mut_doc* doc) : m_doc(doc)
 {
@@ -1872,8 +1873,8 @@ inline void MutableDocument::setRoot(MutableValue val)
     }
 }
 
-/**************************************************************/
-// MutableDocument create methods implementation
+/* @Group 4.4.2: create mutable value */
+/* ************************************************************************ */
 
 inline MutableValue MutableDocument::create(yyjson_mut_val* value) const
 { 
@@ -1910,10 +1911,8 @@ inline MutableValue MutableDocument::create(const T& value) const
     return create(yyjson::create(m_doc, value));
 }
 
-// @MutableDocument }
-
-/* ------------------------------------------------------------ */
-// @ArrayIterator {
+/* @Section 4.5: ArrayIterator Methods */
+/* ------------------------------------------------------------------------ */
 
 inline ArrayIterator::ArrayIterator(yyjson_val* root) : m_root(root) 
 {
@@ -1959,10 +1958,8 @@ inline ArrayIterator& ArrayIterator::rewind()
     return *this;
 }
 
-// @ArrayIterator }
-
-/* ------------------------------------------------------------ */
-// @ObjectIterator {
+/* @Section 4.6: ObjectIterator Methods */
+/* ------------------------------------------------------------------------ */
 
 inline ObjectIterator::ObjectIterator(yyjson_val* root) : m_root(root) 
 {
@@ -2032,10 +2029,8 @@ inline ObjectIterator& ObjectIterator::rewind()
     return *this;
 }
 
-// @ObjectIterator }
-
-/* ------------------------------------------------------------ */
-// @MutableArrayIterator {
+/* @Section 4.7: MutableArrayIterator Methods */
+/* ------------------------------------------------------------------------ */
 
 inline MutableArrayIterator::MutableArrayIterator(yyjson_mut_val* root, yyjson_mut_doc* doc) 
     : m_root(root), m_doc(doc)
@@ -2087,10 +2082,8 @@ inline MutableArrayIterator& MutableArrayIterator::rewind()
     return *this;
 }
 
-// @MutableArrayIterator }
-
-/* ------------------------------------------------------------ */
-// @MutableObjectIterator {
+/* @Section 4.8: MutableObjectIterator Methods */
+/* ------------------------------------------------------------------------ */
 
 inline MutableObjectIterator::MutableObjectIterator(yyjson_mut_val* root, yyjson_mut_doc* doc) 
     : m_root(root), m_doc(doc)
@@ -2163,10 +2156,11 @@ inline MutableObjectIterator& MutableObjectIterator::rewind()
     return *this;
 }
 
-// @MutableObjectIterator }
+/* @Part 5: Operator Interface */
+/* ======================================================================== */
 
-/* ============================================================ */
-// Free functions: @Operator Interface {
+/* @Section 5.1: Primary Path Access / | */
+/* ------------------------------------------------------------------------ */
 
 // Value and MutableValue path operators
 // `json / path` --> `json.pathto(path)`
@@ -2227,8 +2221,8 @@ inline auto operator|(const jsonT& json, Func&& func) -> decltype(func(json))
     return json.pipe(std::forward<Func>(func));
 }
 
-/**************************************************************/
-// Unary operators for Value and MutableValue Document and MutableDocument
+/* @Section 5.2: Unary + - ~ */
+/* ------------------------------------------------------------------------ */
 
 // `+json` --> `json.toNumber()`
 template<typename jsonT>
@@ -2281,8 +2275,8 @@ inline Document operator~(const MutableDocument& doc)
     return doc.freeze();
 }
 
-/**************************************************************/
-// Comparison operators for Value & Document
+/* @Section 5.3: Comparison == */
+/* ------------------------------------------------------------------------ */
 
 // Value and MutableValue comparison operators
 template<typename jsonT>
@@ -2314,8 +2308,23 @@ operator!=(const docT& lhs, const docT& rhs)
     return !lhs.equal(rhs);
 }
 
-/**************************************************************/
-// MutableDocument create MutableValue and bind KeyValue
+// Iterator comparison operators
+template<typename iteratorT>
+inline typename std::enable_if<is_iterator<iteratorT>::value, bool>::type
+operator==(const iteratorT& lhs, const iteratorT& rhs)
+{
+    return lhs.equal(rhs);
+}
+
+template<typename iteratorT>
+inline typename std::enable_if<is_iterator<iteratorT>::value, bool>::type
+operator!=(const iteratorT& lhs, const iteratorT& rhs)
+{
+    return !lhs.equal(rhs);
+}
+
+/* @Section 5.4: Create and Bind KeyValue * */
+/* ------------------------------------------------------------------------ */
 
 // `doc * value` --> `doc.create(value)`
 template <typename T>
@@ -2375,8 +2384,8 @@ inline KeyValue operator*(char(&key)[N], const MutableValue& value)
     return value.tag(key);
 }
 
-/**************************************************************/
-// Stream operators
+/* @Section 5.5: Stream and Input << >> */
+/* ------------------------------------------------------------------------ */
 
 // `doc << input` --> `doc.read(input)`
 template<typename docT, typename T>
@@ -2471,8 +2480,8 @@ inline MutableValue& operator<<(MutableValue&& json, const KeyValue& kv)
     return json.add(kv);
 }
 
-/* ---------------------------------------------------------- */
-// Iterator creation and operation
+/* @Section 5.6: Iterator Creation and Operation % ++ */
+/* ------------------------------------------------------------------------ */
 
 // Array iterator creation (json % int)
 // `json % index` --> `json.arrayIter(index)`
@@ -2546,29 +2555,12 @@ operator%(iteratorT& iter, const T& target)
     return copy.seek(target);
 }
 
-// Iterator comparison operators
+/* @Part 6: Last Definitions */
+/* ======================================================================== */
 
-template<typename iteratorT>
-inline typename std::enable_if<is_iterator<iteratorT>::value, bool>::type
-operator==(const iteratorT& lhs, const iteratorT& rhs)
-{
-    return lhs.equal(rhs);
-}
-
-template<typename iteratorT>
-inline typename std::enable_if<is_iterator<iteratorT>::value, bool>::type
-operator!=(const iteratorT& lhs, const iteratorT& rhs)
-{
-    return !lhs.equal(rhs);
-}
-
-// @Operator Interface }
-
-/**************************************************************/
 // Convenience macro for key-value pair construction
-
 #define KV(key, value) std::make_pair(key, value)
 
-} // namespace yyjson
+} /* end of namespace yyjson:: */
 
-#endif /* end of include guard: YYJSON_OPERATOR_H__ */
+#endif /* end of include guard: XYJSON_H__ */
