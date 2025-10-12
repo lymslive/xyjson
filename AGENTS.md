@@ -43,7 +43,14 @@ xyjson is a C++ wrapper library around the yyjson C library, providing operator-
 
 - `include/xyjson.h`: Single-header implementation (both declarations and inline implementations)
 - `src/xyjson.cpp`: Out-of-line implementations for larger methods
-- `utest/t_xyjson.cpp`: Comprehensive test suite using couttast framework
+- `utest/`: Modular test suite using couttast framework
+  - `t_experiment.cpp`: Experimental feature tests
+  - `t_basic.cpp`: Basic functionality tests (reading, comparison, error handling)
+  - `t_mutable.cpp`: Mutable document operations tests
+  - `t_stream.cpp`: Stream operations tests
+  - `t_iterator.cpp`: Iterator functionality tests
+  - `t_conversion.cpp`: Type conversion tests
+  - `t_advanced.cpp`: Advanced feature tests
 
 ### Dependencies Configuration
 
@@ -60,8 +67,16 @@ xyjson is a C++ wrapper library around the yyjson C library, providing operator-
 
 ### Testing Philosophy
 
-The test suite (`t_xyjson.cpp`) serves as both:
+The modular test suite serves as both:
 1. **Validation**: Ensuring functionality works correctly
 2. **Documentation**: Demonstrating usage patterns through examples
 
-Tests are organized by functionality groups and use the couttast framework's `DEF_TAST` macros.
+Tests are organized by functionality groups:
+- **Basic Operations**: Reading, error handling, comparison operators
+- **Mutable Operations**: Document modification, assignment, object/array manipulation
+- **Stream Operations**: File I/O, standard stream integration
+- **Iterators**: Array/object iteration patterns, operator overloads
+- **Type Conversion**: String/number conversion, unary operators
+- **Advanced Features**: Pipe operations, type traits
+
+All tests use the couttast framework's `DEF_TAST` macros and can be run individually or as a group.

@@ -64,7 +64,13 @@ target_link_libraries(xyjson PUBLIC yyjson)
 
 # Source files for test executable
 set(TEST_SOURCES
-    utest/t_xyjson.cpp
+    utest/t_basic.cpp
+    utest/t_mutable.cpp
+    utest/t_stream.cpp
+    utest/t_iterator.cpp
+    utest/t_conversion.cpp
+    utest/t_advanced.cpp
+    utest/t_experiment.cpp
 )
 
 # Create test executable
