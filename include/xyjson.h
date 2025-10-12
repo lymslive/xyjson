@@ -19,6 +19,51 @@
 #include <yyjson.h>
 #include <functional>
 
+/* Table of Content (TOC) */
+/* ======================================================================== */
+/* Part 1: Front Definitions                                       Line: 70 */
+/* Part 2: Class Definitions                                       Line: 85 */
+/*   Section 2.1: Read-only Json Model                             Line: 88 */
+/*   Section 2.2: Mutable Json Model                              Line: 282 */
+/*   Section 2.3: Helper Class for Mutable Json                   Line: 594 */
+/*   Section 2.4: Iterator Json                                   Line: 642 */
+/*   Section 2.5: Type Traits                                     Line: 903 */
+/* Part 3: Non-Class Functions                                    Line: 952 */
+/*   Section 3.1: Underlying yyjson_mut_val Creation              Line: 955 */
+/* Part 4: Class Implementations                                 Line: 1076 */
+/*   Section 4.1: Value Methods                                  Line: 1079 */
+/*     Group 4.1.1: get and getor                                Line: 1082 */
+/*     Group 4.1.2: size and index/path                          Line: 1155 */
+/*     Group 4.1.3: create iterator                              Line: 1195 */
+/*     Group 4.1.4: others                                       Line: 1242 */
+/*   Section 4.2: Document Methods                               Line: 1277 */
+/*   Section 4.3: MutableValue Methods                           Line: 1321 */
+/*     Group 4.3.1: get and getor                                Line: 1324 */
+/*     Group 4.3.2: size and index/path                          Line: 1397 */
+/*     Group 4.3.3: assignment set                               Line: 1466 */
+/*     Group 4.3.4: array append                                 Line: 1592 */
+/*     Group 4.3.5: object add                                   Line: 1626 */
+/*     Group 4.3.6: tag create KeyValue                          Line: 1673 */
+/*     Group 4.3.7: smart input                                  Line: 1707 */
+/*     Group 4.3.8: create iterator                              Line: 1776 */
+/*     Group 4.3.9: others                                       Line: 1823 */
+/*   Section 4.4: MutableDocument Methods                        Line: 1858 */
+/*     Group 4.4.1: primary manage                               Line: 1861 */
+/*     Group 4.4.2: create mutable value                         Line: 1921 */
+/*   Section 4.5: ArrayIterator Methods                          Line: 1959 */
+/*   Section 4.6: ObjectIterator Methods                         Line: 2006 */
+/*   Section 4.7: MutableArrayIterator Methods                   Line: 2077 */
+/*   Section 4.8: MutableObjectIterator Methods                  Line: 2130 */
+/* Part 5: Operator Interface                                    Line: 2204 */
+/*   Section 5.1: Primary Path Access / |                        Line: 2207 */
+/*   Section 5.2: Unary + - ~                                    Line: 2269 */
+/*   Section 5.3: Comparison ==                                  Line: 2323 */
+/*   Section 5.4: Create and Bind KeyValue *                     Line: 2371 */
+/*   Section 5.5: Stream and Input << >>                         Line: 2432 */
+/*   Section 5.6: Iterator Creation and Operation % ++           Line: 2528 */
+/* Part 6: Last Definitions                                      Line: 2603 */
+/* ======================================================================== */
+
 namespace yyjson
 {
 

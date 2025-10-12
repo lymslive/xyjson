@@ -41,7 +41,16 @@ xyjson is a C++ wrapper library around the yyjson C library, providing operator-
 
 ### File Structure Significance
 
-- `include/xyjson.h`: Single-header implementation (both declarations and inline implementations)
+- `include/xyjson.h`: Single-header implementation with structured organization
+  - **Table of Content**: 自动生成的目录表，便于导航
+  - **Part 1**: 前置定义 (forward declarations)
+  - **Part 2**: 类定义 (class definitions)
+    - *Section 2.1-2.5*: 只读/可变模型、迭代器、类型特征
+  - **Part 3**: 非类函数 (non-class functions)
+  - **Part 4**: 类实现 (class implementations)
+    - *Section 4.1-4.8*: 各组件方法实现，按功能分组
+  - **Part 5**: 操作符接口 (operator interface)
+  - **Part 6**: 最后定义 (last definitions)
 - `src/xyjson.cpp`: Out-of-line implementations for larger methods
 - `utest/`: Modular test suite using couttast framework
   - `t_experiment.cpp`: Experimental feature tests
@@ -51,6 +60,7 @@ xyjson is a C++ wrapper library around the yyjson C library, providing operator-
   - `t_iterator.cpp`: Iterator functionality tests
   - `t_conversion.cpp`: Type conversion tests
   - `t_advanced.cpp`: Advanced feature tests
+- `script/gen_toc.pl`: Automated TOC generator for header file structure maintenance
 
 ### Dependencies Configuration
 
