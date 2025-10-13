@@ -60,12 +60,16 @@
 // 链式访问
 int value = doc / "user" / "profile" / "age" | 0;
 
-// JSON Pointer 语法（支持斜杠分隔）
-int value = doc / "user/profile/age" | 0;
-int value = doc / "/user/profile/age" | 0;  // 标准 JSON Pointer
+// JSON Pointer 语法（必须以 `/` 开头）
+int value = doc / "/user/profile/age" | 0;  // 标准 JSON Pointer（推荐）
 
 // 数组索引
 std::string item = doc / "items" / 2 | "";
+
+// ⚠️ 重要注意事项：
+// 多层路径必须以 '/' 开头，否则会被视为单层索引
+int value1 = doc / "/user/profile/age" | 0;  // ✅ 正确：使用标准 JSON Pointer
+int value2 = doc / "user/profile/age" | 0;   // ❌ 错误：会被当作单层键名查找
 ```
 
 ### 2. 值提取操作符 `|`
@@ -407,14 +411,27 @@ if (json / "path" >> value) {
 
 ## 最佳实践
 
-### 1. 选择合适的模式
+### 1. 路径访问优化
+- **多层路径**：必须使用 `/` 开头的标准 JSON Pointer 语法
+  ```cpp
+  // ✅ 正确用法
+  doc / "/user/profile/age" | 0;
+  doc / "/config/settings/theme" | "";
+  
+  // ❌ 错误用法
+  doc / "user/profile/age" | 0;      // 会被当作单层键名
+  doc / "config/settings/theme" | ""; // 同上
+  ```
+- **链式访问**：对于固定路径，链式访问更直观
+  ```cpp
+  // 链式访问（推荐用于固定路径）
+  doc / "user" / "profile" / "age" | 0;
+  ```
+
+### 2. 选择合适的模式
 - **只读操作**：使用 `Document` 和 `Value`
 - **修改操作**：使用 `MutableDocument` 和 `MutableValue`
 - **混合场景**：通过 `~` 操作符在两种模式间转换
-
-### 2. 路径访问优化
-- 对于深层嵌套，考虑缓存中间路径
-- 使用 JSON Pointer 语法处理动态路径
 
 ### 3. 字符串处理
 - 优先使用字符串字面量以获得引用优化
@@ -423,6 +440,10 @@ if (json / "path" >> value) {
 ### 4. 批量操作
 - 使用 `create()` 方法预创建节点
 - 利用 KeyValue 优化减少重复操作
+
+### 5. JSON Pointer 转义规则
+- `/` 字符转义为 `~1`：`doc / "/a~1b" | ""` 对应键名 `"a/b"`
+- `~` 字符转义为 `~0`：`doc / "/c~0d" | ""` 对应键名 `"c~d"`
 
 ## 总结
 

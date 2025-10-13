@@ -24,48 +24,48 @@
 /* Part 1: Front Definitions                                       Line: 74 */
 /* Part 2: Class Definitions                                       Line: 89 */
 /*   Section 2.1: Read-only Json Model                             Line: 92 */
-/*   Section 2.2: Mutable Json Model                              Line: 285 */
-/*   Section 2.3: Helper Class for Mutable Json                   Line: 596 */
-/*   Section 2.4: Iterator Json                                   Line: 644 */
-/*   Section 2.5: Type Traits                                     Line: 905 */
-/* Part 3: Non-Class Functions                                    Line: 954 */
-/*   Section 3.1: Underlying yyjson_mut_val Creation              Line: 957 */
-/*   Section 3.2: Conversion Helper Functions                    Line: 1078 */
-/* Part 4: Class Implementations                                 Line: 1131 */
-/*   Section 4.1: Value Methods                                  Line: 1134 */
-/*     Group 4.1.1: get and getor                                Line: 1137 */
-/*     Group 4.1.2: size and index/path                          Line: 1210 */
-/*     Group 4.1.3: create iterator                              Line: 1250 */
-/*     Group 4.1.4: others                                       Line: 1297 */
-/*   Section 4.2: Document Methods                               Line: 1332 */
-/*     Group 4.2.1: primary manage                               Line: 1335 */
-/*     Group 4.2.2: read and write                               Line: 1379 */
-/*   Section 4.3: MutableValue Methods                           Line: 1466 */
-/*     Group 4.3.1: get and getor                                Line: 1469 */
-/*     Group 4.3.2: size and index/path                          Line: 1542 */
-/*     Group 4.3.3: assignment set                               Line: 1611 */
-/*     Group 4.3.4: array append                                 Line: 1737 */
-/*     Group 4.3.5: object add                                   Line: 1771 */
-/*     Group 4.3.6: tag create KeyValue                          Line: 1818 */
-/*     Group 4.3.7: smart input                                  Line: 1852 */
-/*     Group 4.3.8: create iterator                              Line: 1921 */
-/*     Group 4.3.9: others                                       Line: 1968 */
-/*   Section 4.4: MutableDocument Methods                        Line: 2003 */
-/*     Group 4.4.1: primary manage                               Line: 2006 */
-/*     Group 4.4.2: read and write                               Line: 2066 */
-/*     Group 4.4.3: create mutable value                         Line: 2165 */
-/*   Section 4.5: ArrayIterator Methods                          Line: 2203 */
-/*   Section 4.6: ObjectIterator Methods                         Line: 2250 */
-/*   Section 4.7: MutableArrayIterator Methods                   Line: 2321 */
-/*   Section 4.8: MutableObjectIterator Methods                  Line: 2374 */
-/* Part 5: Operator Interface                                    Line: 2448 */
-/*   Section 5.1: Primary Path Access / |                        Line: 2451 */
-/*   Section 5.2: Unary + - ~                                    Line: 2513 */
-/*   Section 5.3: Comparison ==                                  Line: 2567 */
-/*   Section 5.4: Create and Bind KeyValue *                     Line: 2615 */
-/*   Section 5.5: Stream and Input << >>                         Line: 2676 */
-/*   Section 5.6: Iterator Creation and Operation % ++           Line: 2772 */
-/* Part 6: Last Definitions                                      Line: 2847 */
+/*   Section 2.2: Mutable Json Model                              Line: 298 */
+/*   Section 2.3: Helper Class for Mutable Json                   Line: 622 */
+/*   Section 2.4: Iterator Json                                   Line: 670 */
+/*   Section 2.5: Type Traits                                     Line: 931 */
+/* Part 3: Non-Class Functions                                    Line: 980 */
+/*   Section 3.1: Underlying yyjson_mut_val Creation              Line: 983 */
+/*   Section 3.2: Conversion Helper Functions                    Line: 1104 */
+/* Part 4: Class Implementations                                 Line: 1138 */
+/*   Section 4.1: Value Methods                                  Line: 1141 */
+/*     Group 4.1.1: get and getor                                Line: 1144 */
+/*     Group 4.1.2: size and index/path                          Line: 1217 */
+/*     Group 4.1.3: create iterator                              Line: 1264 */
+/*     Group 4.1.4: others                                       Line: 1311 */
+/*   Section 4.2: Document Methods                               Line: 1346 */
+/*     Group 4.2.1: primary manage                               Line: 1349 */
+/*     Group 4.2.2: read and write                               Line: 1393 */
+/*   Section 4.3: MutableValue Methods                           Line: 1480 */
+/*     Group 4.3.1: get and getor                                Line: 1483 */
+/*     Group 4.3.2: size and index/path                          Line: 1556 */
+/*     Group 4.3.3: assignment set                               Line: 1632 */
+/*     Group 4.3.4: array append                                 Line: 1758 */
+/*     Group 4.3.5: object add                                   Line: 1792 */
+/*     Group 4.3.6: tag create KeyValue                          Line: 1839 */
+/*     Group 4.3.7: smart input                                  Line: 1873 */
+/*     Group 4.3.8: create iterator                              Line: 1942 */
+/*     Group 4.3.9: others                                       Line: 1989 */
+/*   Section 4.4: MutableDocument Methods                        Line: 2024 */
+/*     Group 4.4.1: primary manage                               Line: 2027 */
+/*     Group 4.4.2: read and write                               Line: 2087 */
+/*     Group 4.4.3: create mutable value                         Line: 2186 */
+/*   Section 4.5: ArrayIterator Methods                          Line: 2224 */
+/*   Section 4.6: ObjectIterator Methods                         Line: 2271 */
+/*   Section 4.7: MutableArrayIterator Methods                   Line: 2342 */
+/*   Section 4.8: MutableObjectIterator Methods                  Line: 2395 */
+/* Part 5: Operator Interface                                    Line: 2469 */
+/*   Section 5.1: Primary Path Access / |                        Line: 2472 */
+/*   Section 5.2: Unary + - ~                                    Line: 2534 */
+/*   Section 5.3: Comparison ==                                  Line: 2588 */
+/*   Section 5.4: Create and Bind KeyValue *                     Line: 2636 */
+/*   Section 5.5: Stream and Input << >>                         Line: 2697 */
+/*   Section 5.6: Iterator Creation and Operation % ++           Line: 2793 */
+/* Part 6: Last Definitions                                      Line: 2868 */
 /* ======================================================================== */
 
 namespace yyjson
@@ -170,7 +170,6 @@ public:
     
     // Path operations. 
     // Like index in the simplest case, but can resolve deep path.
-    Value pathex(const char* path) const;
     Value pathto(const char* path) const;
     Value pathto(const std::string& path) const { return pathto(path.c_str()); }
     Value pathto(int idx) const { return index(idx); }
@@ -237,6 +236,20 @@ public:
     // Disable copy operations to prevent double-free issues
     Document(const Document&) = delete;
     Document& operator=(const Document&) = delete;
+    
+    // Enable move operations
+    Document(Document&& other) noexcept : m_doc(other.m_doc), m_root(std::move(other.m_root)) {
+        other.m_doc = nullptr;
+    }
+    Document& operator=(Document&& other) noexcept {
+        if (this != &other) {
+            free();
+            m_doc = other.m_doc;
+            m_root = std::move(other.m_root);
+            other.m_doc = nullptr;
+        }
+        return *this;
+    }
     
     // Error checking
     bool isValid() const { return m_doc != nullptr; }
@@ -387,7 +400,6 @@ public:
     MutableObjectIterator endObject() const;
     
     // Path operations
-    MutableValue pathex(const char* path) const;
     MutableValue pathto(const char* path) const;
     MutableValue pathto(const std::string& path) const { return pathto(path.c_str()); }
     MutableValue pathto(int idx) const { return index(idx); }
@@ -528,6 +540,20 @@ public:
     // Disable copy operations to prevent double-free issues
     MutableDocument(const MutableDocument&) = delete;
     MutableDocument& operator=(const MutableDocument&) = delete;
+    
+    // Enable move operations
+    MutableDocument(MutableDocument&& other) noexcept : m_doc(other.m_doc), m_root(std::move(other.m_root)) {
+        other.m_doc = nullptr;
+    }
+    MutableDocument& operator=(MutableDocument&& other) noexcept {
+        if (this != &other) {
+            free();
+            m_doc = other.m_doc;
+            m_root = std::move(other.m_root);
+            other.m_doc = nullptr;
+        }
+        return *this;
+    }
 
     // Error checking
     bool isValid() const { return m_doc != nullptr; }
@@ -1223,9 +1249,16 @@ inline Value Value::index(const std::string& key) const
 
 inline Value Value::pathto(const char* path) const
 {
-    auto result = index(path);
-    if (result.isValid()) { return result; }
-    return pathex(path);
+    if (!path || !*path) return *this;
+    
+    if (*path == '/') {
+        // JSON Pointer support
+        yyjson_val* result = yyjson_ptr_get(m_val, path);
+        return Value(result);
+    }
+    
+    // Single level indexing for backward compatibility
+    return index(path);
 }
 
 /* @Group 4.1.3: create iterator */
@@ -1584,9 +1617,16 @@ inline MutableValue MutableValue::index(const std::string& key)
 
 inline MutableValue MutableValue::pathto(const char* path) const
 {
-    auto result = index(path);
-    if (result.isValid()) { return result; }
-    return pathex(path);
+    if (!path || !*path) return *this;
+    
+    if (*path == '/') {
+        // JSON Pointer support
+        yyjson_mut_val* result = yyjson_mut_ptr_get(m_val, path);
+        return MutableValue(result, m_doc);
+    }
+    
+    // Single level indexing for backward compatibility
+    return index(path);
 }
 
 /* @Group 4.3.3: assignment set */

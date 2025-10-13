@@ -357,6 +357,58 @@ cd build && cmake .. && make
 - **渐进式重构**: 保持功能完整性，分步删除旧代码
 - **代码复用**: 消除重复代码，提高维护性
 
+### 任务ID: 20251013-174921
+- **任务类型**: 重构/优化
+- **任务状态**: 已完成
+- **执行AI**: DeepSeek-V3.1
+
+#### 任务需求
+完成 TODO 2025-10-13/3 的第三阶段 head-only 化重构，实现完全 head-only 库：
+1. 使用 yyjson 标准 JSON Pointer API 替换自定义的 `pathex` 方法
+2. 修改 `pathto` 方法支持标准 JSON Pointer 格式（必须以 `/` 开头）
+3. 删除 `src/xyjson.cpp` 文件，实现完全 head-only 化
+4. 优化 CMake 配置支持 `find_package` 集成
+5. 更新文档反映纯头文件库特性
+
+#### 执行过程
+**1. JSON Pointer 集成**
+- 使用 `yyjson_ptr_get` 和 `yyjson_mut_ptr_get` API 替换自定义路径解析
+- 修改 `pathto` 方法：空路径返回当前值，`/` 开头使用 JSON Pointer，其他情况保持单层索引
+- 删除 `pathex` 方法声明和实现
+
+**2. 完全 head-only 化**
+- 删除 `src/xyjson.cpp` 文件
+- 将 xyjson 改为 INTERFACE 库，不再编译静态库
+
+**3. CMake 配置优化**
+- 创建 `cmake/xyjsonConfig.cmake` 和 `xyjsonConfigVersion.cmake`
+- 支持 `find_package(xyjson REQUIRED)` 标准集成
+- 更新安装配置，导出 xyjson::xyjson 目标
+
+**4. 测试用例完善**
+- 新增 `basic_json_pointer` 测试用例，全面测试 JSON Pointer 功能
+- 更新现有测试适应新路径处理逻辑
+- 验证所有测试用例通过（32/32）
+
+**5. 文档更新**
+- 更新 README.md、docs/xyjson_userguide.md 突出显示纯头文件库特性
+- 更新 docs/xyjson_operator.md 明确 JSON Pointer 使用规则
+- 更新 utest/README.md 测试用例表格
+
+#### 完成成果
+- ✅ 完全 head-only 库实现，删除所有 cpp 源文件
+- ✅ JSON Pointer 标准集成，替换自定义路径解析
+- ✅ `find_package` 支持，实现标准 CMake 集成
+- ✅ 32/32 测试用例全部通过，新增 JSON Pointer 功能测试
+- ✅ 文档全面更新，准确反映重构后特性
+- ✅ 移动构造函数修复，解决 `mutate()` 和 `freeze()` 编译错误
+
+#### 技术要点
+- **标准兼容**: 使用 yyjson 标准 JSON Pointer API，符合 RFC 6901
+- **向后兼容**: 单层路径索引继续正常工作
+- **性能优化**: 避免自定义路径解析，直接使用系统库功能
+- **易于集成**: 纯头文件库，支持 `find_package` 和直接拷贝两种使用方式
+
 ---
 
 *日志维护：请按此格式记录后续 AI 协作任务*

@@ -4,22 +4,7 @@
 
 ## 快速开始
 
-### 安装依赖
-```bash
-# 安装 yyjson （或从源码安装）
-sudo apt-get install libyyjson-dev
-```
-
-### 构建项目
-```bash
-mkdir build && cd build
-cmake .. && make
-```
-
-如果没有预安装依赖库，cmake 构建过程中默认也会自动下载依赖，如果因网络或其他原因不想自动下载，可传入参数禁用之（当然这可能构建失败）：
-```bash
-cmake .. -DUSE_FETCHCONTENT=OFF
-```
+纯头文件库，可以只拷贝 include/xyjson.h 到项目中，也支持标准 cmake 集成。
 
 ### 基本使用
 ```cpp
@@ -168,23 +153,6 @@ int main() {
     
     return 0;
 }
-```
-
-## 构建和测试
-
-### 构建静态库
-```bash
-cmake -B build && cmake --build build
-```
-
-### 运行测试
-```bash
-./build/utxyjson --cout=silent
-```
-
-### 安装
-```bash
-sudo cmake --install build
 ```
 
 ## 参考资源

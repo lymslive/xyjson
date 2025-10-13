@@ -11,28 +11,32 @@ C++ 封装的 JSON 操作库，基于高性能 [yyjson](https://github.com/ibire
 - ✨ **直观语法** - 丰富的操作符重载，类似原生 C++
 - 🔒 **类型安全** - 编译时类型检查，运行时安全提取
 - 📚 **完整功能** - 支持读/写、迭代、文件操作等
-- 🛠️ **易于集成** - 头文件库，CMake 构建支持
+- 🛠️ **易于集成** - **纯头文件库**，CMake 构建支持，支持 `find_package` 集成
 
 ## 快速开始
 
-### 安装依赖
-
-确保系统已安装 yyjson：
+先确保系统已安装 yyjson ，可从源码安装或用系统包管理工具：
 ```bash
 # Ubuntu/Debian
 sudo apt-get install libyyjson-dev
-
-# 或从源码安装到 /usr/local/include/yyjson.h
 ```
 
-### 集成到项目
+### 集成到项目（纯头文件库）
 
-1. 复制头文件到项目：
+**方式一：直接拷贝头文件（推荐）**
 ```bash
+# 只需拷贝单个头文件
 cp include/xyjson.h your-project/include/
 ```
 
-2. 在代码中使用：
+**方式二：使用 CMake find_package 集成**
+```cmake
+# 在 CMakeLists.txt 中使用
+find_package(xyjson REQUIRED)
+target_link_libraries(your-target PRIVATE xyjson::xyjson)
+```
+
+**在代码中使用：**
 ```cpp
 #include "xyjson.h"
 
@@ -129,16 +133,6 @@ for (auto iter = doc / "user" % ""; iter; ++iter) {
 
 ## 构建选项
 
-### CMake 目标
-
-```cmake
-# 链接静态库
-target_link_libraries(your-target xyjson)
-
-# 或直接包含头文件
-target_include_directories(your-target PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-```
-
 ### 编译选项
 
 - **C++ 标准**: C++17 或更高
@@ -195,11 +189,10 @@ cd build
 
 ```
 xyjson/
-├── include/xyjson.h     # 主头文件
-├── src/xyjson.cpp       # 实现文件
-├── utest/t_xyjson.cpp   # 单元测试
+├── include/xyjson.h     # 主头文件（纯头文件库）
+├── utest/               # 单元测试
 ├── docs/                # 详细文档
-└── CMakeLists.txt       # 构建配置
+└── CMakeLists.txt       # 构建配置（支持 find_package）
 ```
 
 ## 贡献

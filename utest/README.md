@@ -4,17 +4,24 @@
 
 ## 测试文件结构
 
-单元测试文件按照功能模块进行拆分，每个文件对应特定的功能区域：
+单元测试文件按照功能模块进行拆分：
 
-| 测试文件 | 功能描述 | 用例数量 |
-|---------|---------|---------|
-| `t_experiment.cpp` | 实验性功能和重载规则测试 | 1 |
-| `t_basic.cpp` | 只读 json 模型基础功能测试 | 6 |
-| `t_mutable.cpp` | 可写 json 模型操作测试 | 11 |
-| `t_stream.cpp` | json 文档流操作测试 | 4 |
-| `t_iterator.cpp` | 迭代器功能测试 | 4 |
-| `t_conversion.cpp` | 类型转换测试 | 3 |
-| `t_advanced.cpp` | 其他高级功能测试 | 2 |
+- `t_experiment.cpp` - 实验性功能和重载规则测试
+- `t_basic.cpp` - 只读 json 模型基础功能测试
+- `t_mutable.cpp` - 可写 json 模型操作测试
+- `t_stream.cpp` - json 文档流操作测试
+- `t_iterator.cpp` - 迭代器功能测试
+- `t_conversion.cpp` - 类型转换测试
+- `t_advanced.cpp` - 其他高级功能测试
+
+### 贡献指南
+
+添加新测试时，请遵循以下准则：
+1. 根据功能模块选择对应的测试文件
+2. 测试用例名称使用 `模块_功能` 的命名格式
+3. 为测试用例提供清晰的描述
+4. 确保测试独立且可重复
+5. 遵循现有代码风格和格式
 
 ## 命令行用法
 
@@ -65,7 +72,8 @@
 | `basic_error_handling` | `t_basic.cpp` | 165 | handle path operator error |
 | `basic_reread` | `t_basic.cpp` | 218 | test re-read document |
 | `basic_index_operator` | `t_basic.cpp` | 245 | test index method and operator[] |
-| `basic_comparison_operators` | `t_basic.cpp` | 355 | test comparison operators |
+| `basic_comparison_operators` | `t_basic.cpp` | 357 | test comparison operators |
+| `basic_json_pointer` | `t_basic.cpp` | 444 | test JSON Pointer functionality |
 | `mutable_read_modify` | `t_mutable.cpp` | 26 | test read-modify workflow |
 | `mutable_value_input` | `t_mutable.cpp` | 66 | test input operator << for mutable value |
 | `mutable_assign_copy` | `t_mutable.cpp` | 130 | test = and copy behavior of yyjson wrapper classes |
@@ -91,12 +99,3 @@
 | `advanced_pipe` | `t_advanced.cpp` | 57 | test pipe() method and | operator with functions |
 | `advanced_trait` | `t_advanced.cpp` | 197 | test type traits for yyjson wrapper classes |
 | `experiment_overload` | `t_experiment.cpp` | 85 | test overload rule |
-
-## 贡献指南
-
-添加新测试时，请遵循以下准则：
-1. 根据功能模块选择对应的测试文件
-2. 测试用例名称使用 `模块_功能` 的命名格式
-3. 为测试用例提供清晰的描述
-4. 确保测试独立且可重复
-5. 遵循现有代码风格和格式

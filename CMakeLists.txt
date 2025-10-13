@@ -52,15 +52,13 @@ else()
     message(STATUS "Found couttast via find_package")
 endif()
 
-# Source files for static library
-set(LIB_SOURCES
-    src/xyjson.cpp
+# Create interface library for header-only xyjson
+add_library(xyjson INTERFACE)
+target_include_directories(xyjson INTERFACE 
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
 )
-
-# Create static library
-add_library(xyjson STATIC ${LIB_SOURCES})
-target_include_directories(xyjson PUBLIC include)
-target_link_libraries(xyjson PUBLIC yyjson)
+target_link_libraries(xyjson INTERFACE yyjson)
 
 # Source files for test executable
 set(TEST_SOURCES
@@ -77,12 +75,28 @@ set(TEST_SOURCES
 add_executable(utxyjson ${TEST_SOURCES})
 target_link_libraries(utxyjson PRIVATE xyjson couttast)
 
-# Install library and headers
-install(TARGETS xyjson
-    ARCHIVE DESTINATION lib
-)
-
+# Install headers only for header-only library
 install(DIRECTORY include/
     DESTINATION include
     FILES_MATCHING PATTERN "*.h"
+)
+
+# Install CMake configuration files
+install(FILES
+    cmake/xyjsonConfig.cmake
+    cmake/xyjsonConfigVersion.cmake
+    DESTINATION lib/cmake/xyjson
+)
+
+# Export the target for use from the install tree
+install(TARGETS xyjson
+    EXPORT xyjsonTargets
+    INCLUDES DESTINATION include
+)
+
+# Install the export set
+install(EXPORT xyjsonTargets
+    FILE xyjsonTargets.cmake
+    NAMESPACE xyjson::
+    DESTINATION lib/cmake/xyjson
 )
