@@ -1,6 +1,6 @@
 # 项目开发原始需求管理
 
-本文档由人工维护，**AI受限编辑** ，仅允许在每个 `## TODO ` 下加个子标题 `### DONE` 关联 `ai_request.log.md` 的完成记录。
+本文档由人工维护，**AI受限编辑** ，仅允许在每个 `## TODO ` 下加个子标题 `### DONE` 关联 `ai_request.log.md` 的完成任务ID记录。
 
 需求ID 格式：`TODO yyyy-mm-dd/n` ，日期/编号。日期表示头脑风暴冒出该需求想法的
 日期，若一天中产出多个想法则加编号。仅有初步概念但未细化的需求暂不加日期 id ，
@@ -65,6 +65,24 @@ utest/t_xyjson.cpp 文件。
 
 虽然我的第一想法是放在头文件的 namespace yyjson 后面，但这可以再议。请从代码可
 读性及 AI Agent 方便读取掌握代码结构等角度分析放哪里更好。
+
+### DONE: 20251012-220000
+
+## TODO 2025-10-12/3: 常用命令 make 配置集成
+
+本项目使用 cmake 作为构建系统。但我想在根目录再放个简单的 makefile ，用于收集、
+配置在开发中常用命令，简化命令输入，包含调用 cmake 做真正的构建。
+
+期望 makiefile 包含如下伪目标：
+- build: 调用标准构建命令，进入 build 子目录执行 cmake 与 make
+- test: 依赖 build ，再执行 ./build/utxyjson --cout=silent
+- insall: 依赖 build ，进入 build 子目录执行 make install 安装
+- clean: 删除 build 构建目录，以便重新构建
+- toc: 调用 script/gen_toc.pl 同步头文件目录，回答 y 跳过交互
+- help: 打印可用伪目标的 make 命令及简要描述
+- 默认目标：无参 make 也相当于 make help
+
+### DONE: 20251013-095233
 
 ## TODO 2025-10-13/1: 完全 head-only 化之一
 
