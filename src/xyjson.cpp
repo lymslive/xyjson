@@ -58,43 +58,6 @@ Value Value::pathex(const char* path) const
     return Value(current);
 }
 
-int Value::toNumberCast() const
-{
-    if (isString()) {
-        const char* str = yyjson_get_str(m_val);
-        if (!str) return 0;
-
-        try {
-            return std::stoi(str);
-        } catch (...) {
-            return 0;
-        }
-    }
-
-    if (isInt())
-    {
-        return getor(0);
-    }
-    if (isBool())
-    {
-        return getor(false);
-    }
-    if (isSint())
-    {
-        return getor(int64_t(0));
-    }
-    if (isUint())
-    {
-        return getor(uint64_t(0));
-    }
-    if (isReal())
-    {
-        return getor(0.0);
-    }
-
-    return 0;
-}
-
 /**************************************************************/
 // Path operator implementation for MutableValue
 
@@ -147,43 +110,5 @@ MutableValue MutableValue::pathex(const char* path) const
     
     return MutableValue(current, m_doc);
 }
-
-int MutableValue::toNumberCast() const
-{
-    if (isString()) {
-        const char* str = yyjson_mut_get_str(m_val);
-        if (!str) return 0;
-
-        try {
-            return std::stoi(str);
-        } catch (...) {
-            return 0;
-        }
-    }
-
-    if (isInt())
-    {
-        return getor(0);
-    }
-    if (isBool())
-    {
-        return getor(false);
-    }
-    if (isSint())
-    {
-        return getor(int64_t(0));
-    }
-    if (isUint())
-    {
-        return getor(uint64_t(0));
-    }
-    if (isReal())
-    {
-        return getor(0.0);
-    }
-
-    return 0;
-}
-
 
 } // namespace yyjson

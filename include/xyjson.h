@@ -21,50 +21,51 @@
 
 /* Table of Content (TOC) */
 /* ======================================================================== */
-/* Part 1: Front Definitions                                       Line: 73 */
-/* Part 2: Class Definitions                                       Line: 88 */
-/*   Section 2.1: Read-only Json Model                             Line: 91 */
+/* Part 1: Front Definitions                                       Line: 74 */
+/* Part 2: Class Definitions                                       Line: 89 */
+/*   Section 2.1: Read-only Json Model                             Line: 92 */
 /*   Section 2.2: Mutable Json Model                              Line: 285 */
-/*   Section 2.3: Helper Class for Mutable Json                   Line: 597 */
-/*   Section 2.4: Iterator Json                                   Line: 645 */
-/*   Section 2.5: Type Traits                                     Line: 906 */
-/* Part 3: Non-Class Functions                                    Line: 955 */
-/*   Section 3.1: Underlying yyjson_mut_val Creation              Line: 958 */
-/* Part 4: Class Implementations                                 Line: 1079 */
-/*   Section 4.1: Value Methods                                  Line: 1082 */
-/*     Group 4.1.1: get and getor                                Line: 1085 */
-/*     Group 4.1.2: size and index/path                          Line: 1158 */
-/*     Group 4.1.3: create iterator                              Line: 1198 */
-/*     Group 4.1.4: others                                       Line: 1245 */
-/*   Section 4.2: Document Methods                               Line: 1280 */
-/*     Group 4.2.1: primary manage                               Line: 1283 */
-/*     Group 4.2.2: read and write                               Line: 1327 */
-/*   Section 4.3: MutableValue Methods                           Line: 1414 */
-/*     Group 4.3.1: get and getor                                Line: 1417 */
-/*     Group 4.3.2: size and index/path                          Line: 1490 */
-/*     Group 4.3.3: assignment set                               Line: 1559 */
-/*     Group 4.3.4: array append                                 Line: 1685 */
-/*     Group 4.3.5: object add                                   Line: 1719 */
-/*     Group 4.3.6: tag create KeyValue                          Line: 1766 */
-/*     Group 4.3.7: smart input                                  Line: 1800 */
-/*     Group 4.3.8: create iterator                              Line: 1869 */
-/*     Group 4.3.9: others                                       Line: 1916 */
-/*   Section 4.4: MutableDocument Methods                        Line: 1951 */
-/*     Group 4.4.1: primary manage                               Line: 1954 */
-/*     Group 4.4.2: read and write                               Line: 2014 */
-/*     Group 4.4.3: create mutable value                         Line: 2113 */
-/*   Section 4.5: ArrayIterator Methods                          Line: 2151 */
-/*   Section 4.6: ObjectIterator Methods                         Line: 2198 */
-/*   Section 4.7: MutableArrayIterator Methods                   Line: 2269 */
-/*   Section 4.8: MutableObjectIterator Methods                  Line: 2322 */
-/* Part 5: Operator Interface                                    Line: 2396 */
-/*   Section 5.1: Primary Path Access / |                        Line: 2399 */
-/*   Section 5.2: Unary + - ~                                    Line: 2461 */
-/*   Section 5.3: Comparison ==                                  Line: 2515 */
-/*   Section 5.4: Create and Bind KeyValue *                     Line: 2563 */
-/*   Section 5.5: Stream and Input << >>                         Line: 2624 */
-/*   Section 5.6: Iterator Creation and Operation % ++           Line: 2720 */
-/* Part 6: Last Definitions                                      Line: 2795 */
+/*   Section 2.3: Helper Class for Mutable Json                   Line: 596 */
+/*   Section 2.4: Iterator Json                                   Line: 644 */
+/*   Section 2.5: Type Traits                                     Line: 905 */
+/* Part 3: Non-Class Functions                                    Line: 954 */
+/*   Section 3.1: Underlying yyjson_mut_val Creation              Line: 957 */
+/*   Section 3.2: Conversion Helper Functions                    Line: 1078 */
+/* Part 4: Class Implementations                                 Line: 1131 */
+/*   Section 4.1: Value Methods                                  Line: 1134 */
+/*     Group 4.1.1: get and getor                                Line: 1137 */
+/*     Group 4.1.2: size and index/path                          Line: 1210 */
+/*     Group 4.1.3: create iterator                              Line: 1250 */
+/*     Group 4.1.4: others                                       Line: 1297 */
+/*   Section 4.2: Document Methods                               Line: 1332 */
+/*     Group 4.2.1: primary manage                               Line: 1335 */
+/*     Group 4.2.2: read and write                               Line: 1379 */
+/*   Section 4.3: MutableValue Methods                           Line: 1466 */
+/*     Group 4.3.1: get and getor                                Line: 1469 */
+/*     Group 4.3.2: size and index/path                          Line: 1542 */
+/*     Group 4.3.3: assignment set                               Line: 1611 */
+/*     Group 4.3.4: array append                                 Line: 1737 */
+/*     Group 4.3.5: object add                                   Line: 1771 */
+/*     Group 4.3.6: tag create KeyValue                          Line: 1818 */
+/*     Group 4.3.7: smart input                                  Line: 1852 */
+/*     Group 4.3.8: create iterator                              Line: 1921 */
+/*     Group 4.3.9: others                                       Line: 1968 */
+/*   Section 4.4: MutableDocument Methods                        Line: 2003 */
+/*     Group 4.4.1: primary manage                               Line: 2006 */
+/*     Group 4.4.2: read and write                               Line: 2066 */
+/*     Group 4.4.3: create mutable value                         Line: 2165 */
+/*   Section 4.5: ArrayIterator Methods                          Line: 2203 */
+/*   Section 4.6: ObjectIterator Methods                         Line: 2250 */
+/*   Section 4.7: MutableArrayIterator Methods                   Line: 2321 */
+/*   Section 4.8: MutableObjectIterator Methods                  Line: 2374 */
+/* Part 5: Operator Interface                                    Line: 2448 */
+/*   Section 5.1: Primary Path Access / |                        Line: 2451 */
+/*   Section 5.2: Unary + - ~                                    Line: 2513 */
+/*   Section 5.3: Comparison ==                                  Line: 2567 */
+/*   Section 5.4: Create and Bind KeyValue *                     Line: 2615 */
+/*   Section 5.5: Stream and Input << >>                         Line: 2676 */
+/*   Section 5.6: Iterator Creation and Operation % ++           Line: 2772 */
+/* Part 6: Last Definitions                                      Line: 2847 */
 /* ======================================================================== */
 
 namespace yyjson
@@ -188,7 +189,6 @@ public:
     // Conversion methods
     std::string toString(bool quoteStr = false) const;
     int toNumber() const;
-    int toNumberCast() const;
     
     // Comparison method
     bool equal(const Value& other) const;
@@ -478,7 +478,6 @@ public:
     // Conversion methods
     std::string toString(bool quoteStr = false) const;
     int toNumber() const;
-    int toNumberCast() const;
     
     // Comparison method
     bool equal(const MutableValue& other) const;
@@ -1076,6 +1075,40 @@ inline yyjson_mut_val* create(yyjson_mut_doc* doc, const MutableDocument& src)
     return create(doc, src.root());
 }
 
+/* @Section 3.2: Conversion Helper Functions */
+/* ------------------------------------------------------------------------ */
+
+/// Convert JSON(Value or MutableValue) values to integers
+template<typename jsonT>
+inline typename std::enable_if<is_value<jsonT>::value, int>::type
+toNumberCast(const jsonT& val)
+{
+    if (!val.isValid()) return 0;
+    
+    if (val.isString()) {
+        const char* str = val | "";
+        return ::atoi(str);
+    }
+    
+    if (val.isInt()) {
+        return val.getor(0);
+    }
+    if (val.isBool()) {
+        return val.getor(false);
+    }
+    if (val.isSint()) {
+        return static_cast<int>(val.getor(int64_t(0)));
+    }
+    if (val.isUint()) {
+        return static_cast<int>(val.getor(uint64_t(0)));
+    }
+    if (val.isReal()) {
+        return static_cast<int>(val.getor(0.0));
+    }
+    
+    return 0;
+}
+
 /* @Part 4: Class Implementations */
 /* ======================================================================== */
 
@@ -1269,7 +1302,7 @@ inline int Value::toNumber() const
     {
         return static_cast<int>(size());
     }
-    return toNumberCast();
+    return yyjson::toNumberCast(*this);
 }
 
 inline bool Value::equal(const Value& other) const
@@ -1940,7 +1973,7 @@ inline int MutableValue::toNumber() const
     {
         return static_cast<int>(size());
     }
-    return toNumberCast();
+    return yyjson::toNumberCast(*this);
 }
 
 inline bool MutableValue::equal(const MutableValue& other) const

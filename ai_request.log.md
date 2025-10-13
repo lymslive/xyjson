@@ -313,6 +313,50 @@ cd build && cmake .. && make
 - **结构化管理**: 新分组帮助维护头文件可读性
 - **自动化工具**: 利用 `make toc` 保持文档同步
 
+### 任务ID: 20251013-140710
+- **任务类型**: 重构
+- **任务状态**: 已完成
+- **执行AI**: DeepSeek-V3.1
+
+#### 任务需求
+完成 TODO 2025-10-13/2 的第二阶段 head-only 化重构：
+1. 将 `toNumberCast` 重复实现重构为通用模板函数
+2. 修改 `toNumber()` 方法调用新模板函数，弃用 `toNumberCast` 方法
+3. 删除原 `toNumberCast` 方法声明和实现
+4. 验证功能完整性，确保所有测试通过
+
+#### 执行过程
+**1. 代码分析**
+- 发现 `Value::toNumberCast()` 和 `MutableValue::toNumberCast()` 方法高度重复
+- 两个类实现几乎相同，适合统一为模板函数
+
+**2. 模板函数设计**
+- 创建 `Section 3.2: Conversion Helper Functions` 分组
+- 实现 `toNumberCast` 模板函数，使用 `std::enable_if<is_value<T>::value, int>::type` 限制适用范围
+- 利用已有的 `is_value` 类型萃取特性确保类型安全
+
+**3. 方法重构**
+- 修改 `Value::toNumber()` 和 `MutableValue::toNumber()` 直接调用新模板函数
+- 从类声明中删除 `toNumberCast()` 方法
+- 从 `src/xyjson.cpp` 中删除 `toNumberCast` 相关实现
+
+**4. 问题修复**
+- 初始实现字符串转换过于严格，导致测试失败
+- 使用 `::atoi` 替代严格检查，保持与原实现一致的宽松转换语义
+
+#### 完成成果
+- ✅ `toNumberCast` 模板函数创建完成，支持 Value/MutableValue 类型
+- ✅ `Value::toNumber()` 和 `MutableValue::toNumber()` 方法重构完成
+- ✅ 原 `toNumberCast` 方法声明和实现完全删除
+- ✅ 构建测试通过：31/31 测试用例全部通过
+- ✅ 项目结构更接近完全 head-only 目标
+
+#### 技术要点
+- **模板特化**: 使用 `std::enable_if` 和 `is_value` 特性确保类型安全
+- **字符串转换**: 采用 `::atoi` 宽松转换，避免异常处理，符合 C++ 最佳实践
+- **渐进式重构**: 保持功能完整性，分步删除旧代码
+- **代码复用**: 消除重复代码，提高维护性
+
 ---
 
 *日志维护：请按此格式记录后续 AI 协作任务*
