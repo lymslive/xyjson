@@ -1,7 +1,7 @@
 # AI 协作任务需求日志
 
 ## 格式说明
-- **任务ID**: YYYYMMDD-HHMMSS
+- **任务ID**: YYYYMMDD-HHMMSS ，生成命令 `date +"%Y%m%d-%H%M%S"`
 - **任务类型**: 重构/开发/调试/优化/文档
 - **任务状态**: 已完成/进行中/待开始
 - **执行AI**: DeepSeek-V3.1
@@ -265,6 +265,53 @@ cd build && cmake .. && make
 - **工作流集成**: 封装常用开发命令为简单目标
 - **透明执行**: 命令执行过程可见，便于调试
 - **跨平台兼容**: 基于标准 make 工具
+
+---
+
+### 任务ID: 20251013-110656
+- **任务类型**: 重构
+- **任务状态**: 已完成
+- **执行AI**: DeepSeek-V3.1
+
+#### 任务需求
+完成 TODO 2025-10-13/1 的第一阶段 head-only 化重构：
+1. 将 Document/MutableDocument 类的 read/write 方法从 cpp 文件迁移到 header 文件
+2. 添加对应的 Group 分组管理移植的方法
+3. 更新 TOC 结构
+4. 验证构建和测试正常
+
+#### 执行过程
+**1. 方法迁移分析**
+- 识别 cpp 文件中需要迁移的 16 个 read/write 方法
+- Document 类：8 个方法（4个 read，4个 write）
+- MutableDocument 类：8 个对应方法
+- 均为较小函数，适合内联到头文件
+
+**2. 头文件重构**
+- 在 `Section 4.2: Document Methods` 下添加 `Group 4.2.2: read and write`
+- 在 `Section 4.4: MutableDocument Methods` 下添加 `Group 4.4.2: read and write`
+- 使用 `inline` 关键字确保头文件包含安全
+
+**3. 代码清理**
+- 从 `src/xyjson.cpp` 中删除已迁移的 read/write 方法实现
+- 避免重复定义导致的编译错误
+
+**4. TOC 更新**
+- 使用 `make toc` 命令自动更新 Table of Contents
+- 验证 TOC 正确包含新增的 Group 分组
+
+#### 完成成果
+- ✅ 16 个 read/write 方法成功迁移到头文件
+- ✅ 新增 2 个 Group 分组：`4.2.2` 和 `4.4.2`
+- ✅ TOC 自动更新，包含新分组信息
+- ✅ 构建测试通过：31/31 测试用例全部通过
+- ✅ 项目更接近完全 head-only 目标
+
+#### 技术要点
+- **渐进式重构**: 分阶段实现 head-only 化，保持代码稳定性
+- **内联优化**: 小函数适合内联，提升性能同时减少编译单元
+- **结构化管理**: 新分组帮助维护头文件可读性
+- **自动化工具**: 利用 `make toc` 保持文档同步
 
 ---
 

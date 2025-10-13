@@ -99,6 +99,10 @@ utest/t_xyjson.cpp 文件。
 其中第一块的代码比较容易迁移，都是一些较小的函数，可以拷回头文件加上 inline 前
 缀，分别置于 Section 4.2 与 Section 4.4 的位置，额外加次级 Group .
 
+修改 xyjson.h 后，可执行 make toc 命令同步更新目录。
+
+### DONE: 20251013-110656
+
 ## TODO 2025-10-13/2: 完全 head-only 化之二
 
 两个类的 toNumberCast 方法实现很类似，增加一个非类模板函数，模板类型参数适配
