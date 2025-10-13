@@ -83,6 +83,8 @@ utest/t_xyjson.cpp 文件。
 - 默认目标：无参 make 也相当于 make help
 
 ### DONE: 20251013-095233
+后期补充：
+增加 build/fast 与 test/fast 目标，可跳过重复 cmake .. 命令
 
 ## TODO 2025-10-13/1: 完全 head-only 化之一
 
@@ -145,3 +147,9 @@ cmake 也要相应调整，xyjson 目标不再需要编译为静态库，是纯�
 ## TODO: 设计模板类的 KeyValue 优化对象容器的插入
 
 ## TODO: 考虑条件编译宏过滤不用的功能
+
+## TODO: review 代码发现 bug 与可优化点
+
+- Document 互转会调用拷贝构造函数，但这是被禁用的
+- val.getor("") 编译失败，但 val | "" 成功
+- 单元测试识别指针比较改用 COUT_PTR 
