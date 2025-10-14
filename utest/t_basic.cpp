@@ -606,3 +606,84 @@ DEF_TAST(basic_json_pointer, "test JSON Pointer functionality")
     COUT(!(docArray / "/matrix/10/0"), true);
     COUT(!(docArray / "/matrix/0/10"), true);
 }
+
+DEF_TAST(basic_type_checking, "type checking with isType method and & operator")
+{
+    std::string jsonText = R"json({
+        "intVal": 42,
+        "floatVal": 3.14,
+        "boolVal": true,
+        "strVal": "hello",
+        "nullVal": null,
+        "arrayVal": [1, 2, 3],
+        "objectVal": {"key": "value"}
+    })json";
+
+    // Parse JSON using yyjson
+    yyjson::Document doc(jsonText);
+    COUT(doc.hasError(), false);
+
+    // Test isType method with basic types (now stricter type checking)
+    COUT(doc["intVal"].isType(0), true);      // integer type
+    COUT(doc["intVal"].isType(0.0), false);   // float type
+    COUT(doc["intVal"].isType(true), false);  // not boolean
+    COUT(doc["intVal"].isType(""), false);   // not string
+    COUT(doc["intVal"].isType(nullptr), false); // not null
+
+    COUT(doc["floatVal"].isType(0), false);   // float type
+    COUT(doc["floatVal"].isType(0.0), true);  // float type
+
+    COUT(doc["boolVal"].isType(true), true); // boolean type
+
+    COUT(doc["strVal"].isType(""), true);   // string type
+
+    COUT(doc["nullVal"].isType(nullptr), true); // null type
+
+    // Test & operator with basic types
+    COUT(doc["intVal"] & 0, true);          // integer type
+    COUT(doc["intVal"] & 0.0, false);       // float type
+    COUT(doc["intVal"] & true, false);      // not boolean
+    COUT(doc["intVal"] & "", false);        // not string
+    COUT(doc["intVal"] & nullptr, false);   // not null
+
+    COUT(doc["strVal"] & "", true);         // string type
+    COUT(doc["boolVal"] & true, true);      // boolean type
+
+    // Test with type representative constants
+    using namespace yyjson;
+    COUT(doc["intVal"] & kInt, true);
+    COUT(doc["floatVal"] & kFloat, true);
+    COUT(doc["boolVal"] & kBool, true);
+    COUT(doc["strVal"] & kStr, true);
+    COUT(doc["nullVal"] & kNull, true);
+
+    // Test complex types (array and object) with special string constants
+    COUT(doc["arrayVal"] & "[]", true);     // array type with "[]"
+    COUT(doc["objectVal"] & "{}", true);    // object type with "{}"
+    COUT(doc["arrayVal"].isArray(), true);
+    COUT(doc["objectVal"].isObject(), true);
+
+    // Test consistency between isType and & operator
+    COUT(doc["intVal"].isType(0), doc["intVal"] & 0);
+    COUT(doc["strVal"].isType(""), doc["strVal"] & "");
+    COUT(doc["boolVal"].isType(true), doc["boolVal"] & true);
+    COUT(doc["nullVal"].isType(nullptr), doc["nullVal"] & nullptr);
+
+    // Test type checking with invalid values
+    COUT(doc["nonexistent"].isType(0), false);
+    COUT(doc["nonexistent"] & 0, false);
+
+    // Test MutableValue type checking
+    yyjson::MutableDocument mutDoc = ~doc; // Convert to mutable
+    COUT(mutDoc.hasError(), false);
+
+    COUT(mutDoc["intVal"].isType(0), true);
+    COUT(mutDoc["intVal"] & 0, true);
+    COUT(mutDoc["strVal"].isType(""), true);
+    COUT(mutDoc["strVal"] & "", true);
+
+    // Test operator name constants are defined
+    COUT(okExtract, std::string("|"));
+    COUT(okType, std::string("&"));
+    COUT(okPath, std::string("/"));
+}
