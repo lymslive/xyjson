@@ -50,7 +50,7 @@ DEF_TAST(mutable_read_modify, "test read-modify workflow")
     doc / "items" << 4 << 5;
 
     DESC("Verify modifications");
-    COUT(doc / "name" | "", "modified");
+    COUT_PTR(doc / "name" | "", "modified");
     COUT(doc / "value" | 0, 200);
     COUT(doc / "settings" / "enabled" | false, true);
     COUT(doc / "settings" / "threshold" | 0.0, 7.8);
@@ -83,7 +83,7 @@ DEF_TAST(mutable_value_input, "test input operator << for mutable value")
         DESC("Verify array contents");
         COUT(doc.root().size(), 5);
         COUT(doc.root()[0] | 0, 1);
-        COUT(doc.root()[1] | "", "two");
+        COUT_PTR(doc.root()[1] | "", "two");
         COUT(doc.root()[2] | 0.0, 3.14);
         COUT(doc.root()[3] | true, false);
         //! COUT(doc.root()[4] | "", "five"); // error to compare c_str
@@ -113,7 +113,7 @@ DEF_TAST(mutable_value_input, "test input operator << for mutable value")
 
         // verify key is reference
         auto it = +doc %  "second";
-        COUT(it->key, "second");
+        COUT_PTR(it->key, "second");
         ++it;
         COUT(it->key == third, true);
         COUT(it->key == third.c_str(), false);
@@ -200,9 +200,9 @@ DEF_TAST(mutable_assign_copy, "test = and copy behavior of yyjson wrapper classe
 
         // name, name2, name3 all refer to the same json node.
         name = "modified";
-        COUT(name | "", "modified");
-        COUT(name2 | "", "modified");
-        COUT(name3 | "", "modified");
+        COUT_PTR(name | "", "modified");
+        COUT_PTR(name2 | "", "modified");
+        COUT_PTR(name3 | "", "modified");
 
         threshold = 6.5;
         enable = true;
@@ -221,7 +221,7 @@ DEF_TAST(mutable_assign_copy, "test = and copy behavior of yyjson wrapper classe
         COUT((root / "Name").isString(), false);
         root["Name"] = "Original";
         COUT((root / "Name").isString(), true);
-        COUT((root / "Name") | std::string(), "Original");
+        COUT_PTR((root / "Name") | "", "Original");
     }
 }
 
@@ -236,7 +236,7 @@ DEF_TAST(mutable_assign_string, "test string node in yyjson")
 
     const char* getcstr = nullptr;
     getcstr = doc / 1 | "";
-    COUT(getcstr, "two");
+    COUT_PTR(getcstr, "two");
     COUT(::strcmp(getcstr, "two"), 0);
 
     // not same poniter, but same content
@@ -298,11 +298,11 @@ DEF_TAST(mutable_assign_string_ref, "test string node reference in yyjson")
 
     const char* getcstr = nullptr;
     getcstr = doc / 1 | "";
-    COUT(getcstr, "two");
+    COUT_PTR(getcstr, "two");
     getcstr = doc / 4 | "";
-    COUT(getcstr, "five");
+    COUT_PTR(getcstr, "five");
     getcstr = doc / 5 | "";
-    COUT(getcstr, "six");
+    COUT_PTR(getcstr, "six");
 
     // Test that modifying literal strings would cause undefined behavior
     // (This is just for demonstration, in practice you should not do this)
@@ -385,7 +385,7 @@ DEF_TAST(mutable_object_insertion, "test object insertion with KV macro and oper
         
         // Test insertRef for string literals
         doc.root().addRef("literal_key", "literal_value");
-        COUT(doc / "literal_key" | "", "literal_value");
+        COUT_PTR(doc / "literal_key" | "", "literal_value");
         
         // Test insertCopy for safety
         std::string temp_str = "temporary";
@@ -429,14 +429,14 @@ DEF_TAST(mutable_array_append, "test append to MutableValue array")
         
         COUT(doc.root().size(), 4);
         COUT(doc / 0 | 0, 1);
-        COUT(doc / 1 | "", "two");
+        COUT_PTR(doc / 1 | "", "two");
         COUT(doc / 2 | 0.0, 3.14);
         COUT(doc / 3 | false, true);
         
         // Test chained appends
         doc.root() << "five" << 6 << 7.8 << false;
         COUT(doc.root().size(), 8);
-        COUT(doc / 4 | "", "five");
+        COUT_PTR(doc / 4 | "", "five");
         COUT(doc / 5 | 0, 6);
         COUT(doc / 6 | 0.0, 7.8);
         COUT(doc / 7 | true, false);
@@ -450,7 +450,7 @@ DEF_TAST(mutable_array_append, "test append to MutableValue array")
         // Append values to nested array
         arrDoc.root() << "nested" << 42 << 3.14;
         COUT(arrDoc.root().size(), 3);
-        COUT(arrDoc / 0 | "", "nested");
+        COUT_PTR(arrDoc / 0 | "", "nested");
         COUT(arrDoc / 1 | 0, 42);
         COUT(arrDoc / 2 | 0.0, 3.14);
         
@@ -530,7 +530,7 @@ DEF_TAST(mutable_create_methods, "test MutableDocument create methods and * oper
         COUT(stringNode.isString(), true);
         COUT(stringNode | std::string(), "hello");
         // also compare pointer, the node refers literal string.
-        COUT(stringNode | "", "hello");
+        COUT_PTR(stringNode | "", "hello");
         
         auto stdStringNode = doc.create(std::string("world"));
         COUT(stdStringNode.isString(), true);
@@ -562,7 +562,7 @@ DEF_TAST(mutable_create_methods, "test MutableDocument create methods and * oper
         auto literalNode = doc * "string_literal";
         COUT(literalNode.isString(), true);
         COUT(literalNode | std::string(), "string_literal");
-        COUT(literalNode | "", "string_literal");
+        COUT_PTR(literalNode | "", "string_literal");
     }
 }
 
@@ -692,7 +692,7 @@ DEF_TAST(mutable_keyvalue_add, "test KeyValue optimization for object insertion"
         
         // Verify all insertions worked
         COUT(doc.root().size(), 3);
-        COUT(doc.root()["greeting"] | std::string(), "hello");
+        COUT(doc.root()["greeting"] | "", "hello");
         COUT(doc.root()["pi"] | 0.0, 3.14);
         COUT(doc.root()["flag"] | false, true);
     }
@@ -736,11 +736,11 @@ DEF_TAST(mutable_keyvalue_add, "test KeyValue optimization for object insertion"
 
         // Verify both keys work correctly
         COUT(doc.root().size(), 2);
-        COUT(doc.root()["literal_key"] | std::string(), "test_value");
-        COUT(doc.root()["copy_key"] | std::string(), "copy_value"); // Should remain original
+        COUT_PTR(doc / "literal_key" | "", "test_value");
+        COUT_PTR(doc / "copy_key" | "", "copy_value");
     }
 
-    DESC("Test + operator with KeyValue");
+    DESC("Test << operator with KeyValue");
     {
         yyjson::MutableDocument doc("{}");
         
@@ -751,7 +751,7 @@ DEF_TAST(mutable_keyvalue_add, "test KeyValue optimization for object insertion"
         
         // Verify all insertions worked
         COUT(doc.root().size(), 3);
-        COUT(doc.root()["key1"] | std::string(), "value1");
+        COUT(doc.root()["key1"] | "", "value1");
         COUT(doc.root()["key2"] | 0, 100);
         COUT(doc.root()["key3"] | true, false);
     }
@@ -767,8 +767,8 @@ DEF_TAST(mutable_keyvalue_add, "test KeyValue optimization for object insertion"
         
         // Verify all methods work together
         COUT(doc.root().size(), 3);
-        COUT(doc.root()["key1"] | std::string(), "optimized");
-        COUT(doc.root()["key2"] | std::string(), "traditional");
+        COUT(doc.root()["key1"] | "", "optimized");
+        COUT(doc.root()["key2"] | "", "traditional");
         COUT(doc.root()["key3"] | 0, 123);
     }
     
@@ -784,7 +784,7 @@ DEF_TAST(mutable_keyvalue_add, "test KeyValue optimization for object insertion"
         
         // Verify the insertion worked
         COUT((doc / "nested").size(), 1);
-        COUT(doc / "nested" / "nested_key" | std::string(), "nested_value");
+        COUT(doc / "nested" / "nested_key" | "", "nested_value");
 
         std::string str("hello");
         // () is not necessary, operator* is higher priority than +.
@@ -792,12 +792,12 @@ DEF_TAST(mutable_keyvalue_add, "test KeyValue optimization for object insertion"
 
         COUT((doc / "nested").size(), 3);
         COUT(doc / "nested" / "num_key" | 0, 123);
-        COUT(doc / "nested" / "str_key" | std::string(), str);
+        COUT(doc / "nested" / "str_key" | "", str);
 
         // exchange order of *
         doc / "nested" << "pre_key" * (doc * str);
         COUT((doc / "nested").size(), 4);
-        COUT(doc / "nested" / "pre_key" | std::string(), str);
+        COUT(doc / "nested" / "pre_key" | "", str);
 
         //! not support, otherwise doc * doc maybe ambiguous
 //      doc / "nested" << "pre_key2" * (str * doc);
