@@ -24,48 +24,48 @@
 /* Part 1: Front Definitions                                       Line: 74 */
 /* Part 2: Class Definitions                                       Line: 89 */
 /*   Section 2.1: Read-only Json Model                             Line: 92 */
-/*   Section 2.2: Mutable Json Model                              Line: 295 */
-/*   Section 2.3: Helper Class for Mutable Json                   Line: 615 */
-/*   Section 2.4: Iterator Json                                   Line: 663 */
-/*   Section 2.5: Type Traits                                     Line: 924 */
-/* Part 3: Non-Class Functions                                    Line: 973 */
-/*   Section 3.1: Underlying yyjson_mut_val Creation              Line: 976 */
-/*   Section 3.2: Conversion Helper Functions                    Line: 1097 */
-/* Part 4: Class Implementations                                 Line: 1131 */
-/*   Section 4.1: Value Methods                                  Line: 1134 */
-/*     Group 4.1.1: get and getor                                Line: 1137 */
-/*     Group 4.1.2: size and index/path                          Line: 1210 */
-/*     Group 4.1.3: create iterator                              Line: 1257 */
-/*     Group 4.1.4: others                                       Line: 1304 */
-/*   Section 4.2: Document Methods                               Line: 1339 */
-/*     Group 4.2.1: primary manage                               Line: 1342 */
-/*     Group 4.2.2: read and write                               Line: 1384 */
-/*   Section 4.3: MutableValue Methods                           Line: 1469 */
-/*     Group 4.3.1: get and getor                                Line: 1472 */
-/*     Group 4.3.2: size and index/path                          Line: 1545 */
-/*     Group 4.3.3: assignment set                               Line: 1621 */
-/*     Group 4.3.4: array append                                 Line: 1747 */
-/*     Group 4.3.5: object add                                   Line: 1781 */
-/*     Group 4.3.6: tag create KeyValue                          Line: 1828 */
-/*     Group 4.3.7: smart input                                  Line: 1862 */
-/*     Group 4.3.8: create iterator                              Line: 1931 */
-/*     Group 4.3.9: others                                       Line: 1978 */
-/*   Section 4.4: MutableDocument Methods                        Line: 2013 */
-/*     Group 4.4.1: primary manage                               Line: 2016 */
-/*     Group 4.4.2: read and write                               Line: 2073 */
-/*     Group 4.4.3: create mutable value                         Line: 2170 */
-/*   Section 4.5: ArrayIterator Methods                          Line: 2208 */
-/*   Section 4.6: ObjectIterator Methods                         Line: 2255 */
-/*   Section 4.7: MutableArrayIterator Methods                   Line: 2326 */
-/*   Section 4.8: MutableObjectIterator Methods                  Line: 2379 */
-/* Part 5: Operator Interface                                    Line: 2453 */
-/*   Section 5.1: Primary Path Access / |                        Line: 2456 */
-/*   Section 5.2: Unary + - ~                                    Line: 2518 */
-/*   Section 5.3: Comparison ==                                  Line: 2572 */
-/*   Section 5.4: Create and Bind KeyValue *                     Line: 2620 */
-/*   Section 5.5: Stream and Input << >>                         Line: 2681 */
-/*   Section 5.6: Iterator Creation and Operation % ++           Line: 2777 */
-/* Part 6: Last Definitions                                      Line: 2852 */
+/*   Section 2.2: Mutable Json Model                              Line: 292 */
+/*   Section 2.3: Helper Class for Mutable Json                   Line: 609 */
+/*   Section 2.4: Iterator Json                                   Line: 657 */
+/*   Section 2.5: Type Traits                                     Line: 918 */
+/* Part 3: Non-Class Functions                                    Line: 967 */
+/*   Section 3.1: Underlying yyjson_mut_val Creation              Line: 970 */
+/*   Section 3.2: Conversion Helper Functions                    Line: 1091 */
+/* Part 4: Class Implementations                                 Line: 1125 */
+/*   Section 4.1: Value Methods                                  Line: 1128 */
+/*     Group 4.1.1: get and getor                                Line: 1131 */
+/*     Group 4.1.2: size and index/path                          Line: 1204 */
+/*     Group 4.1.3: create iterator                              Line: 1251 */
+/*     Group 4.1.4: others                                       Line: 1298 */
+/*   Section 4.2: Document Methods                               Line: 1333 */
+/*     Group 4.2.1: primary manage                               Line: 1336 */
+/*     Group 4.2.2: read and write                               Line: 1373 */
+/*   Section 4.3: MutableValue Methods                           Line: 1458 */
+/*     Group 4.3.1: get and getor                                Line: 1461 */
+/*     Group 4.3.2: size and index/path                          Line: 1534 */
+/*     Group 4.3.3: assignment set                               Line: 1610 */
+/*     Group 4.3.4: array append                                 Line: 1736 */
+/*     Group 4.3.5: object add                                   Line: 1770 */
+/*     Group 4.3.6: tag create KeyValue                          Line: 1817 */
+/*     Group 4.3.7: smart input                                  Line: 1851 */
+/*     Group 4.3.8: create iterator                              Line: 1920 */
+/*     Group 4.3.9: others                                       Line: 1967 */
+/*   Section 4.4: MutableDocument Methods                        Line: 2002 */
+/*     Group 4.4.1: primary manage                               Line: 2005 */
+/*     Group 4.4.2: read and write                               Line: 2057 */
+/*     Group 4.4.3: create mutable value                         Line: 2154 */
+/*   Section 4.5: ArrayIterator Methods                          Line: 2192 */
+/*   Section 4.6: ObjectIterator Methods                         Line: 2239 */
+/*   Section 4.7: MutableArrayIterator Methods                   Line: 2310 */
+/*   Section 4.8: MutableObjectIterator Methods                  Line: 2363 */
+/* Part 5: Operator Interface                                    Line: 2437 */
+/*   Section 5.1: Primary Path Access / |                        Line: 2440 */
+/*   Section 5.2: Unary + - ~                                    Line: 2502 */
+/*   Section 5.3: Comparison ==                                  Line: 2578 */
+/*   Section 5.4: Create and Bind KeyValue *                     Line: 2626 */
+/*   Section 5.5: Stream and Input << >>                         Line: 2687 */
+/*   Section 5.6: Iterator Creation and Operation % ++           Line: 2783 */
+/* Part 6: Last Definitions                                      Line: 2858 */
 /* ======================================================================== */
 
 namespace yyjson
@@ -211,7 +211,7 @@ private:
  * Provides read-only access to JSON data with operator overloading
  * 
  * Supported operators:
- * - Unary: +doc (access root), -doc (convert to string), ~doc (convert to mutable)
+ * - Unary: +doc (convert root to number), -doc (convert root to string), *doc (access root), ~doc (convert to mutable)
  * - Path: doc / "key" (path access), doc[index] (index access)
  * - Stream: doc << input, doc >> output (serialization), os << doc
  * - Boolean: if (doc), !doc (error checking)
@@ -271,9 +271,6 @@ public:
     bool write(FILE* fp) const;
     bool write(std::ofstream& ofs) const;
     bool writeFile(const char* path) const;
-
-    // String conversion
-    std::string toString() const;
 
     // Index access
     template <typename T>
@@ -513,7 +510,7 @@ private:
  * Provides read-write access to JSON data with operator overloading
  * 
  * Supported operators:
- * - Unary: +doc (access root), -doc (convert to string), ~doc (convert to read-only)
+ * - Unary: +doc (convert root to number), -doc (convert root to string), *doc (access root), ~doc (convert to read-only)
  * - Path: doc / "key" (path access), doc[index] (index access)
  * - Stream: doc << input, doc >> output (serialization)
  * - Create: doc * value (quick node creation)
@@ -584,9 +581,6 @@ public:
     MutableValue createRef(const char* value) const; // string without copy
     // T: bool | int | string | (Mutable)Document | (Mutable)Value
     template <typename T> MutableValue create(const T& value) const;
-
-    // String conversion
-    std::string toString() const;
 
     // Index access - const version for read-only access
     template <typename T>
@@ -1371,11 +1365,6 @@ inline MutableDocument Document::mutate() const
     return MutableDocument(mut_doc);
 }
 
-inline std::string Document::toString() const
-{
-    return root().toString();
-}
-
 inline bool Document::equal(const Document& other) const
 {
     return (m_doc == other.m_doc) || root().equal(other.root());
@@ -2052,11 +2041,6 @@ inline Document MutableDocument::freeze() const
     return Document(doc);
 }
 
-inline std::string MutableDocument::toString() const
-{
-    return root().toString();
-}
-
 inline bool MutableDocument::equal(const MutableDocument& other) const
 {
     return (m_doc == other.m_doc) || root().equal(other.root());
@@ -2534,27 +2518,49 @@ operator-(const jsonT& json)
     return json.toString();
 }
 
-// `+doc` --> `doc.root()` (returns value)
+// `*doc` --> `doc.root()` (returns root value)
 template<typename docT>
 inline typename std::enable_if<is_document<docT>::value, typename docT::value_type>::type
+operator*(docT& doc)
+{
+    return doc.root();
+}
+
+template<typename docT>
+inline typename std::enable_if<is_document<docT>::value, typename docT::value_type>::type
+operator*(const docT& doc)
+{
+    return doc.root();
+}
+
+// `+doc` --> `doc.root().toNumber()` (convert root to number)
+template<typename docT>
+inline typename std::enable_if<is_document<docT>::value, int>::type
 operator+(docT& doc)
 {
-    return doc.root();
+    return doc.root().toNumber();
 }
 
 template<typename docT>
-inline typename std::enable_if<is_document<docT>::value, typename docT::value_type>::type
+inline typename std::enable_if<is_document<docT>::value, int>::type
 operator+(const docT& doc)
 {
-    return doc.root();
+    return doc.root().toNumber();
 }
 
-// `-doc` --> `doc.toString()`
+// `-doc` --> `doc.root().toString()` (convert root to string)
+template<typename docT>
+inline typename std::enable_if<is_document<docT>::value, std::string>::type
+operator-(docT& doc)
+{
+    return doc.root().toString();
+}
+
 template<typename docT>
 inline typename std::enable_if<is_document<docT>::value, std::string>::type
 operator-(const docT& doc)
 {
-    return doc.toString();
+    return doc.root().toString();
 }
 
 // `~doc` --> `doc.mutate()` : Document --> MutableDocument
@@ -2702,7 +2708,7 @@ template<typename docT>
 inline typename std::enable_if<is_document<docT>::value, std::ostream&>::type
 operator<<(std::ostream& os, const docT& doc)
 {
-    return os << doc.toString();
+    return os << doc.root().toString();
 }
 
 // `std::ostream << json` --> output value as JSON string

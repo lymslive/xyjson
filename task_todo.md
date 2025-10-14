@@ -223,6 +223,33 @@ to AI: 请用 TDD 开发方法完成该需求，大致流程如下：
 
 ### DONE:20251014-121311
 
+## TODO:2025-10-14/3 优化 Document 一元操作符设计
+
+现状：一元操作符 + - 在 Value 类用于表示转换整数与字符串这两类主要信息，而
+Document 的一元 `+` 操作表示取根结点，功能上不一致。
+
+期望：Document 取根结点的操作符改为 `*` ，而 `+` 改为对根结点转整数
+
+设计原因：现在二元 `*` 操作符（乘号）用于创建 MutableValue ，从
+MutableDocument 取根结点也会返回一个 MutableValue ，用一元 `*` 操作符表达这个
+功能有相关性。
+
+其他不一致的地方，Document 类实现了 toString() 方法，但没实现 toNumber() 方法
+。简化删除 Document::toString() 方法，需要用到它的地方改为调用 root 的同名方法
+。一些操作符需要在 Document 与 Value 都定义，但具名方法没必要重复实现。
+
+to AI:
+- 将 Document 的一元操作符 `+` 改为 `*`, 并检查注释一致性
+- 删除 Document::toString 方法，其调用者改为调用 root 的 toString 的方法
+- 同步修改相关单元测试
+- 将 Document 的一元操作符 `+` 重新设计为取根结点转整数的功能
+- 为 Document 的一元 `+` 新功能加测试用例，可在已有测试用例中扩展一段或新加用
+  例名，对常规 json 而言，`+` 应该是取根结点对象/数组的大小
+- MutableDocument 作同样的修改
+- 检查 docs/xyjson_operator.md 文档，作相应调整反映修改
+
+### DONE:20251014-164224
+
 ------
 ## TODO: getor 与 | 操作符可取底层 C 结构体指针
 

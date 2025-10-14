@@ -91,7 +91,7 @@ DEF_TAST(mutable_value_input, "test input operator << for mutable value")
 
         DESC("Test chained appends");
         //= doc.root() << 6 << 7 << 8;
-        +doc << 6 << 7 << 8;
+        *doc << 6 << 7 << 8;
         COUT(doc.root().size(), 8);
         COUT(doc / 7 | 0, 8);
     }
@@ -100,10 +100,10 @@ DEF_TAST(mutable_value_input, "test input operator << for mutable value")
     {
         yyjson::MutableDocument doc("{}");
 
-        +doc << "first" << 1 << "second" << 2;
+        *doc << "first" << 1 << "second" << 2;
         std::string third("third");
         const char* fourth = "fourth";
-        +doc << third << 3.14 << fourth << false;
+        *doc << third << 3.14 << fourth << false;
 
         COUT(doc.root().size(), 4);
         COUT(doc / "first" | 0, 1);
@@ -112,7 +112,7 @@ DEF_TAST(mutable_value_input, "test input operator << for mutable value")
         COUT(doc / "fourth" | true, false);
 
         // verify key is reference
-        auto it = +doc %  "second";
+        auto it = *doc %  "second";
         COUT_PTR(it->key, "second");
         ++it;
         COUT(it->key == third, true);
@@ -122,7 +122,7 @@ DEF_TAST(mutable_value_input, "test input operator << for mutable value")
         COUT(::strcmp(it->key, fourth), 0);
 
         // verify value is reference
-        +doc << "fifth" << "5th";
+        *doc << "fifth" << "5th";
         COUT(doc / "fifth" | "", "5th");
     }
 }
@@ -215,7 +215,7 @@ DEF_TAST(mutable_assign_copy, "test = and copy behavior of yyjson wrapper classe
     // MutableValue assign new key
     {
         yyjson::MutableDocument doc(jsonText);
-        auto root = +doc;
+        auto root = *doc;
 
         root / "Name" = "Original";
         COUT((root / "Name").isString(), false);
@@ -232,7 +232,7 @@ DEF_TAST(mutable_assign_string, "test string node in yyjson")
     std::string five("five");
     char six[] = "six";
 
-    +doc << 1 << "two" << 3.14 << false << five << six;
+    *doc << 1 << "two" << 3.14 << false << five << six;
 
     const char* getcstr = nullptr;
     getcstr = doc / 1 | "";
@@ -357,7 +357,7 @@ DEF_TAST(mutable_object_insertion, "test object insertion with KV macro and oper
         COUT(doc / "enabled" | false, true);
         
         // Test string values with KV
-        +doc << KV("string_value", "hello") << KV("number_value", 42.5);
+        *doc << KV("string_value", "hello") << KV("number_value", 42.5);
         
         COUT(doc / "string_value" | str, "hello");
         COUT(doc / "number_value" | 0.0, 42.5);
@@ -583,7 +583,7 @@ DEF_TAST(mutable_append_doc, "MutableValue array append with Document and Mutabl
         COUT(first / "name" | std::string(), "Alice");
         COUT(first / "age" | 0, 30);
 
-        +target << doc1;
+        *target << doc1;
         COUT(target.root().size() == 2, true);
         auto second = target / 1;
         COUT(second / "name" | std::string(), "Alice");
@@ -605,7 +605,7 @@ DEF_TAST(mutable_append_doc, "MutableValue array append with Document and Mutabl
         COUT(first / "name" | std::string(), "Bob");
         COUT(first / "age" | 0, 25);
 
-        +target << doc2;
+        *target << doc2;
         COUT(target.root().size() == 2, true);
         auto second = target / 1;
         COUT(second / "name" | std::string(), "Bob");
@@ -630,7 +630,7 @@ DEF_TAST(mutable_objadd_doc, "MutableValue object add with Document and MutableD
         COUT(addr / "city" | std::string(), "Beijing");
         COUT(addr / "country" | std::string(), "China");
 
-        +target << target * doc1 * "Addr";
+        *target << target * doc1 * "Addr";
         COUT(target.root().size(), 2);
         auto addr2 = target / "address";
         COUT(addr2 / "city" | std::string(), "Beijing");
@@ -654,7 +654,7 @@ DEF_TAST(mutable_objadd_doc, "MutableValue object add with Document and MutableD
         COUT(loc["street"] | std::string(), "Main St");
         COUT(loc["number"] | 0, 123);
 
-        +target << target * doc2 * "Location";
+        *target << target * doc2 * "Location";
         COUT(target.root().size(), 2);
         auto loc2 = target.root()["Location"];
         COUT(loc2.typeName());
@@ -726,7 +726,7 @@ DEF_TAST(mutable_keyvalue_add, "test KeyValue optimization for object insertion"
         yyjson::MutableDocument doc("{}");
 
         char copyBuffer[20] = "copy_key";
-        +doc << doc * "test_value" * "literal_key"
+        *doc << doc * "test_value" * "literal_key"
              << doc * "copy_value" * copyBuffer;
 
         // Modify the variable - the key should NOT change due to copying

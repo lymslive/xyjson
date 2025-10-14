@@ -430,3 +430,150 @@ DEF_TAST(conversion_document, "test Document and MutableDocument conversion meth
     }
 }
 
+DEF_TAST(conversion_doc_unary, "test Document and MutableDocument unary operators")
+{
+    DESC("Test Document unary operators with object root");
+    {
+        std::string jsonText = R"json({
+            "string_value": "hello",
+            "int_value": 42,
+            "array_value": [1, 2, 3],
+            "object_value": {"key": "value"}
+        })json";
+
+        yyjson::Document doc(jsonText);
+        
+        // Test unary operator* (get root)
+        auto root = *doc;
+        COUT(root.isValid(), true);
+        COUT(root.isObject(), true);
+        
+        // Test unary operator+ (convert root to number)
+        // For object/array, should return size()
+        COUT(+doc, 4); // object with 4 keys
+        
+        // Test unary operator- (convert root to string)
+        std::string docString = -doc;
+        COUT(docString.find("string_value") != std::string::npos, true);
+        COUT(docString.find("hello") != std::string::npos, true);
+    }
+
+    DESC("Test Document unary operators with numeric root");
+    {
+        yyjson::Document doc("123");
+        
+        // Test unary operator* (get root)
+        auto root = *doc;
+        COUT(root.isValid(), true);
+        COUT(root.isNumber(), true);
+        
+        // Test unary operator+ (convert root to number)
+        COUT(+doc, 123);
+        
+        // Test unary operator- (convert root to string)
+        COUT(-doc, "123");
+    }
+
+    DESC("Test Document unary operators with array root");
+    {
+        yyjson::Document doc("[1, 2, 3, 4, 5]");
+        
+        // Test unary operator* (get root)
+        auto root = *doc;
+        COUT(root.isValid(), true);
+        COUT(root.isArray(), true);
+        
+        // Test unary operator+ (convert root to number)
+        COUT(+doc, 5); // array with 5 elements
+        
+        // Test unary operator- (convert root to string)
+        std::string docString = -doc;
+        COUT(docString.find("1") != std::string::npos, true);
+        COUT(docString.find("5") != std::string::npos, true);
+    }
+
+    DESC("Test MutableDocument unary operators");
+    {
+        yyjson::MutableDocument doc("{\"name\": \"Alice\", \"age\": 30}");
+        
+        // Test unary operator* (get root)
+        auto root = *doc;
+        COUT(root.isValid(), true);
+        COUT(root.isObject(), true);
+        
+        // Test unary operator+ (convert root to number)
+        COUT(+doc, 2); // object with 2 keys
+        
+        // Test unary operator- (convert root to string)
+        std::string docString = -doc;
+        COUT(docString.find("Alice") != std::string::npos, true);
+        COUT(docString.find("30") != std::string::npos, true);
+    }
+
+    DESC("Test MutableDocument unary operators with array root");
+    {
+        yyjson::MutableDocument doc("[10, 20, 30]");
+        
+        // Test unary operator* (get root)
+        auto root = *doc;
+        COUT(root.isValid(), true);
+        COUT(root.isArray(), true);
+        
+        // Test unary operator+ (convert root to number)
+        COUT(+doc, 3); // array with 3 elements
+        
+        // Test unary operator- (convert root to string)
+        std::string docString = -doc;
+        COUT(docString.find("10") != std::string::npos, true);
+        COUT(docString.find("30") != std::string::npos, true);
+        
+        // Test chaining with stream operator
+        *doc << 40; // append to array via root access
+        COUT(+doc, 4); // now array has 4 elements
+    }
+
+    DESC("Test consistency between Document and Value operators");
+    {
+        yyjson::Document doc("{\"value\": 123}");
+        
+        // Document operator+ should be equivalent to doc.root().toNumber()
+        COUT(+doc, +(*doc));
+        
+        // Document operator- should be equivalent to doc.root().toString()
+        COUT(-doc, -(*doc));
+        
+        // Document operator* should return the root value
+        COUT(*doc, doc.root());
+    }
+
+    DESC("Test invalid Document unary operators");
+    {
+        // Test with invalid Document
+        yyjson::Document invalid_doc;
+        COUT(invalid_doc.isValid(), false);
+        
+        // Invalid document should return default values
+        COUT(+invalid_doc, 0);
+        COUT(-invalid_doc, "");
+        
+        // operator* should return invalid value
+        auto root = *invalid_doc;
+        COUT(root.isValid(), false);
+    }
+
+    DESC("Test invalid MutableDocument unary operators");
+    {
+        // Test with invalid MutableDocument
+        yyjson::MutableDocument invalid_doc((yyjson_mut_doc*)nullptr);
+        COUT(invalid_doc.isValid(), false);
+        
+        // Invalid document should return default values
+        COUT(+invalid_doc, 0);
+        COUT(-invalid_doc, "");
+        
+        // operator* should return invalid value
+        auto root = *invalid_doc;
+        COUT(root.isValid(), false);
+    }
+}
+

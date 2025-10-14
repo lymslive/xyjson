@@ -12,8 +12,11 @@
 | `\|` | `getor()` | 值提取（带默认值） | 12 | 1 |
 | `<<` | `input()` | 智能输入（数组追加/对象插入/标量赋值） | 7 | 2 |
 | `>>` | `get()` | 安全值提取（返回bool） | 7 | 2 |
-| `+` | `toNumber()` | 转换为数字（数组/对象返回size） | 3 | 2 |
-| `-` | `toString()` | 转换为字符串 | 3 | 2 |
+| `+` | `toNumber()` | 转换为数字（Value 类） | 3 | 2 |
+| `+` | `root().toNumber()` | 转换为数字（Document 类） | 3 | 2 |
+| `-` | `toString()` | 转换为字符串（Value 类） | 3 | 2 |
+| `-` | `root().toString()` | 转换为字符串（Document 类） | 3 | 2 |
+| `*` | `root()` | 获取根节点（Document 类） | 3 | 2 |
 | `!` | `hasError()` | 逻辑非（检查错误） | 4 | 2 |
 | `~` | `mutate()`/`freeze()` | 文档模式转换 | 3 | 3 |
 | `%` | `arrayIter()`/`objectIter()` | 迭代器创建 | 5 | 3 |
@@ -151,23 +154,36 @@ if (doc / "age" >> age) {
 }
 ```
 
-### 6. 一元操作符 `+` 和 `-`
+### 6. 一元操作符 `+`、`-` 和 `*`
 
 **语法**：
-- `+json`：转换为数字
-- `-json`：转换为字符串
+- `+json`：转换为数字（Value/MutableValue）
+- `+doc`：转换为数字（Document/MutableDocument - 调用根节点的 toNumber()）
+- `-json`：转换为字符串（Value/MutableValue）
+- `-doc`：转换为字符串（Document/MutableDocument - 调用根节点的 toString()）
+- `*doc`：获取根节点（Document/MutableDocument）
 
-**功能**：提供简洁的类型转换
+**功能**：提供简洁的类型转换和根节点访问
 
 ```cpp
-// 数字转换（+操作符）
+// Value/MutableValue 的数字转换（+操作符）
 int count = +(doc / "items");        // 数组/对象返回 size()
 int number = +(doc / "value");       // 数字返回值，字符串尝试转换
 int boolean = +(doc / "flag");       // 布尔返回 1/0
 
-// 字符串转换（-操作符）
+// Document/MutableDocument 的数字转换（+操作符）
+int docNumber = +doc;                // 相当于 doc.root().toNumber()
+
+// Value/MutableValue 的字符串转换（-操作符）
 std::string jsonStr = -(doc / "data");  // 返回 JSON 字符串表示
 std::string text = -(doc / "message");  // 字符串值直接返回
+
+// Document/MutableDocument 的字符串转换（-操作符）
+std::string docString = -doc;        // 相当于 doc.root().toString()
+
+// Document/MutableDocument 的根节点访问（*操作符）
+auto root = *doc;                    // 相当于 doc.root()
+*doc << "key" << "value";            // 对根节点进行流操作
 ```
 
 ### 7. 文档转换操作符 `~`
