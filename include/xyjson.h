@@ -97,6 +97,11 @@ constexpr std::nullptr_t kNull = nullptr;
 constexpr const char* kArray = "[]";
 constexpr const char* kObject = "{}";
 
+// Type representative constants for underlying pointers
+constexpr yyjson_val* kNode = nullptr;
+constexpr yyjson_mut_val* kMutNode = nullptr;
+constexpr yyjson_mut_doc* kMutDoc = nullptr;
+
 // Operator name constants (ok stands for operator const)
 constexpr const char* okExtract = "|";
 constexpr const char* okPipe = "|";
@@ -186,6 +191,7 @@ public:
         }
         return isString(); 
     }
+    bool isType(yyjson_val*) const { return isValid(); }
     
     // Value extraction with result reference
     bool get(bool& result) const;
@@ -195,6 +201,7 @@ public:
     bool get(double& result) const;
     bool get(const char*& result) const;
     bool get(std::string& result) const;
+    bool get(yyjson_val*& result) const;
     
     // Convenience method template with default value
     template<typename T>
@@ -407,6 +414,8 @@ public:
         }
         return isString(); 
     }
+    bool isType(yyjson_mut_val*) const { return isValid(); }
+    bool isType(yyjson_mut_doc*) const { return m_doc != nullptr; }
     
     // Value extraction with result reference
     bool get(bool& result) const;
@@ -416,6 +425,9 @@ public:
     bool get(double& result) const;
     bool get(const char*& result) const;
     bool get(std::string& result) const;
+    // Underlying C pointer extraction
+    bool get(yyjson_mut_val*& result) const;
+    bool get(yyjson_mut_doc*& result) const;
     
     // Convenience method template with default value
     template<typename T>
@@ -1259,6 +1271,12 @@ inline bool Value::get(std::string& result) const
     return false;
 }
 
+inline bool Value::get(yyjson_val*& result) const
+{
+    if (isValid()) { result = m_val; return true; }
+    return false;
+}
+
 template<typename T>
 inline T Value::getor(const T& defaultValue) const
 {
@@ -1586,6 +1604,18 @@ inline bool MutableValue::get(std::string& result) const
         result = yyjson_mut_get_str(m_val);
         return true;
     }
+    return false;
+}
+
+inline bool MutableValue::get(yyjson_mut_val*& result) const
+{
+    if (isValid()) { result = m_val; return true; }
+    return false;
+}
+
+inline bool MutableValue::get(yyjson_mut_doc*& result) const
+{
+    if (m_doc != nullptr) { result = m_doc; return true; }
     return false;
 }
 

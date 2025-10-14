@@ -687,3 +687,41 @@ DEF_TAST(basic_type_checking, "type checking with isType method and & operator")
     COUT(okType, std::string("&"));
     COUT(okPath, std::string("/"));
 }
+
+DEF_TAST(basic_underlying_pointers, "extract underlying yyjson pointers")
+{
+    using namespace yyjson;
+
+    Document doc("{\"a\":1, \"b\":[10,20]}");
+    COUT(doc.hasError(), false);
+
+    // Extract yyjson_val* from Value
+    yyjson_val* n = nullptr;
+    COUT((doc/"a") >> n, true);
+    COUT(n != nullptr, true);
+    COUT(yyjson_is_int(n), true);
+
+    yyjson_val* n2 = nullptr;
+    COUT((doc/"b") >> n2, true);
+    COUT(n2 != nullptr, true);
+    COUT(yyjson_is_arr(n2), true);
+
+    // Type representative constants for pointer types
+    COUT((doc/"a") & kNode, true);
+
+    // Mutable document pointers
+    MutableDocument mdoc = ~doc;
+    auto root = mdoc.root();
+
+    yyjson_mut_val* mv = nullptr;
+    COUT(root >> mv, true);
+    COUT(mv != nullptr, true);
+
+    yyjson_mut_doc* md = nullptr;
+    COUT(root >> md, true);
+    COUT(md != nullptr, true);
+
+    // isType with pointer kinds
+    COUT(root & kMutNode, true);
+    COUT(root & kMutDoc, true);
+}

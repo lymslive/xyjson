@@ -308,8 +308,25 @@ isType 系列方法定义位置前移，放在已有各个具体的类型判断�
 
 ### DONE:20251014-225417
 
-------
-## TODO: getor 与 | 操作符可取底层 C 结构体指针
+## TODO:2025-10-14/6 取值操作符增加获取底层 C 结构体指针功能
+
+目前取值操作符 `|` 可以从 json 结点提取基本类型。现在想再扩展功能，也支持提取
+yyjson 底层 C 结构体指针，允许用户有特殊需要时仍可灵活使用它的 C API 。
+
+按当前代码架构，应该只要增加 `get` 方法重载即可。请按
+`bool get(int& result) const;` 系列方法惯例， 为
+Value 类 增加重载 `bool get(yyjson_val * & result) const;` 
+MutableValue 增加重载方法 `bool get(yyjson_mut_val * & result) const;`
+以及 `bool get(yyjson_mut_doc * & result) const;`
+
+是的，可写模型除了支持取 json 结点指针，也应支持取它所属的 doc 指针，它在修改
+json 时是重要参数。
+
+类型代表值常量相应地增加三个 kNode kMutNode kMutDoc 。
+
+以及在 `t_basic.cpp` 文件中增加单元测试用例，获取底层指针用 yyjson API 作些简单操作。
+
+### DONE:20251015-002058
 
 ## TODO: 设计模板类的 KeyValue 优化对象容器的插入
 

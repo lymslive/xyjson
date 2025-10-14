@@ -6,8 +6,6 @@
 - **任务状态**: 已完成/进行中/失败
 - **执行AI**: DeepSeek-V3.1
 
-*日志维护：请按此格式简明扼要地记录后续 AI 协作任务*
-
 ---
 
 ## 任务记录
@@ -639,8 +637,6 @@ cd build && cmake .. && make
 - 支持一键更新：`make utable`
 - 支持调试输出：`perl script/utable.pl --output -`
 
----
-
 ### 任务ID: 20251014-225417
 - **任务类型**: 开发
 - **任务状态**: 已完成
@@ -698,3 +694,31 @@ cd build && cmake .. && make
 - **特殊常量支持**：`"{}"` 和 `"[]"` 字符串常量可直接用于对象/数组类型判断
 - **可读性提升**：类型代表值常量让代码更直观易懂
 
+### 任务ID: 20251015-002058
+- **任务类型**: 开发
+- **任务状态**: 已完成
+- **执行AI**: Terminal Assistant Agent
+- **对应需求**: TODO:2025-10-14/6
+
+#### 任务需求
+扩展取值操作符能力，支持获取 yyjson 底层 C 结构体指针：
+- 为 Value 增加 `bool get(yyjson_val*& result) const;`
+- 为 MutableValue 增加 `bool get(yyjson_mut_val*& result) const;` 与 `bool get(yyjson_mut_doc*& result) const;`
+- 在 Part 1 定义类型代表值常量 `kNode`, `kMutNode`, `kMutDoc`
+- 在 t_basic.cpp 中添加指针获取与类型判断用例
+
+#### 实施内容
+- include/xyjson.h: 新增上述 get 重载实现；在 Part 1 增加常量；为 Value/MutableValue 增补 isType 指针重载（Value 侧不声明 mut 指针类型）。
+- utest/t_basic.cpp: 新增 basic_underlying_pointers 用例，覆盖 yyjson_val*/yyjson_mut_val*/yyjson_mut_doc* 提取与校验。
+
+#### 构建与测试
+- 构建：cmake 配置并编译成功
+- 测试：./utxyjson --cout=silent
+- 结果：36/36 全部通过
+
+#### 影响范围与兼容性
+- 仅新增重载与常量，不改变既有接口语义；与已有 `|`、`&` 操作符保持一致性。
+
+---
+
+*日志维护：请按此格式简明扼要地记录后续 AI 协作任务*
