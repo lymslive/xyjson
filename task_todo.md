@@ -201,9 +201,29 @@ to AI:
 
 AI 处理该问题有点弱啊，只找出四个。后来我自己改了十几处。
 
-------
 ## TODO:2025-10-14/2 简化 Document 类不必持有根结点
 
+从逻辑上讲，一棵 json 树的 dom 持有其根结点的所有权。但是 xyjson 只是对 yyjson
+的浅封装，真正管理 json 结点包括根结点的是底层 C 结构体，不是 Document 类。所
+以 Document 类不必保存一个 Value 成员表示根结点。当用户代码需要访问根结点时，
+实时构造一个 Value 值就行。
+
+而且 Document 存一个根结点 Value ，还可能引入同步根结点的麻烦。所以我决定删去
+根结点成员，而 root 方法返回类型从 Value 引用改为 Value 值。所有涉及根结点维护
+的代码要作相应修改，尤其删去 syncRoot 方法。
+
+to AI: 请用 TDD 开发方法完成该需求，大致流程如下：
+
+- 在 `utest/t_basic.cpp` 测试文件的最前面增加一个 basic_size 测试用例，断言当
+  前项目中定义的各个类的 sizeof ，编译测试成功。
+- 修改 Document 与 MutableDocument 的 sizeof 期望值仅为一个指针大小，测试失败
+  。
+- 删去 Document 与 MutableDocument 的 `m_root` 成员，解决编译错误及必要优化，
+  回归测试成功。
+
+### DONE:20251014-121311
+
+------
 ## TODO: getor 与 | 操作符可取底层 C 结构体指针
 
 ## TODO: 增加 isType 方法与 & 操作符判断 json 结点类型

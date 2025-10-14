@@ -490,6 +490,55 @@ cd build && cmake .. && make
 - **精确修改**: 仅修改明确用例，保留其他功能正常的 `COUT`
 - **安全验证**: 完整测试确保修改不破坏现有功能
 
+### 任务ID: 20251014-121311
+- **任务类型**: 重构/优化
+- **任务状态**: 已完成
+- **执行AI**: DeepSeek-V3.1
+
+#### 任务需求
+完成 TODO:2025-10-14/2 的 Document 类简化重构：
+1. 使用 TDD 方法，先添加 basic_size 测试用例验证类大小
+2. 修改 Document 和 MutableDocument 类，删除 m_root 成员变量
+3. 修改 root() 方法返回类型从引用改为值
+4. 删除 syncRoot() 方法及相关代码
+5. 修复编译错误，确保回归测试通过
+
+#### 执行过程
+**1. TDD 测试驱动开发**
+- 在 `t_basic.cpp` 开头添加 basic_size 测试用例
+- 设置 Document 和 MutableDocument 的期望大小为指针大小（8字节）
+- 验证测试失败以确认当前实现包含额外的 m_root 成员
+
+**2. Document 类重构**
+- 删除 `m_root` 成员变量
+- 将 `root()` 方法返回类型从 `const Value&` 改为 `Value`
+- 删除 `syncRoot()` 方法
+- 修改构造函数和 move 操作，移除对 m_root 的引用
+
+**3. MutableDocument 类重构**
+- 删除 `m_root` 成员变量
+- 将 `root()` 方法返回类型从 `MutableValue&`/`const MutableValue&` 改为 `MutableValue`
+- 删除 `syncRoot()` 方法
+- 修改构造函数和 move 操作
+
+**4. 运算符重载调整**
+- 修改 unary operator+ 的实现，使其返回 value 而不是 reference
+
+**5. 测试用例修复**
+- 修改 `t_mutable.cpp` 中的测试代码，避免将临时值绑定到引用
+
+#### 完成成果
+- ✅ Document 和 MutableDocument 类大小从 16/32 字节减少到 8 字节
+- ✅ 完全 head-only 化，消除不必要的 Value 对象存储
+- ✅ 所有 33 个回归测试用例全部通过
+- ✅ 编译无错误警告，功能完整性验证通过
+
+#### 技术要点
+- **TDD 方法**: 先编写测试，再实现功能，确保重构可控
+- **轻量级设计**: Document 类现在只是对底层 yyjson 文档的轻量级包装
+- **功能兼容**: 保持完全的功能兼容性，所有操作符和接口正常工作
+- **性能优化**: 消除了不必要的存储和同步开销
+
 ---
 
 *日志维护：请按此格式记录后续 AI 协作任务*

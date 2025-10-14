@@ -75,7 +75,7 @@ DEF_TAST(mutable_value_input, "test input operator << for mutable value")
         //= doc.root() << 3.14;
         //= doc.root() << false;
         //= doc.root() << std::string("five");
-        auto& root = doc.root();
+        auto root = doc.root();
         root << 3.14;
         root << false;
         root << std::string("five");

@@ -9,6 +9,7 @@
 
 /* t_basic.cpp - 基础功能测试（以只读模型为主）
  * 包含：
+ * - 类大小验证
  * - 基础数值读取
  * - 基础字符串读取
  * - 错误处理
@@ -16,6 +17,24 @@
  * - 索引操作符
  * - 比较操作符
  */
+
+DEF_TAST(basic_size, "verify class sizes to ensure proper optimization")
+{
+    // Document and MutableDocument should be lightweight wrapper
+    // Their size should be minimal (pointer size)
+    COUT(sizeof(yyjson::Document), 8);      // Goal: pointer size only (after removing m_root)
+    COUT(sizeof(yyjson::MutableDocument), 8); // Goal: pointer size only (after removing m_root)
+    
+    // Value and MutableValue should be minimal
+    COUT(sizeof(yyjson::Value), 8);
+    COUT(sizeof(yyjson::MutableValue), 24);
+    
+    // Iterators should be lightweight
+    COUT(sizeof(yyjson::ArrayIterator), 48);
+    COUT(sizeof(yyjson::ObjectIterator), 56);
+    COUT(sizeof(yyjson::MutableArrayIterator), 88);
+    COUT(sizeof(yyjson::MutableObjectIterator), 88);
+}
 
 DEF_TAST(basic_read_number, "operator read from yyjson value")
 {
