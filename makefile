@@ -1,7 +1,7 @@
 # Makefile for xyjson project
 # Common commands integration for development workflow
 
-.PHONY: build test build/fast test/fast install clean toc help
+.PHONY: build test build/fast test/fast install clean toc utable help
 
 # Default target
 help:
@@ -13,6 +13,7 @@ help:
 	@echo "  install    - Install the library"
 	@echo "  clean      - Clean build directory"
 	@echo "  toc        - Generate table of contents for header file"
+	@echo "  utable     - Generate and update unit test table"
 	@echo "  help       - Show this help message"
 	@echo ""
 	@echo "make <target> -n  Show the command to execute only"
@@ -43,6 +44,10 @@ clean:
 # Generate table of contents for header file
 toc:
 	echo y | script/gen_toc.pl
+
+# Generate and update unit test table
+utable:
+	perl script/utable.pl
 
 # Alias for help target
 .DEFAULT_GOAL := help
