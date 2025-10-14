@@ -666,7 +666,7 @@ DEF_TAST(iterator_begin_end, "test standard begin/end iterator pattern")
     }
 }
 
-DEF_TAST(iterator_mutable_begin_end, "test mutable standard begin/end iterator pattern")
+DEF_TAST(iterator_mut_begend, "test mutable standard begin/end iterator pattern")
 {
     std::string jsonText = R"json({
         "array": [1, 2, 3, 4, 5],

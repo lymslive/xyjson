@@ -1,0 +1,12 @@
+{
+  "cleanupPeriodDays": 30,
+  "env": {},
+  "includeCoAuthoredBy": false,
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(date:*)",
+      "Bash(git:status,git:diff,git:add,git:log)"
+    ]
+  }
+}

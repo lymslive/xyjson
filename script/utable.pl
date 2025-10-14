@@ -17,7 +17,7 @@ for (my $i = 0; $i < @ARGV; $i++) {
         $test_binary = $ARGV[++$i];
     } elsif ($ARGV[$i] eq "--help") {
         print "Usage: $0 [--output README.md] [--binary ./build/utxyjson]\n";
-        print "       --output=- 表示输出到标准输出\n";
+        print "       --output - 表示输出到标准输出\n";
         exit(0);
     }
 }

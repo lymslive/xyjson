@@ -6,9 +6,9 @@ description: "完成一个 TODO 需求"
 施计划。如果任务较复杂，计划方案较长，请先将实施计划写入 `doing_plan.tmp/` 子
 目录，确认后再开始工作。
 
-任务完成后，以当前时间生成 YYYYMMDD-HHMMSS 格式的任务ID，将实施日志写入
-`tast_log.md` 文档中。并且将该任务 ID 同步写回 `tast_todo.md` 中 TODO:**$1** 这节后
-面，以次级标题标记 `DONE:` 前缀。
+任务完成后，以当前时间生成 YYYYMMDD-HHMMSS 格式的任务ID，将实施日志追加写入
+`tast_log.md` 文档末尾。并且将该任务 ID 同步写回 `tast_todo.md` 中 TODO:**$1** 
+这节内容的末尾，以次级标题标记 `DONE:` 前缀。
 
 如果任务成功完成，可将修改提交 git ，提交消息的 scope 就是需求 ID (**$1**)
 

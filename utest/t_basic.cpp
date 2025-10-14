@@ -36,7 +36,7 @@ DEF_TAST(basic_size, "verify class sizes to ensure proper optimization")
     COUT(sizeof(yyjson::MutableObjectIterator), 88);
 }
 
-DEF_TAST(basic_read_number, "operator read from yyjson value")
+DEF_TAST(basic_read_number, "operator read number from scalar value")
 {
     std::string jsonText = R"json({
         "aaa": 1, "bbb":2, "AAA": -1,
@@ -133,7 +133,7 @@ DEF_TAST(basic_read_number, "operator read from yyjson value")
     COUT(fffLeft, 8.8);
 }
 
-DEF_TAST(basic_read_string, "operator read from yyjson value")
+DEF_TAST(basic_read_string, "operator read string from scalar value")
 {
     std::string jsonText = R"json({
     "aaa": "v1", "bbb":false, "BBB": "false",
@@ -373,7 +373,7 @@ DEF_TAST(basic_index_operator, "test index method and operator[]")
     COUT(mutArray[5].isValid(), false);
 }
 
-DEF_TAST(basic_comparison_operators, "test comparison operators")
+DEF_TAST(basic_compare_ops, "test comparison operators")
 {
     using namespace yyjson;
 

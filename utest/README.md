@@ -69,12 +69,12 @@ script/utable.pl # 或 make utable
 | 序号 | 测试用例名称 | 文件 | 行号 | 描述 |
 |------|-------------|------|------|------|
 | 1    | `basic_size` | `t_basic.cpp` | 21   | verify class sizes to ensure proper optimization |
-| 2    | `basic_read_number` | `t_basic.cpp` | 39   | operator read from yyjson value |
-| 3    | `basic_read_string` | `t_basic.cpp` | 136  | operator read from yyjson value |
+| 2    | `basic_read_number` | `t_basic.cpp` | 39   | operator read number from scalar value |
+| 3    | `basic_read_string` | `t_basic.cpp` | 136  | operator read string from scalar value |
 | 4    | `basic_error_handling` | `t_basic.cpp` | 184  | handle path operator error |
 | 5    | `basic_reread` | `t_basic.cpp` | 237  | test re-read document |
 | 6    | `basic_index_operator` | `t_basic.cpp` | 264  | test index method and operator[] |
-| 7    | `basic_comparison_operators` | `t_basic.cpp` | 376  | test comparison operators |
+| 7    | `basic_compare_ops` | `t_basic.cpp` | 376  | test comparison operators |
 | 8    | `basic_json_pointer` | `t_basic.cpp` | 463  | test JSON Pointer functionality |
 | 9    | `mutable_read_modify` | `t_mutable.cpp` | 26   | test read-modify workflow |
 | 10   | `mutable_value_input` | `t_mutable.cpp` | 66   | test input operator << for mutable value |
@@ -94,7 +94,7 @@ script/utable.pl # 或 make utable
 | 24   | `iterator_functionality` | `t_iterator.cpp` | 19   | test array and object iterator functionality |
 | 25   | `iterator_operators` | `t_iterator.cpp` | 197  | test iterator operators and % operator |
 | 26   | `iterator_begin_end` | `t_iterator.cpp` | 506  | test standard begin/end iterator pattern |
-| 27   | `iterator_mutable_begin_end` | `t_iterator.cpp` | 669  | test mutable standard begin/end iterator pattern |
+| 27   | `iterator_mut_begend` | `t_iterator.cpp` | 669  | test mutable standard begin/end iterator pattern |
 | 28   | `conversion_methods` | `t_conversion.cpp` | 17   | test toString() and toNumber() conversion methods |
 | 29   | `conversion_operators` | `t_conversion.cpp` | 147  | test unary operators - and + for conversion |
 | 30   | `conversion_document` | `t_conversion.cpp` | 303  | test Document and MutableDocument conversion methods |
