@@ -2,8 +2,11 @@
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![C++](https://img.shields.io/badge/C%2B%2B-17-blue.svg)](https://en.cppreference.com/w/cpp/17)
+[English Version](README-en.md) | [中文文档](README.md)
 
-C++ 封装的 JSON 操作库，基于高性能 [yyjson](https://github.com/ibireme/yyjson)，通过操作符重载提供直观的 JSON 处理体验。
+xyjson 是基于高性能 [yyjson](https://github.com/ibireme/yyjson) 封装的 C++ 纯头文件库，通过操作符重载提供直观的 JSON 处理体验。
+其命名除了沿袭 yyjson 外，更因为 **x y** 常用于数学符号，追求像数学变量符号一样操作 JSON 数据，而实现代码所在命名空间仍叫 `yyjson::` 
+以示致敬。
 
 ## 特性
 
@@ -13,30 +16,21 @@ C++ 封装的 JSON 操作库，基于高性能 [yyjson](https://github.com/ibire
 - 📚 **完整功能** - 支持读/写、迭代、文件操作等
 - 🛠️ **易于集成** - **纯头文件库**，CMake 构建支持，支持 `find_package` 集成
 
+## 依赖项
+
+- **[yyjson](https://github.com/ibireme/yyjson)** - 核心依赖，高性能 JSON 解析库
+- **[couttast](https://github.com/lymslive/couttast)** - 可选依赖，仅测试与开发使用
+- **C++ 标准**: C++17 或更高
+- **平台**: Linux, macOS, Windows (MinGW)
+
 ## 快速开始
 
-先确保系统已安装 yyjson ，可从源码安装或用系统包管理工具：
-```bash
-# Ubuntu/Debian
-sudo apt-get install libyyjson-dev
-```
+### 免安装直接使用
 
-### 集成到项目（纯头文件库）
+在已安装 yyjson 底层库后，仅需将单头文件 `include/xyjson.h` 拷贝到项目适合位置，
+开箱即用。
 
-**方式一：直接拷贝头文件（推荐）**
-```bash
-# 只需拷贝单个头文件
-cp include/xyjson.h your-project/include/
-```
-
-**方式二：使用 CMake find_package 集成**
-```cmake
-# 在 CMakeLists.txt 中使用
-find_package(xyjson REQUIRED)
-target_link_libraries(your-target PRIVATE xyjson::xyjson)
-```
-
-**在代码中使用：**
+**代码示例：**
 ```cpp
 #include "xyjson.h"
 
@@ -45,57 +39,70 @@ std::string json = R"({"name": "Alice", "age": 30})";
 xyjson::Document doc(json);
 
 // 提取值
-std::string name = doc / "name" | "unknown";
-int age = doc / "age" | 0;
+std::string name = doc / "name" | ""; // 读到 "Alice"
+int age = doc / "age" | 0;            // 读到 30
 ```
 
-### 构建示例
+### CMake 集成安装
 
+支持 cmake 的标准构建流程：
 ```bash
 # 克隆项目
-git clone <repository-url>
+git clone https://github.com/lymslive/xyjson
 cd xyjson
 
 # 构建（如果未安装依赖将自动下载）
 mkdir build && cd build
 cmake .. && make
 
-# 运行测试
-./build/utxyjson --cout=silent
+# 安装
+sudo make install
 ```
 
-## 核心用法
+然后在客户项目中使用 `find_package` 集成：
+```cmake
+# 在 CMakeLists.txt 中使用
+find_package(xyjson REQUIRED)
+target_link_libraries(your-target PRIVATE xyjson::xyjson)
+    ```
+
+## 核心用法示例
 
 ### 基本操作
 
 ```cpp
-// 创建文档
+// 从 json 串创建文档对象，也可对已有对象 doc << 输入 json 串解析
 xyjson::Document doc(R"({"name": "Alice", "scores": [95, 87]})");
 
 // 路径访问
-std::string name = doc / "name" | "";
+std::string name = doc / "name" | ""; // "Alice"
 
 // 数组访问
-int firstScore = doc / "scores" / 0 | 0;
+int firstScore = doc / "scores" / 0 | 0; // 95
 
-// 创建可写文档
-xyjson::MutableDocument mutDoc("{}");
-mutDoc["name"] = "Bob";
-mutDoc["scores"] = "[]";
-mutDoc / "scores" << 95 << 87;
+// 类型判断
+bool isString = doc / "name" & ""; // true
+bool isNumber = doc / "age" & 0;   // true
 ```
 
-### 文件操作
+### 可写文档操作
 
 ```cpp
-// 读取文件
-xyjson::Document doc;
-doc.readFile("config.json");
+// 创建可写文档对象，默认构建也是创建空 {} 根结点
+xyjson::MutableDocument mutDoc("{}"); // 特殊字面量表示空对象
 
-// 写入文件
-xyjson::MutableDocument mutDoc;
-mutDoc["version"] = "1.0";
+// 添加新键不能用路径操作符 / ，索引操作 [] 支持自动添加
+mutDoc["name"] = "Bob";
+mutDoc["scores"] = "[]"; // 特殊字面量表示空数组
+
+// 数组追加
+mutDoc / "scores" << 95 << 87;
+
+// 文件写入
 mutDoc.writeFile("output.json");
+
+// 标准流输出
+std::cout << mutDoc << std::endl;
 ```
 
 ### 迭代遍历
@@ -106,39 +113,26 @@ for (auto iter = doc / "items" % 0; iter; ++iter) {
     std::cout << "Item " << iter->key << ": " << (iter->value | "") << std::endl;
 }
 
-// 对象迭代
+// 对象迭代  
 for (auto iter = doc / "user" % ""; iter; ++iter) {
     std::cout << iter->key << " = " << (iter->value | "") << std::endl;
 }
 ```
 
-## API 概览
+## 文档导航
 
-### 主要操作符
+- 📖 [使用指南](docs/usage.md) - 详细的使用教程和最佳实践
+- 🔧 [API 参考](docs/api.md) - 完整的操作符和类方法文档
+- 🎨 [设计理念](docs/design.md) - 库的设计思路和哲学
+- 🧪 [单元测试](utest/README.md) - 单元测试说明
+- 📋 [开发需求](task_todo.md) - 当前项目开发的需求列表
+- 📊 [任务日志](task_log.md) - AI 协作的任务完成记录
 
-| 操作符 | 功能 | 示例 |
-|--------|------|------|
-| `/` | 路径访问 | `doc / "user" / "name"` |
-| `\|` | 值提取 | `doc / "age" \| 0` |
-| `=` | 赋值 | `mutDoc / "name" = "Alice"` |
-| `<<` | 智能输入 | `mutDoc / "items" << 1 << 2` |
-| `%` | 迭代器 | `doc / "items" % 0` |
+## 项目状态
 
-### 核心类
-
-- **`xyjson::Document`** - 只读 JSON 文档
-- **`xyjson::MutableDocument`** - 可写 JSON 文档  
-- **`xyjson::Value`** - 只读 JSON 值
-- **`xyjson::MutableValue`** - 可写 JSON 值
-
-## 构建选项
-
-### 编译选项
-
-- **C++ 标准**: C++17 或更高
-- **依赖**: yyjson, couttast (测试)
-- **平台**: Linux, macOS, Windows (MinGW)
-- **自动依赖**: FetchContent 自动下载依赖库
+- ✅ **稳定可用** - 核心功能已完成并通过测试
+- 🔄 **持续开发** - 按 [需求列表](task_todo.md) 逐步完善功能
+- 🧪 **测试覆盖** - 完善的单元测试确保质量
 
 ### 持续集成
 
@@ -151,31 +145,23 @@ for (auto iter = doc / "user" % ""; iter; ++iter) {
 
 查看 [Actions](https://github.com/lymslive/xyjson/actions) 页面获取构建状态。
 
-## 示例项目
+<!--
+## 示例代码
 
-查看 [examples/](examples/) 目录获取更多使用示例：
+项目暂无单独的 `examples/` 目录，但 `utest/` 子目录中的测试用例提供了详尽的用法示例，可作为学习和参考的资源。
 
-```cpp
-// 配置解析示例
-#include "xyjson.h"
-
-xyjson::Document config;
-config.readFile("app_config.json");
-
-std::string host = config / "server" / "host" | "localhost";
-int port = config / "server" / "port" | 8080;
-bool debug = config / "debug" | false;
-```
-
-## 性能对比
+## 性能优化
 
 基于 yyjson 的高性能特性，xyjson 在保持易用性的同时提供优秀的性能：
 
 - **零拷贝解析** - 直接操作原始 JSON 数据
 - **高效内存管理** - RAII 自动资源释放
 - **字符串优化** - 字面量引用减少拷贝
+-->
 
-## 开发
+## 开发流程
+
+详见 [规范指南](DEVELOPMENT_GUIDE.md) 。
 
 ### 运行测试
 
@@ -190,8 +176,10 @@ cd build
 ```
 xyjson/
 ├── include/xyjson.h     # 主头文件（纯头文件库）
-├── utest/               # 单元测试
+├── utest/               # 单元测试（含丰富示例）
 ├── docs/                # 详细文档
+├── task_todo.md         # 开发需求管理
+├── task_log.md          # 任务完成记录
 └── CMakeLists.txt       # 构建配置（支持 find_package）
 ```
 
