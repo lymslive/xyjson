@@ -21,6 +21,8 @@ Makefile
 *.temp
 *.bak
 *.tmp/
+bakup-*
+.touch
 
 # Binary files
 *.a

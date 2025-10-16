@@ -85,6 +85,7 @@ utest/t_xyjson.cpp 文件。
 ### DONE:20251013-095233
 后期补充：
 增加 build/fast 与 test/fast 目标，可跳过重复 cmake .. 命令
+使用 touch 技术标记时间戳可以书写伪目标依赖，不必 /fast 额外目标
 
 ## TODO:2025-10-13/1 完全 head-only 化之一
 

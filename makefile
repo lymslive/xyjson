@@ -7,9 +7,7 @@
 help:
 	@echo "Available targets:"
 	@echo "  build      - Build the project using cmake and make"
-	@echo "  build/fast - Make in the exist build directory"
 	@echo "  test       - Build and test"
-	@echo "  test/fast  - Test as if already build"
 	@echo "  install    - Install the library"
 	@echo "  clean      - Clean build directory"
 	@echo "  toc        - Generate table of contents for header file"
@@ -18,19 +16,22 @@ help:
 	@echo ""
 	@echo "make <target> -n  Show the command to execute only"
 
-# Standard build
-build:
-	mkdir -p build
-	cd build && cmake .. && make
+# All test source files
+TEST_SOURCES := $(wildcard utest/*.cpp)
 
-build/fast:
+# Mark the last time some phony target executed
+.touch:
+	mkdir -p .touch
+
+# Standard build
+build/Makefile:
+	mkdir -p build
+	cd build && cmake ..
+build: build/Makefile
 	cd build && make
 
 # Run tests (silent mode)
 test: build
-	./build/utxyjson --cout=silent
-
-test/fast:
 	./build/utxyjson --cout=silent
 
 # Install the library
@@ -42,12 +43,16 @@ clean:
 	rm -rf build
 
 # Generate table of contents for header file
-toc:
+toc: .touch/toc.t
+.touch/toc.t: .touch include/xyjson.h
 	echo y | script/gen_toc.pl
+	@touch $@
 
 # Generate and update unit test table
-utable:
+utable: .touch/utable.t
+.touch/utable.t: .touch $(TEST_SOURCES)
 	perl script/utable.pl
+	@touch $@
 
 # Alias for help target
 .DEFAULT_GOAL := help

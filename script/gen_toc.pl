@@ -252,6 +252,24 @@ my @toc_lines = generate_toc_content(\@toc_entries, 0);
 # 调整行号
 adjust_toc_line_numbers(\@toc_lines, $line_offset, $toc_start_line);
 
+# 如果旧TOC存在，则与新生成的TOC进行比较；若一致则直接退出
+if ($toc_start_line != -1 && $toc_end_line != -1) {
+    my @current_toc = ();
+    for (my $ln = $toc_start_line; $ln <= $toc_end_line; $ln++) {
+        my $l = $lines[$ln-1];
+        $l =~ s/\s+$//; # 去掉行尾空白
+        push @current_toc, $l;
+    }
+    my @new_toc_norm = map { my $s = $_; $s =~ s/\s+$//; $s } @toc_lines;
+    my $cur_join = join("\n", @current_toc);
+    my $new_join = join("\n", @new_toc_norm);
+    if ($cur_join eq $new_join) {
+        print "\nTOC已是最新，无需更新。\n";
+        print "\n=== 完成 ===\n";
+        exit 0;
+    }
+}
+
 print "\nTOC统计信息:\n";
 print "- 新TOC大小: $new_toc_size 行\n";
 print "- 旧TOC大小: $old_toc_size 行\n";
