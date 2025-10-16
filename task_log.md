@@ -755,6 +755,12 @@ cd build && cmake .. && make
 - **实用导向**: 包含大量代码示例和最佳实践
 - **国际化**: 中英文 README 提供多语言支持
 
+### 任务ID: 20251016-231556
+- TODO: 2025-10-16/1
+- Status: success
+- Notes: 实现 script/todo.pl；读取与更新 DONE 行；写入实施计划 doing_plan.tmp/。
+
 ---
 
 *日志维护：请按此格式简明扼要地记录后续 AI 协作任务*
+
