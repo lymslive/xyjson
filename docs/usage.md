@@ -35,10 +35,11 @@ MutableValue 是对某个 Json 结点的引用，其中根结点可用 root 方�
 
 ## JSON 模型基本操作
 
-只读模型的基本操作，大多也适于可写模型。故本节 Document 一般泛指两个文档类，
+本节讲解只读模型与可写模型都支持的基本操作， Document 一般泛指两个文档类，
 Value 泛指两个 Json 结点类。
 
-### 读入与解析 JSON 文档
+### Document 的输入输出
+#### 输入操作
 
 Document 类对象可以从字符串直接构造，也能在创建对象后用 `<<` 操作符读入字符串
 再解析。也支持从文件读取 Json ，但提供文件名参数时，只能用 `readFile` 方法，不
@@ -63,13 +64,7 @@ if (!doc) {
 }
 ```
 
-### 根结点
-
-从概念上讲，一棵 Json 树有一个根结点。`Document` 类也有个 `root` 方法可以返回
-一个 `Value` 类型的根结点。在 xyjson 中，大多时候不需要感知根结点的存在，直接
-操作 `Document` 就相当于操作其根结点。
-
-### 序列化与输出
+#### 输出操作
 
 Document 类有 wirte 方法及 `>>` 操作符将整个 Json 树序列化输出至右侧参数目标。
 支持 `std::string` 字符串及文件，当然与读入时一样，当提供文件名参数时只能用具
@@ -97,7 +92,15 @@ std::cout << doc["key"].toString(true) << std::endl;
 doc.writeFile("output.json");
 ```
 
-### 按路径访问 JSON 结点
+### Value 结点的访问
+#### 根结点
+
+从概念上讲，一棵 Json 树有一个根结点。`Document` 类也有个 `root` 方法可以返回
+一个 `Value` 类型的根结点。在 xyjson 中，大多时候不需要感知根结点的存在，直接
+操作 `Document` 就相当于操作其根结点。
+
+#### 索引操作
+#### 按路径访问 JSON 结点
 
 Value 支持用常规的 `[]` 索引访问对象或数组，但更推荐使用路径操作符 `/` 。
 也支持直接从 Document 作路径操作，相当于从其根结点开始索引。
@@ -120,6 +123,8 @@ yyjson::Value firstItem = doc / "items" / 0;
 yyjson::Value deepValue = doc / "user" / "profile" / "address" / "city";
 ```
 
+#### 路径操作
+#### JSON Pointer 操作
 路径操作符 `/` 强于索引操作符 `[]` 之处在于可以访问多级路径，遵循 JSON Pointer
 标准，必须以 `/` 开头，中间键名本身若含 `/` 或 `~` 特殊字符需要分别转义为 `~1`
 与 `~1`。当然对于实际项目，强烈建议避免键名含特殊字符，仅须注意以 `/` 开头。
@@ -129,7 +134,7 @@ yyjson::Value deepValue = doc / "user" / "profile" / "address" / "city";
 
 多级路径适于动态配置，若键名固定，分开链式访问显然性能更高。
 
-### 错误处理
+#### 错误处理
 
 当路径操作失败时，返回无效 `Value` 值。由于重载了 `operator bool` ，可直接放在
 bool 上下文直接使用判断：

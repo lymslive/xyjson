@@ -86,16 +86,20 @@ class ObjectIterator;
 class MutableArrayIterator;
 class MutableObjectIterator;
 
+struct EmptyObject {};
+struct EmptyArray {};
+struct EmptyString {};
+
 // Type representative constants for type checking
 constexpr int kInt = 0;
-constexpr int64_t kBigInt = 0L;
-constexpr uint64_t kBigUint = 0uL;
-constexpr const char* kStr = "";
+constexpr int64_t kSint = 0L;
+constexpr uint64_t kUint = 0uL;
+constexpr EmptyString kString;
 constexpr double kFloat = 0.0;
 constexpr bool kBool = false;
 constexpr std::nullptr_t kNull = nullptr;
-constexpr const char* kArray = "[]";
-constexpr const char* kObject = "{}";
+constexpr EmptyArray kArray;
+constexpr EmptyObject kObject;
 
 // Type representative constants for underlying pointers
 constexpr yyjson_val* kNode = nullptr;
@@ -182,6 +186,10 @@ public:
     bool isType(double) const { return isReal(); }
     bool isType(bool) const { return isBool(); }
     bool isType(std::nullptr_t) const { return isNull(); }
+    // Support empty-type sentinels
+    bool isType(EmptyString) const { return isString(); }
+    bool isType(EmptyArray) const { return isArray(); }
+    bool isType(EmptyObject) const { return isObject(); }
     bool isType(const char* type) const 
     { 
         // Special handling for "{}" and "[]" to check for object/array types
@@ -405,6 +413,10 @@ public:
     bool isType(double) const { return isReal(); }
     bool isType(bool) const { return isBool(); }
     bool isType(std::nullptr_t) const { return isNull(); }
+    // Support empty-type sentinels
+    bool isType(EmptyString) const { return isString(); }
+    bool isType(EmptyArray) const { return isArray(); }
+    bool isType(EmptyObject) const { return isObject(); }
     bool isType(const char* type) const 
     { 
         // Special handling for "{}" and "[]" to check for object/array types
@@ -490,6 +502,10 @@ public:
     MutableValue& setCopy(const char* value, size_t len);
     MutableValue& setArray();
     MutableValue& setObject();
+    // Set using empty-type sentinels
+    MutableValue& set(EmptyArray);
+    MutableValue& set(EmptyObject);
+    MutableValue& set(EmptyString);
 
     // No effect set to other types.
     template <typename T>
@@ -1118,6 +1134,21 @@ inline yyjson_mut_val* create(yyjson_mut_doc* doc, StringRef value)
     }
 
     return yyjson_mut_str(doc, value);
+}
+
+// Overloads for empty-type sentinels
+inline yyjson_mut_val* create(yyjson_mut_doc* doc, EmptyArray)
+{
+    return createArray(doc);
+}
+inline yyjson_mut_val* create(yyjson_mut_doc* doc, EmptyObject)
+{
+    return createObject(doc);
+}
+inline yyjson_mut_val* create(yyjson_mut_doc* doc, EmptyString)
+{
+    // Create an empty string node
+    return yyjson_mut_strncpy(doc, "", 0);
 }
 
 inline yyjson_mut_val* createRef(yyjson_mut_doc* doc, const char* value)
@@ -1831,6 +1862,19 @@ inline MutableValue& MutableValue::setObject()
         yyjson_mut_set_obj(m_val);
     }
     return *this;
+}
+
+inline MutableValue& MutableValue::set(EmptyArray)
+{
+    return setArray();
+}
+inline MutableValue& MutableValue::set(EmptyObject)
+{
+    return setObject();
+}
+inline MutableValue& MutableValue::set(EmptyString)
+{
+    return set("");
 }
 
 /* @Group 4.3.4: array append */

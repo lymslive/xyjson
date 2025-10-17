@@ -654,7 +654,7 @@ DEF_TAST(basic_type_checking, "type checking with isType method and & operator")
     COUT(doc["intVal"] & kInt, true);
     COUT(doc["floatVal"] & kFloat, true);
     COUT(doc["boolVal"] & kBool, true);
-    COUT(doc["strVal"] & kStr, true);
+    COUT(doc["strVal"] & kString, true);
     COUT(doc["nullVal"] & kNull, true);
 
     // Test complex types (array and object) with special string constants

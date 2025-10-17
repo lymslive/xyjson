@@ -786,4 +786,31 @@ cd build && cmake .. && make
 
 ---
 
+## 任务ID: 20251018-000707
+- 任务类型: 开发
+- 任务状态: 已完成
+- 执行AI: Terminal Assistant Agent
+- 对应需求: TODO:2025-10-17/2
+
+### 任务需求
+设计空类型哨兵类 EmptyObject/EmptyArray/EmptyString，并将类型代表常量 kObject/kArray/kString 的类型改为该哨兵类；扩展 isType()/create()/set() 等重载，使它们可接收哨兵类型，用于 &、=、<< 等操作；保持 "{}" 与 "[]" 字面量的兼容特殊意义；补充/验证单元测试。
+
+### 实施内容
+- include/xyjson.h:
+  - 新增 isType(EmptyString/EmptyArray/EmptyObject) 于 Value 与 MutableValue（file include/xyjson.h:183-199, 405-423）。
+  - 新增 create(doc, EmptyArray/EmptyObject/EmptyString) 重载（file include/xyjson.h:1109-1171 区域后追加）。
+  - 为 MutableValue 增加 set(EmptyArray/EmptyObject/EmptyString) 重载（file include/xyjson.h:1717-1838 区域后追加实现）。
+- 运行全量构建与测试，确保无回归。
+
+### 构建与测试
+- 构建：cmake 配置并编译成功
+- 测试：./utxyjson --cout=silent
+- 结果：36/36 全部通过
+
+### 影响评估
+- 性能优化：避免通过 const char* 进行两次 strcmp 的类型判定开销，kObject/kArray/kString 直接以不同类型参与重载解析。
+- 向后兼容：仍保留 "{}"/"[]" 字面量在 StringRef/赋值/输入中的特殊意义。
+
+---
+
 *日志维护：请按此格式简明扼要地记录后续 AI 协作任务*
