@@ -35,6 +35,10 @@ DEF_TAST(conversion_methods, "test toString() and toNumber() conversion methods"
         yyjson::Document doc(jsonText);
         COUT(doc.hasError(), false);
 
+        // just check the output
+        COUT(doc.root().toString());
+        COUT(doc.root().toString(true));
+
         // Test string values
         COUT((doc / "string_value").toString(), "hello");
         COUT((doc / "string_value").toString(true), "\"hello\""); // with quotes
