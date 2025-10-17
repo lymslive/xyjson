@@ -804,7 +804,7 @@ public:
     
     // Position manipulation
     ArrayIterator& advance(size_t steps = 1);          // Advance iterator by n steps
-    ArrayIterator& seek(size_t index, bool reset = false); // Seek to specific index
+    ArrayIterator& seek(size_t index, bool reset = true); // Seek to specific index
     
     // Rewind to beginning
     ArrayIterator& rewind();
@@ -868,7 +868,7 @@ public:
     
     // Position manipulation  
     ObjectIterator& advance(size_t steps = 1);          // Advance iterator by n steps
-    ObjectIterator& seek(const char* key, bool reset = false); // Seek to specific key
+    ObjectIterator& seek(const char* key, bool reset = true); // Seek to specific key
     
     // Rewind to beginning
     ObjectIterator& rewind();
@@ -932,7 +932,7 @@ public:
     
     // Position manipulation
     MutableArrayIterator& advance(size_t steps = 1);          // Advance iterator by n steps
-    MutableArrayIterator& seek(size_t index, bool reset = false); // Seek to specific index
+    MutableArrayIterator& seek(size_t index, bool reset = true); // Seek to specific index
     
     // Rewind to beginning
     MutableArrayIterator& rewind();
@@ -997,7 +997,7 @@ public:
     
     // Position manipulation  
     MutableObjectIterator& advance(size_t steps = 1);          // Advance iterator by n steps
-    MutableObjectIterator& seek(const char* key, bool reset = false); // Seek to specific key
+    MutableObjectIterator& seek(const char* key, bool reset = true); // Seek to specific key
     
     // Rewind to beginning
     MutableObjectIterator& rewind();

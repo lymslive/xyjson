@@ -1,5 +1,32 @@
 # AI 协作任务工作日志
 
+## 任务ID: 20251018-011944
+- 任务类型: 优化
+- 任务状态: 已完成
+- 执行AI: Terminal Assistant Agent
+- 对应需求: TODO:2025-10-18/2
+
+### 任务需求
+迭代器优化：将四个迭代器的 seek 方法的默认行为改为需要 rewind（默认从头查找）。同步修改可能受影响的单元测试断言，确保全部通过。
+
+### 实施内容
+- include/xyjson.h: 将以下签名的默认参数由 reset=false 改为 reset=true：
+  - ArrayIterator::seek(size_t index, bool reset = true)
+  - ObjectIterator::seek(const char* key, bool reset = true)
+  - MutableArrayIterator::seek(size_t index, bool reset = true)
+  - MutableObjectIterator::seek(const char* key, bool reset = true)
+- 构建并运行全部单元测试，验证现有断言仍然通过。
+
+### 构建与测试
+- 构建：cmake 配置并编译成功
+- 测试：./utxyjson --cout=silent 通过
+- 结果：37/37 全部通过
+
+### 影响评估
+- 行为更贴近“% 在定点创建新迭代器”的语义，seek 默认回绕到起点再查找。
+- 与现有测试兼容，无需额外改动。
+
+
 格式说明:
 - **任务ID**: YYYYMMDD-HHMMSS ，生成命令 `date +"%Y%m%d-%H%M%S"`
 - **任务类型**: 重构/开发/调试/优化/文档
