@@ -450,9 +450,9 @@ DEF_TAST(mutable_array_append, "test append to MutableValue array")
         // Append values to nested array
         arrDoc.root() << "nested" << 42 << 3.14;
         COUT(arrDoc.root().size(), 3);
-        COUT_PTR(arrDoc / 0 | "", "nested");
-        COUT(arrDoc / 1 | 0, 42);
-        COUT(arrDoc / 2 | 0.0, 3.14);
+        COUT_PTR(arrDoc.root() / 0 | "", "nested");
+        COUT(arrDoc.root() / 1 | 0, 42);
+        COUT(arrDoc.root() / 2 | 0.0, 3.14);
         
         // Append the nested array to original array
         doc.root() << arrDoc.root();
@@ -806,3 +806,37 @@ DEF_TAST(mutable_keyvalue_add, "test KeyValue optimization for object insertion"
     }
 }
 
+// Addition test: MutableValue key support
+DEF_TAST(mutable_keyvalue_mutablekey, "test KeyValue with MutableValue key")
+{
+    yyjson::MutableDocument doc("{}");
+    auto root = doc.root();
+
+    // Prepare MutableValue key and value from the same doc pool
+    auto keyNode = doc * "mkey";
+    auto valNode = doc * 777;
+
+    // Use new syntax: (MutableValue key) * (MutableValue value)
+    root << (keyNode * valNode);
+
+    COUT(root.size(), 1);
+    COUT(root["mkey"] | 0, 777);
+
+    // Also test value.tag(MutableValue key)
+    auto valNode2 = doc * true;
+    root << (valNode2.tag(keyNode));
+    COUT(root.size(), 2);
+    COUT(root["mkey"] | false, true);
+
+    // Negative cases: different doc or non-string key should be ignored (invalid KeyValue)
+    yyjson::MutableDocument other("{}");
+    auto otherKey = other * "ok";
+    auto kv_invalid = otherKey * valNode; // different doc, should be invalid
+    root << kv_invalid; // should have no effect
+    COUT(root.size(), 2);
+
+    auto nonStrKey = doc * 123;
+    auto kv_nonstr = nonStrKey * valNode; // non-string key, invalid
+    root << kv_nonstr;
+    COUT(root.size(), 2);
+}

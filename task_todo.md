@@ -526,6 +526,28 @@ to AI: 我已经在 @Part 1 增加了这三个空类，及修改了常量定义�
 
 ### DONE: 20251018-000707
 
+## TODO:2025-10-18/1 支持 MutableValue 类型的 key * value 绑定
+
+目前支持 `<<` 将键值对插入 Json 对象结点。
+用操作符形如 `objectNode << key * (mutDoc * value)` 。
+但是 key 类型目前只支持原始字符串类型，现在希望增加也支持已经是 MutableValue
+类型的 key 。允许写成 `objectNode << (mutDoc * key) * (mutDoc * value)` 。
+
+请增加 MutableValue::tag 方法重载，参数是另一个 MutableValue, 当然应该是能做
+key 的字符串类型。
+也可能要增加操作 `*` 重载，使两个 MutableValue 的 `key * value` 调用
+`value.tag(key)` 。
+
+同时检查一下 tag 方法的实现，是否可用已有的 create 方法重构，避免重复，保持一
+致。
+
+涉及新功能开发，须增加测试用例，尽量在原来的 tag 与 `*` 测试附加添加新段落或用
+例名。
+
+### DONE: 20251018-005422
+
+## TODO:2025-10-18/2 迭代器优化
+
 ## TODO: 优化文档示例代码管理同步单元测试
 
 - 针对文档：READE.md docs/usage.md
@@ -539,8 +561,6 @@ to AI: 我已经在 @Part 1 增加了这三个空类，及修改了常量定义�
 - 编译检查示例语法正确，运行检验行为正确性，作必要修改调整
 - 在 script/ 目录下添加一个 perl 脚本，支持将 `t_docx.cpp` 中的示例例代码反向
   拷回文档
-
-## 迭代器优化
 
 ## TODO: 设计模板类的 KeyValue 优化对象容器的插入
 

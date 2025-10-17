@@ -556,6 +556,7 @@ public:
     KeyValue tag(const std::string& key) const;
     KeyValue tagRef(const char* key) const;
     KeyValue tagCopy(const char* key, size_t len) const;
+    KeyValue tag(const MutableValue& key) const;
 
     // Smart input method, append for array, add for object, assign for scalar
     MutableValue& input(StringRef value);
@@ -1991,6 +1992,15 @@ inline KeyValue MutableValue::tagCopy(const char* key, size_t len) const
     return KeyValue(nullptr, nullptr);
 }
 
+inline KeyValue MutableValue::tag(const MutableValue& key) const
+{
+    // Require same document pool and string type; do not copy
+    if (m_doc && key.m_doc == m_doc && key.isString())
+    {
+        return KeyValue(key.get(), m_val);
+    }
+    return KeyValue(nullptr, nullptr);
+}
 
 /* @Group 4.3.7: smart input */
 /* ************************************************************************ */
@@ -2812,6 +2822,7 @@ inline MutableValue operator*(const MutableDocument& doc, char(&value)[N])
 }
 
 // `value * key` --> `value.tag(key)` --> "key": value
+// Accept key as string-like or MutableValue (same doc, string type)
 template <typename T>
 inline KeyValue operator*(const MutableValue& value, const T& key)
 {
@@ -2846,6 +2857,11 @@ inline KeyValue operator*(const char(&key)[N], const MutableValue& value)
 
 template <size_t N>
 inline KeyValue operator*(char(&key)[N], const MutableValue& value)
+{
+    return value.tag(key);
+}
+
+inline KeyValue operator*(const MutableValue& key, const MutableValue& value)
 {
     return value.tag(key);
 }
