@@ -239,7 +239,7 @@ public:
     ObjectIterator endObject() const;
     
     // Conversion methods
-    std::string toString(bool quoteStr = false) const;
+    std::string toString(bool pretty = false) const;
     int toNumber() const;
     
     // Comparison method
@@ -558,7 +558,7 @@ public:
     bool inputValue(const T& value);
 
     // Conversion methods
-    std::string toString(bool quoteStr = false) const;
+    std::string toString(bool pretty = false) const;
     int toNumber() const;
     
     // Comparison method
@@ -1381,16 +1381,21 @@ inline ObjectIterator Value::endObject() const
 /* @Group 4.1.4: others */
 /* ************************************************************************ */
 
-inline std::string Value::toString(bool quoteStr) const
+inline std::string Value::toString(bool pretty) const
 {
     if (!isValid()) return "";
     
-    if (isString() && !quoteStr) {
+    if (isString() && !pretty) {
         return std::string(yyjson_get_str(m_val));
     }
     
+    uint32_t flags = YYJSON_WRITE_NOFLAG;
+    if (pretty) {
+        flags |= YYJSON_WRITE_PRETTY;
+    }
+    
     size_t len = 0;
-    char* json_str = yyjson_val_write(m_val, YYJSON_WRITE_NOFLAG, &len);
+    char* json_str = yyjson_val_write(m_val, flags, &len);
     if (!json_str) return "";
     
     std::string result(json_str, len);
@@ -2062,16 +2067,21 @@ inline MutableObjectIterator MutableValue::endObject() const
 /* @Group 4.3.9: others */
 /* ************************************************************************ */
 
-inline std::string MutableValue::toString(bool quoteStr) const
+inline std::string MutableValue::toString(bool pretty) const
 {
     if (!isValid()) return "";
 
-    if (isString() && !quoteStr) {
+    if (isString() && !pretty) {
         return std::string(yyjson_mut_get_str(m_val));
     }
 
+    uint32_t flags = YYJSON_WRITE_NOFLAG;
+    if (pretty) {
+        flags |= YYJSON_WRITE_PRETTY;
+    }
+
     size_t len = 0;
-    char* json_str = yyjson_mut_val_write(m_val, YYJSON_WRITE_NOFLAG, &len);
+    char* json_str = yyjson_mut_val_write(m_val, flags, &len);
     if (!json_str) return "";
 
     std::string result(json_str, len);

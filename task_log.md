@@ -758,7 +758,32 @@ cd build && cmake .. && make
 - Status: success
 - Notes: 实现 script/todo.pl；读取与更新 DONE 行；写入实施计划 doing_plan.tmp/。
 
+## 任务ID: 20251017-232802
+- **任务类型**: 开发
+- **任务状态**: 已完成
+- **执行AI**: Terminal Assistant Agent
+- **对应需求**: TODO:2025-10-17/1
+
+### 任务需求
+将 toString(true) 改为缩进格式化转字符串：
+- 字符串结点：toString() 无引号，toString(true) 有引号（保持不变）
+- 其他标量：toString() 与 toString(true) 一样（保持不变）
+- 容器结点（对象/数组）：toString() 单行；toString(true) 改为缩进格式化
+
+### 实施过程
+1. 修改 include/xyjson.h 中实现：
+   - Value::toString(bool) 与 MutableValue::toString(bool) 在 pretty==true 且为容器时传入 YYJSON_WRITE_PRETTY 标志；其余情况保持原逻辑。
+2. 构建并运行单元测试：36/36 通过。
+3. 记录计划：doing_plan.tmp/2025-10-17_1.txt。
+
+### 构建与测试
+- 构建：cmake .. && make -j
+- 测试：./utxyjson --cout=silent
+- 结果：全部通过
+
+### 影响评估
+- 与现有用例兼容；容器 pretty 序列化更符合直觉。
+
 ---
 
 *日志维护：请按此格式简明扼要地记录后续 AI 协作任务*
-
