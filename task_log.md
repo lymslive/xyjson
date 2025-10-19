@@ -848,3 +848,9 @@ cd build && cmake .. && make
 - feat(2025-10-19/1): add large integer support test and research.
 - Docs: add experiment test for large integer.
 
+### 20251019-105930
+
+- **需求**：`TODO:2025-10-19/2` 考虑为 Value 添加 < 比较操作。
+- **过程**：分析了为 `xyjson::Value` 添加 `operator<` 的三种可行方案，包括深度内容比较、浅层指针比较和混合模式比较。最终撰写了一份详细的评估报告，建议采用混合模式方案，因为它在语义、性能和实现复杂度之间取得了最佳平衡。
+- **产出**：评估报告 `doing_plan.tmp/20251019-2.md`。
+
