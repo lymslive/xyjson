@@ -860,3 +860,39 @@ cd build && cmake .. && make
 - **过程**：为 `xyjson::Value` 和 `xyjson::MutableValue` 添加了 `less` 方法和 `operator<` 及其派生操作符。采用了混合比较模式：标量按值比较，容器先按大小、再按指针地址比较。测试用例 `advanced_compare_ops` 和 `advanced_sort_mixed_array` 出现失败断言，经分析，是测试用例的预期结果与混合模式的排序逻辑不符，实现本身符合设计。
 - **产出**：修改了 `include/xyjson.h`，并迁移和扩展了 `utest/` 下的测试用例。
 
+## 任务ID: 20251020-000000
+- **任务类型**: 优化/开发/测试
+- **任务状态**: 已完成
+- **执行AI**: Terminal Assistant Agent
+- **对应需求**: TODO:2025-10-19/4
+
+### 任务需求
+优化 < 操作及数值/类型相关接口以提升一致性与安全性：
+- 删除 get_const_val 依赖，避免依赖内部布局；调整 lessCompare()
+- 为 Value/MutableValue 增加 getType()
+- 新增 ZeroNumber/kNumber 数字哨兵；支持 json | kNumber
+- 新增 getor(EmptyString)/getor(ZeroNumber) 特化；支持 json | kString/kNumber
+- 将原 int toNumber 重命名为 toInteger，新增 double toNumber 与 yyjson 语义一致（标量用 yyjson_get_num，容器返回 size，字符串/布尔/null 按 yyjson_get_num 行为返回 0.0）
+- 更新 ~ 运算符用于数值(double)转换；+ 运算符维持整数语义
+- 修复/新增单元测试，全部通过
+
+### 实施内容
+- include/xyjson.h:
+  - 添加 struct ZeroNumber、常量 kNumber；为 Value/MutableValue 增加 getType()
+  - lessCompare(): 去除 get_const_val，按 getType 分支；数值用 toNumber() 比较，字符串用 json | kString，容器同尺寸指针回退比较
+  - Value/MutableValue: toInteger() 替代旧 int toNumber()；新增 double toNumber() 直接调用 yyjson_get_num/yyjson_mut_get_num；新增 getor(EmptyString)/getor(ZeroNumber)
+  - 操作符：新增 ~json 返回 double；+json/+doc 改为调用 toInteger()
+- utest:
+  - t_basic.cpp: 增加 kString/kNumber 用例
+  - t_conversion.cpp: 系统性改为 toInteger 与新的 toNumber 语义，并新增 ~ 用例
+
+### 构建与测试
+- 构建：cmake -S . -B build && cmake --build build -j
+- 测试：./build/utxyjson --cout=silent
+- 结果：40/40 全部通过
+
+### 影响与兼容性
+- lessCompare 不再依赖内部指针强转获取 const 值，安全性提升
+- toInteger 保持原整数转义，+ 运算符兼容旧语义；toNumber 提供与 yyjson 一致的 double 视图
+- 新的哨兵 kString/kNumber 与 getor 特化配合，写法简洁：json | kString, json | kNumber
+

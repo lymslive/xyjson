@@ -89,12 +89,14 @@ class MutableObjectIterator;
 struct EmptyObject {};
 struct EmptyArray {};
 struct EmptyString {};
+struct ZeroNumber {};
 
 // Type representative constants for type checking
 constexpr int kInt = 0;
 constexpr int64_t kSint = 0L;
 constexpr uint64_t kUint = 0uL;
 constexpr EmptyString kString;
+constexpr ZeroNumber kNumber;
 constexpr double kFloat = 0.0;
 constexpr bool kBool = false;
 constexpr std::nullptr_t kNull = nullptr;
@@ -178,6 +180,7 @@ public:
     bool isArray() const { return isValid() && yyjson_is_arr(m_val); }
     bool isObject() const { return isValid() && yyjson_is_obj(m_val); }
     const char* typeName() const { return yyjson_get_type_desc(m_val); }
+    yyjson_type getType() const { return isValid() ? yyjson_get_type(m_val) : YYJSON_TYPE_NONE; }
     
     // Type checking methods with template parameters
     bool isType(int) const { return isInt(); }
@@ -190,6 +193,7 @@ public:
     bool isType(EmptyString) const { return isString(); }
     bool isType(EmptyArray) const { return isArray(); }
     bool isType(EmptyObject) const { return isObject(); }
+    bool isType(ZeroNumber) const { return isNumber(); }
     bool isType(const char* type) const 
     { 
         // Special handling for "{}" and "[]" to check for object/array types
@@ -214,6 +218,9 @@ public:
     // Convenience method template with default value
     template<typename T>
     T getor(const T& defaultValue) const;
+    // Special overloads for sentinels
+    const char* getor(EmptyString) const;
+    double getor(ZeroNumber) const;
     
     // Array/Object size and access by index or key
     size_t size() const;
@@ -248,7 +255,8 @@ public:
     
     // Conversion methods
     std::string toString(bool pretty = false) const;
-    int toNumber() const;
+    int toInteger() const;
+    double toNumber() const;
     
     // Comparison method
     bool equal(const Value& other) const;
@@ -406,6 +414,7 @@ public:
     bool isArray() const { return isValid() && yyjson_mut_is_arr(m_val); }
     bool isObject() const { return isValid() && yyjson_mut_is_obj(m_val); }
     const char* typeName() const { return yyjson_mut_get_type_desc(m_val); }
+    yyjson_type getType() const { return isValid() ? yyjson_mut_get_type(m_val) : YYJSON_TYPE_NONE; }
     
     // Type checking methods with template parameters
     bool isType(int) const { return isInt(); }
@@ -418,6 +427,7 @@ public:
     bool isType(EmptyString) const { return isString(); }
     bool isType(EmptyArray) const { return isArray(); }
     bool isType(EmptyObject) const { return isObject(); }
+    bool isType(ZeroNumber) const { return isNumber(); }
     bool isType(const char* type) const 
     { 
         // Special handling for "{}" and "[]" to check for object/array types
@@ -445,6 +455,9 @@ public:
     // Convenience method template with default value
     template<typename T>
     T getor(const T& defaultValue) const;
+    // Special overloads for sentinels
+    const char* getor(EmptyString) const;
+    double getor(ZeroNumber) const;
     
     // Array/Object size and access by index or key
     size_t size() const;
@@ -507,6 +520,7 @@ public:
     MutableValue& set(EmptyArray);
     MutableValue& set(EmptyObject);
     MutableValue& set(EmptyString);
+    MutableValue& set(ZeroNumber);
 
     // No effect set to other types.
     template <typename T>
@@ -577,7 +591,8 @@ public:
 
     // Conversion methods
     std::string toString(bool pretty = false) const;
-    int toNumber() const;
+    int toInteger() const;
+    double toNumber() const;
     
     // Comparison method
     bool equal(const MutableValue& other) const;
@@ -1153,6 +1168,11 @@ inline yyjson_mut_val* create(yyjson_mut_doc* doc, EmptyString)
     // Create an empty string node
     return yyjson_mut_strncpy(doc, "", 0);
 }
+inline yyjson_mut_val* create(yyjson_mut_doc* doc, ZeroNumber)
+{
+    // Create a zero number (double) node
+    return yyjson_mut_real(doc, 0.0);
+}
 
 inline yyjson_mut_val* createRef(yyjson_mut_doc* doc, const char* value)
 {
@@ -1203,8 +1223,6 @@ inline yyjson_mut_val* create(yyjson_mut_doc* doc, const MutableDocument& src)
 /* ------------------------------------------------------------------------ */
 
 // Helper function to get yyjson_val* from both Value and MutableValue
-inline yyjson_val* get_const_val(const Value& v) { return v.get(); }
-inline yyjson_val* get_const_val(const MutableValue& v) { return (yyjson_val*)v.get(); }
 
 /// Compare two JSON values (Value or MutableValue) using hybrid logic.
 template<typename T>
@@ -1218,11 +1236,8 @@ lessCompare(const T& lhs, const T& rhs)
         return false;
     }
 
-    yyjson_val* lhs_val = get_const_val(lhs);
-    yyjson_val* rhs_val = get_const_val(rhs);
-
-    yyjson_type lhs_type = yyjson_get_type(lhs_val);
-    yyjson_type rhs_type = yyjson_get_type(rhs_val);
+    auto lhs_type = lhs.getType();
+    auto rhs_type = rhs.getType();
 
     if (lhs_type != rhs_type) {
         return lhs_type < rhs_type;
@@ -1233,23 +1248,14 @@ lessCompare(const T& lhs, const T& rhs)
             return false; // nulls are equal
 
         case YYJSON_TYPE_BOOL:
-            return yyjson_get_bool(lhs_val) < yyjson_get_bool(rhs_val);
+            return (lhs.getor(false)) < (rhs.getor(false));
 
         case YYJSON_TYPE_NUM: {
-            if (yyjson_is_real(lhs_val) || yyjson_is_real(rhs_val)) {
-                return yyjson_get_num(lhs_val) < yyjson_get_num(rhs_val);
-            } else if (yyjson_is_sint(lhs_val) || yyjson_is_sint(rhs_val)) {
-                return yyjson_get_sint(lhs_val) < yyjson_get_sint(rhs_val);
-            } else {
-                return yyjson_get_uint(lhs_val) < yyjson_get_uint(rhs_val);
-            }
+            return lhs.toNumber() < rhs.toNumber();
         }
         case YYJSON_TYPE_STR: {
-            const char* lhs_str = yyjson_get_str(lhs_val);
-            const char* rhs_str = yyjson_get_str(rhs_val);
-            if (!lhs_str || !rhs_str) { // should not happen for valid strings
-                return lhs_str < rhs_str;
-            }
+            const char* lhs_str = lhs | kString;
+            const char* rhs_str = rhs | kString;
             return ::strcmp(lhs_str, rhs_str) < 0;
         }
         case YYJSON_TYPE_ARR:
@@ -1260,18 +1266,17 @@ lessCompare(const T& lhs, const T& rhs)
                 return lhs_size < rhs_size;
             }
             // Fallback to pointer comparison for containers of the same size.
-            return lhs_val < rhs_val;
+            return lhs.get() < rhs.get();
         }
         default: // RAW, or any other type
-            return lhs_val < rhs_val;
+            return lhs.get() < rhs.get();
     }
 }
-
 
 /// Convert JSON(Value or MutableValue) values to integers
 template<typename jsonT>
 inline typename std::enable_if<is_value<jsonT>::value, int>::type
-toNumberCast(const jsonT& val)
+toIntegerCast(const jsonT& val)
 {
     if (!val.isValid()) return 0;
     
@@ -1376,6 +1381,16 @@ inline T Value::getor(const T& defaultValue) const
 {
     T result;
     return get(result) ? result : defaultValue;
+}
+
+inline const char* Value::getor(EmptyString) const
+{
+    return isString() ? yyjson_get_str(m_val) : "";
+}
+
+inline double Value::getor(ZeroNumber) const
+{
+    return toNumber();
 }
 
 /* @Group 4.1.2: size and index/path */
@@ -1497,14 +1512,19 @@ inline std::string Value::toString(bool pretty) const
     return result;
 }
 
-inline int Value::toNumber() const
+inline int Value::toInteger() const
 {
     if (!isValid()) return 0;
     if (isArray() || isObject())
     {
         return static_cast<int>(size());
     }
-    return yyjson::toNumberCast(*this);
+    return yyjson::toIntegerCast(*this);
+}
+
+inline double Value::toNumber() const
+{
+    return yyjson_get_num(m_val);
 }
 
 inline bool Value::equal(const Value& other) const
@@ -1730,6 +1750,16 @@ inline T MutableValue::getor(const T& defaultValue) const
     return get(result) ? result : defaultValue;
 }
 
+inline const char* MutableValue::getor(EmptyString) const
+{
+    return isString() ? yyjson_mut_get_str(m_val) : "";
+}
+
+inline double MutableValue::getor(ZeroNumber) const
+{
+    return toNumber();
+}
+
 /* @Group 4.3.2: size and index/path */
 /* ************************************************************************ */
 
@@ -1943,6 +1973,10 @@ inline MutableValue& MutableValue::set(EmptyObject)
 inline MutableValue& MutableValue::set(EmptyString)
 {
     return set("");
+}
+inline MutableValue& MutableValue::set(ZeroNumber)
+{
+    return set(0.0);
 }
 
 /* @Group 4.3.4: array append */
@@ -2210,14 +2244,19 @@ inline std::string MutableValue::toString(bool pretty) const
     return result;
 }
 
-inline int MutableValue::toNumber() const
+inline int MutableValue::toInteger() const
 {
     if (!isValid()) return 0;
     if (isArray() || isObject())
     {
         return static_cast<int>(size());
     }
-    return yyjson::toNumberCast(*this);
+    return yyjson::toIntegerCast(*this);
+}
+
+inline double MutableValue::toNumber() const
+{
+    return yyjson_mut_get_num(m_val);
 }
 
 inline bool MutableValue::equal(const MutableValue& other) const
@@ -2705,6 +2744,20 @@ operator|(const jsonT& json, const char* defaultValue)
 {
     return json.getor(defaultValue);
 }
+// Overloads for sentinels kString and kNumber
+template<typename jsonT>
+inline typename std::enable_if<is_value<jsonT>::value, const char*>::type
+operator|(const jsonT& json, EmptyString)
+{
+    return json.getor(kString);
+}
+
+template<typename jsonT>
+inline typename std::enable_if<is_value<jsonT>::value, double>::type
+operator|(const jsonT& json, ZeroNumber)
+{
+    return json.getor(kNumber);
+}
 
 // `dest |= json` --> `dest = json | dest`;
 template <typename valueT, typename jsonT>
@@ -2750,12 +2803,20 @@ operator&(const jsonT& json, const char* type)
 /* @Section 5.2: Unary + - ~ */
 /* ------------------------------------------------------------------------ */
 
-// `+json` --> `json.toNumber()`
+// `~json` --> `json.toNumber()` for numeric conversion
+template<typename jsonT>
+inline typename std::enable_if<is_value<jsonT>::value, double>::type
+operator~(const jsonT& json)
+{
+    return json.toNumber();
+}
+
+// `+json` --> `json.toInteger()`
 template<typename jsonT>
 inline typename std::enable_if<is_value<jsonT>::value, int>::type
 operator+(const jsonT& json)
 {
-    return json.toNumber();
+    return json.toInteger();
 }
 
 // `-json` --> `json.toString()`
@@ -2781,19 +2842,19 @@ operator*(const docT& doc)
     return doc.root();
 }
 
-// `+doc` --> `doc.root().toNumber()` (convert root to number)
+// `+doc` --> `doc.root().toInteger()` (convert root to integer)
 template<typename docT>
 inline typename std::enable_if<is_document<docT>::value, int>::type
 operator+(docT& doc)
 {
-    return doc.root().toNumber();
+    return doc.root().toInteger();
 }
 
 template<typename docT>
 inline typename std::enable_if<is_document<docT>::value, int>::type
 operator+(const docT& doc)
 {
-    return doc.root().toNumber();
+    return doc.root().toInteger();
 }
 
 // `-doc` --> `doc.root().toString()` (convert root to string)

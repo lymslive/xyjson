@@ -578,6 +578,11 @@ DEF_TAST(basic_type_checking, "type checking with isType method and & operator")
     COUT(doc["strVal"] & kString, true);
     COUT(doc["nullVal"] & kNull, true);
 
+    // kString and kNumber sentinels
+    yyjson::Document doc2(R"({"name":"example","age":30})");
+    COUT((doc2 / "name") | yyjson::kString, "example");
+    COUT((doc2 / "age") | yyjson::kNumber, 30.0);
+
     // Test complex types (array and object) with special string constants
     COUT(doc["arrayVal"] & "[]", true);     // array type with "[]"
     COUT(doc["objectVal"] & "{}", true);    // object type with "{}"

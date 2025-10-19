@@ -14,7 +14,7 @@
  * - 文档转换
  */
 
-DEF_TAST(conversion_methods, "test toString() and toNumber() conversion methods")
+DEF_TAST(conversion_methods, "test toString(), toInteger(), and toNumber() conversion methods")
 {
     std::string jsonText = R"json({
         "string_value": "hello",
@@ -46,53 +46,64 @@ DEF_TAST(conversion_methods, "test toString() and toNumber() conversion methods"
 
         // Test integer values
         COUT((doc / "int_value").toString(), "42");
-        COUT((doc / "int_value").toNumber(), 42);
+        COUT((doc / "int_value").toInteger(), 42);
         COUT(+(doc / "int_value"), 42); // operator+
+        COUT((doc / "int_value").toNumber(), 42.0);
 
         // Test negative integer values
         COUT((doc / "negative_value").toString(), "-15");
-        COUT((doc / "negative_value").toNumber(), -15);
+        COUT((doc / "negative_value").toInteger(), -15);
         COUT(+(doc / "negative_value"), -15);
+        COUT((doc / "negative_value").toNumber(), -15.0);
 
         // Test double values
         COUT((doc / "double_value").toString(), "3.14");
-        COUT((doc / "double_value").toNumber(), 3); // should truncate to int
+        COUT((doc / "double_value").toInteger(), 3); // integer cast
         COUT(+(doc / "double_value"), 3);
+        COUT((doc / "double_value").toNumber(), 3.14);
 
         // Test boolean values
         COUT((doc / "bool_true").toString(), "true");
-        COUT((doc / "bool_true").toNumber(), 1);
+        COUT((doc / "bool_true").toInteger(), 1);
         COUT(+(doc / "bool_true"), 1);
+        COUT((doc / "bool_true").toNumber(), 0.0);
 
         COUT((doc / "bool_false").toString(), "false");
-        COUT((doc / "bool_false").toNumber(), 0);
+        COUT((doc / "bool_false").toInteger(), 0);
         COUT(+(doc / "bool_false"), 0);
+        COUT((doc / "bool_false").toNumber(), 0.0);
 
         // Test null values
         COUT((doc / "null_value").toString(), "null"); // null literal
-        COUT((doc / "null_value").toNumber(), 0); // 0 for null
+        COUT((doc / "null_value").toInteger(), 0); // 0 for null
         COUT(+(doc / "null_value"), 0);
+        COUT((doc / "null_value").toNumber(), 0.0);
 
         // Test arrays (should use size for toNumber)
         COUT((doc / "array_value").toString().find("1,2,3") != std::string::npos, true);
-        COUT((doc / "array_value").toNumber(), 3); // array size
+        COUT((doc / "array_value").toInteger(), 3); // array size
         COUT(+(doc / "array_value"), 3);
+        COUT((doc / "array_value").toNumber(), 0.0);
         COUT(-(doc / "array_value"), "[1,2,3]");
 
         // Test objects (should use size for toNumber)
         COUT((doc / "object_value").toString().find("key") != std::string::npos, true);
-        COUT((doc / "object_value").toNumber(), 1); // object size
+        COUT((doc / "object_value").toInteger(), 1); // object size
         COUT(+(doc / "object_value"), 1);
+        COUT((doc / "object_value").toNumber(), 0.0);
         COUT(-(doc / "object_value"), R"({"key":"value"})");
 
         // Test empty arrays and objects
-        COUT((doc / "empty_array").toNumber(), 0);
-        COUT((doc / "empty_object").toNumber(), 0);
+        COUT((doc / "empty_array").toInteger(), 0);
+        COUT((doc / "empty_object").toInteger(), 0);
+        COUT((doc / "empty_array").toNumber(), 0.0);
+        COUT((doc / "empty_object").toNumber(), 0.0);
 
         // Test invalid values
         yyjson::Value invalidValue;
         COUT(invalidValue.toString(), "");
-        COUT(invalidValue.toNumber(), 0);
+        COUT(invalidValue.toInteger(), 0);
+        COUT(invalidValue.toNumber(), 0.0);
         COUT(-invalidValue, "");
         COUT(+invalidValue, 0);
     }
@@ -109,8 +120,9 @@ DEF_TAST(conversion_methods, "test toString() and toNumber() conversion methods"
 
         // Test integer values
         COUT((doc / "int_value").toString(), "42");
-        COUT((doc / "int_value").toNumber(), 42);
+        COUT((doc / "int_value").toInteger(), 42);
         COUT(+(doc / "int_value"), 42);
+        COUT((doc / "int_value").toNumber(), 42.0);
 
         // Test modification and conversion
         (doc / "string_value") = "world";
@@ -126,12 +138,16 @@ DEF_TAST(conversion_methods, "test toString() and toNumber() conversion methods"
 
         COUT(+(doc / "large_int"), 999999);
         COUT(+(doc / "large_negative"), -999999);
+        COUT((doc / "large_int").toNumber(), 999999.0);
+        COUT((doc / "large_negative").toNumber(), -999999.0);
 
         // Test string to number conversion (should use std::stoi)
         yyjson::Document doc2(R"json({"numeric_string": "123", "invalid_string": "abc"})json");
 
         COUT(+(doc2 / "numeric_string"), 123); // string "123" should convert to 123
+        COUT((doc2 / "numeric_string").toNumber(), 0.0);
         COUT(+(doc2 / "invalid_string"), 0); // invalid string should return 0
+        COUT((doc2 / "invalid_string").toNumber(), 0.0);
     }
 
     DESC("Test string content comparison with quotes");
@@ -157,12 +173,15 @@ DEF_TAST(conversion_operators, "test unary operators - and + for conversion")
         "bool": true
     })json";
 
-    DESC("Test unary operators with Value");
+    DESC("Test unary operators with Value (updated semantics)");
     {
         yyjson::Document doc(jsonText);
         COUT(doc.hasError(), false);
 
         // Test operator- (should call toString())
+        // Test operator~ (numeric conversion to double)
+        double n1 = ~(doc / "float");
+        COUT(n1, 7.5);
         std::string strResult = -(doc / "string");
         COUT(strResult, "test");
 
@@ -215,9 +234,9 @@ DEF_TAST(conversion_operators, "test unary operators - and + for conversion")
         COUT((doc / "string").toString(), -(doc / "string"));
         COUT((doc / "number").toString(), -(doc / "number"));
 
-        // toNumber() should be equivalent to operator+
-        COUT((doc / "number").toNumber(), +(doc / "number"));
-        COUT((doc / "float").toNumber(), +(doc / "float"));
+        // toInteger() should be equivalent to operator+
+        COUT((doc / "number").toInteger(), +(doc / "number"));
+        COUT((doc / "float").toInteger(), +(doc / "float"));
 
         // Test with quoted strings
         COUT((doc / "string").toString(true).find('\"') != std::string::npos, true);
@@ -298,6 +317,7 @@ DEF_TAST(conversion_operators, "test unary operators - and + for conversion")
         yyjson::Document doc;
         doc.read("{\"str_float\": \"3.14\"}");
         COUT(+ (doc / "str_float"), 3); // should truncate decimal part
+        COUT((doc / "str_float").toNumber(), 0.0);
 
         doc.read("{\"str_large\": \"999999999\"}");
         COUT(+ (doc / "str_large"), 999999999); // large number

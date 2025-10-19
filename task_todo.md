@@ -613,6 +613,27 @@ yyjson 本地安装于： /usr/local/include/yyjson.h
 
 ### DONE: 20251019-152200
 
+## TODO:2025-10-19/4 优化 < 操作实现
+
+当前模板实现，依赖 `get_const_val` 将 `yyjson_mut_val` 强转 `yyjson_val` 。这
+感觉不安全，依赖底层结构体内存布局的近似性，且对于容器类型索引子结点的操作不兼
+容。还有对比较数字类型的值也不优雅。
+
+修改建议：
+- 两个 Value 类加上 getType 方法，返回 yyjson 表征类型的常量
+- 参考 EmtpyObject 等空类标记方案，增加 ZeroNumber 空类表示通用数字类型
+- 将现有的 toNumber 方法名改为 toInteger
+- 再将 toNumber 方法改为返回 double 类型，使其命名意义与 yyjson 更切合，凡数字
+  类型都可用 dobule 表达，包括整数也能强转为 double , 直接使用 C API .
+- lessCompare 方法在数字类型时转 toNumber 再比较
+- 让 ZeroNumber 类型的代表值能用于 & = << 等操作，增加 isType set 与 create 方法重载
+- 增加 getor 特化方法对 ZeroNumber 与 EmptyString 参数的重载，返回值分别是 double
+  与 const char* 字符串
+- 增加操作符 ~ 调用重载调用 toNumber
+- 为新功能增加测试用例，不破坏原有测试用例
+
+### DONE: 20251020-000000
+
 ## TODO: 优化文档示例代码管理同步单元测试
 
 - 针对文档：READE.md docs/usage.md
