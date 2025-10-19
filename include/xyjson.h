@@ -1218,12 +1218,6 @@ toNumberCast(const jsonT& val)
     if (val.isBool()) {
         return val.getor(false);
     }
-    if (val.isSint()) {
-        return static_cast<int>(val.getor(int64_t(0)));
-    }
-    if (val.isUint()) {
-        return static_cast<int>(val.getor(uint64_t(0)));
-    }
     if (val.isReal()) {
         return static_cast<int>(val.getor(0.0));
     }

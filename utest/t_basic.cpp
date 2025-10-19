@@ -131,6 +131,14 @@ DEF_TAST(basic_read_number, "operator read number from scalar value")
     double fffLeft = 0.0;
     fffLeft |= doc / "ddd" / "fff";
     COUT(fffLeft, 8.8);
+
+    // Test large integer support
+    const char* big_json = "{\"sint\": -1234567890123456789, \"uint\": 12345678901234567890}";
+    yyjson::Document big_doc(big_json);
+    int64_t sint_val = big_doc / "sint" | 0L;
+    uint64_t uint_val = big_doc / "uint" | 0UL;
+    COUT(sint_val, -1234567890123456789LL);
+    COUT(uint_val, 12345678901234567890ULL);
 }
 
 DEF_TAST(basic_read_string, "operator read string from scalar value")

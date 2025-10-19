@@ -33,158 +33,418 @@ MutableValue 是对某个 Json 结点的引用，其中根结点可用 root 方�
 般是容器类型，但简单标量也是合法 Json。这些类再通过操作符重载封装了常用操作，
 同时提供对应的具名方法供不同编程风格的用户选择。
 
+注：本文的示例省去了必要的头文件包含行 `#include "xyjson.h"` 。
+
 ## JSON 模型基本操作
 
 本节讲解只读模型与可写模型都支持的基本操作， Document 一般泛指两个文档类，
 Value 泛指两个 Json 结点类。
 
-### Document 的输入输出
+### Document 整体的输入输出
+
 #### 输入操作
 
-Document 类对象可以从字符串直接构造，也能在创建对象后用 `<<` 操作符读入字符串
-再解析。也支持从文件读取 Json ，但提供文件名参数时，只能用 `readFile` 方法，不
-能用 `<<` 操作符，避免与 Json 串本身作为参数的歧义。然后在提供文件对象 `FILE*`
-或 `std::iftream` 时，支持用 `<<` 操作符。
-
+Document 类对象可以从字符串直接构造：
 ```cpp
-#include "xyjson.h"
-
-// 从字符串创建文档
 std::string jsonText = R"({"name": "Alice", "age": 30})";
-yyjson::Document doc(jsonText); // doc << jsonText;
+yyjson::Document doc(jsonText);
+```
 
-// 从文件读取
-yyjson::Document docFromFile;
-docFromFile.readFile("config.json");
+它将解析输入的字符串参数，在它内部的内存池上构建 DOM 树模型。如入参数不是合法
+的 Json 串，将解析失败，`doc` 对象将处理无效状态，可以用 `hasError` 方法判断是
+否有解析错误。此外，Document 、Value 及后文介绍的迭代器类都重载了 `operator
+bool` ，故也可直接在 `if` 条件中判断各类对象有效性。
 
-// 检查文档有效性
-if (!doc) {
-    std::cerr << "JSON 解析失败" << std::endl;
-    return;
+```cppp
+yyjson::Document doc1("I'm not json");
+if (doc1.hasError()) {
+    std::cout << "非法 Json\n";
+}
+
+// 仅有一个字符串类型的根结点的 Json
+yyjson::Document doc2("\"I'm sure json\"");
+if (doc2) {
+    std::cout << "合法 Json\n";
 }
 ```
 
+也能在创建对象后用 `<<` 操作符或 `read` 方法读入字符串:
+```cpp
+yyjson::Document doc;
+doc << R"({"name": "Alice", "age": 30})";
+if (!doc) {
+  std::cerr << "JSON 解析失败" << std::endl;
+}
+```
+
+当将 Document 类作为其他类的成员时，可能更需求延后读入。但要注意如果 `doc` 已
+经是解析过输入 Json，再重新读放时会释放原来的 Json 。若业务上想避免重复初入的
+初始化，也可先用 `if` 判断：
+
+```cpp
+yyjson::Document doc;
+if (!doc) {
+  doc << R"({"name": "Alice", "age": 30})"; // 第一次读入
+}
+
+if (!doc) {
+  doc << R"({"name": "Alice", "age": 35})"; // 不会二次读入
+}
+```
+
+Document 也支持从文件读取 Json ，但提供文件名参数时，只能用 `readFile` 方法，
+不能用 `<<` 操作符，避免与 Json 串本身作为参数的歧义。使用文件指针 `FILE*` 或
+`std::iftream` 文件流对象时，支持用 `<<` 操作符。
+
+```cpp
+const char* filePath = "/tmp/input.json";
+yyjson::Document doc;
+docFromFile.readFile(filePath);
+
+FILE* fp = fopen(filePath, "r");
+if (fp) {
+    doc << fp;
+}
+
+std::ifstream ifs(filePath);
+if (ifs) {
+    doc << ifs;
+}
+```
+
+最后，Document 类也支持从 yyjson 底层指针 `yyjson_doc*`(`yyjson_mut_doc*`)
+。yyjson 库在解析 Json 时支持一些选项，如果你需要用到那些高级功能，可以先用它
+的 C API 生成 `yyjson_doc*` ，再传给 Document 类构造。这样，`yyjson_doc*` 的所
+有权也转给了 Document 对象，在析构时自动释放，注意不要再手动释放了避免二次
+free 的错误。
+
 #### 输出操作
 
-Document 类有 wirte 方法及 `>>` 操作符将整个 Json 树序列化输出至右侧参数目标。
-支持 `std::string` 字符串及文件，当然与读入时一样，当提供文件名参数时只能用具
-方法 `writeFile` 。
+输出是输入的逆操作，Document 提供 wirte 方法及 `>>` 操作符将整个 Json 树序列化
+输出至右侧参数目标。支持的参数与 `<<` 类似：
 
-Value 类另有一个转字符串的方法 `toString` ，返回 json 的字符串表示，在大多情况
-下与 write 的输出是相同的，只有当 json 是字符串类型时，`toString` 默认返回的是
-不带序列化引号包围的纯值。在传入可选参数 `true` 时，`toString` 返回格式化的
-Json 串，也与 `write` 无格式序列化不一样。
+- 字符串，只支持 `std::string`, 而 C 风格的字符串指针不能当作安全的可写目标；
+- 写模式打开的文件指针 `FILE*` ；
+- 输出流文件 `std::ofstrem` ；
+- 文件名参数，使用 `writeFile` 不能用 `>>` 操作符。
+
+可写的 Document 输出操作更常用些，修改后序列化保存。
 
 ```cpp
-// 转字符串
-std::string jsonString = doc.root().toString();
+std::string jsonText = R"({"name": "Alice", "age": 30})";
+yyjson::MutableDocument mutDoc(jsonText);
 
-// 输出至字符串
-doc >> jsonString;
+std::string strTarget;
+mutDoc >> strTarget;
 
-// 流输出
-std::cout << doc << std::endl;
+const char* filePath = "/tmp/output.json"
+FILE* fp = fopen(filePath, "w");
+if (fp) {
+  mutDoc >> fp;
+}
 
-// 真序列化输出，支持仅输出一部分子树
-std::cout << doc["key"].toString(true) << std::endl;
+std::ofstream ofs(filePath);
+if (ofs) {
+  mutDoc >> ofs;
+}
 
-// 写入文件
-doc.writeFile("output.json");
+mutDoc.writeFile(filePath);
 ```
+
+除了输出文件流，Document 也支持写向任意标准输出流，只不过要换个方向的操作符
+`<<` ，标准流写左边，Document 写右边：
+
+```cpp
+std::string jsonText = R"({"name": "Alice", "age": 30})";
+yyjson::MutableDocument mutDoc(jsonText);
+std::cout << mutDoc << std::endl;
+```
+
+向标准流输出的通用 `<<` 操作符实际是调用后文介绍的 Value 的 `toString` 方法，
+只为提供方便功能，效率上略低 `>>` 操作符或 `write` 方法。另注意 `write` 方法都
+是无格式序列化，即紧凑的单行 Json ，`toString` 有可先参数支持常规缩进美化输出。
+
+- **性能提示**：优先选用只读的 Document，只在必要时使用 MutableDocument。
+- **错误警示**：Document 与 MutableDocument 禁用拷贝。
 
 ### Value 结点的访问
+
 #### 根结点
 
-从概念上讲，一棵 Json 树有一个根结点。`Document` 类也有个 `root` 方法可以返回
-一个 `Value` 类型的根结点。在 xyjson 中，大多时候不需要感知根结点的存在，直接
-操作 `Document` 就相当于操作其根结点。
-
-#### 索引操作
-#### 按路径访问 JSON 结点
-
-Value 支持用常规的 `[]` 索引访问对象或数组，但更推荐使用路径操作符 `/` 。
-也支持直接从 Document 作路径操作，相当于从其根结点开始索引。
+从概念上讲，一棵 Json 树有一个根结点。Document 类也有个 `root` 方法可以返回一
+个 Value 类型的根结点，或者用一元操作符 `*`。不过在 xyjson 中，很多时候不需要
+感知根结点的存在，直接操作 Document 就相当于操作其根结点。
 
 ```cpp
-// 路径访问（单层索引）
-yyjson::Value nameNode = doc / "name";
+std::string jsonText = R"({"name": "Alice", "age": 30})";
+yyjson::Document doc(jsonText);
 
-// JSON Pointer 多级路径（以 / 开头）
-yyjson::Value userName = doc / "/user/profile/name";
+// yyjson::Document root = doc.root();
+auto root = *doc; 
 
-// 可按需保存中间结点
-auto userNode = doc / "user";
-userName = userNode / "profile" / "name";
-
-// 数组索引
-yyjson::Value firstItem = doc / "items" / 0;
-
-// 链式访问
-yyjson::Value deepValue = doc / "user" / "profile" / "address" / "city";
+// 以下三行输出相同的结果
+std::cout << root << std::endl;
+std::cout << doc << std::endl;
+std::cout << *doc << std::endl;
 ```
 
-#### 路径操作
-#### JSON Pointer 操作
-路径操作符 `/` 强于索引操作符 `[]` 之处在于可以访问多级路径，遵循 JSON Pointer
-标准，必须以 `/` 开头，中间键名本身若含 `/` 或 `~` 特殊字符需要分别转义为 `~1`
-与 `~1`。当然对于实际项目，强烈建议避免键名含特殊字符，仅须注意以 `/` 开头。
+#### 索引操作 []
+
+按索引或路径访问属于 Value 类的方法，但也可直接作用于 Document ，自动转为根结
+点调用。
+
+Value 支持用常规的 `[]` 索引访问对象或数组：
+- Json 数组索引参数是整数，类似 `std::vector`
+- Json 对象索引参数是字符串，类似 `std::map`
+
+与标准容器不同的，`Value[]` 返回另一个 `Value` 值，而不是 Value 对象引用。当
+Json 数组索引越界或对象值不存在时，返回一个无效的 `Value` 。若返回有效的
+`Value` 值，它内部封装的指针指向真实存在的子结点。
+
+```cpp
+yyjson::Document doc;
+doc << R"({"name": "Alice", "age": 30, "score": [10, 20, 30]})";
+
+auto json = doc["name"];
+std::cout << json << std::endl; // 输出: Alice
+
+json = doc["age"];
+std::cout << json << std::endl; // 输出: 30
+
+json = doc["sex"];
+if (!json) {
+    std::cout << "不可说" << std::endl;
+}
+
+json = doc["score"][0];
+std::cout << json << std::endl; // 输出: 10
+
+json = doc["score"][10];
+if (!json) {
+  std::cout << "数组越界" << std::endl;
+}
+```
+
+#### 路径操作 /
+
+但更推荐使用路径操作符 `/` 平替索引操作符 `[]`，这几乎是 xyjson 库的精髓与灵感
+来源。在链式路径操作中，`/` 比 `[]` 更直观方便。
+
+```cpp
+yyjson::Document doc;
+doc << R"({"name": "Alice", "age": 30, "score": [10, 20, 30],
+    "friend": [{"name": "Bob", "age": 35}, {"name": "Cous", "age": 20}]
+})";
+
+auto json = doc / "friend" / 0 / "age";
+std::cout << json << std::endl; // 输出: 35
+
+// 字段拼写错误
+json = doc / "Friend" / 1 / "age";
+std::cout << json << std::endl; // 输出: 空
+if (!json) {
+    std::cout << "路径操作错误" << std::endl;
+}
+```
+
+- **性能提示**：对于反复的长链路径操作，考虑缓存中间结果。
+- **错误警示**：注意 `/` 优先级，避免在其后混用具名方法。
+
+#### JSON Pointer 标准的路径操作
+
+路径操作符 `/` 另一强于索引操作符 `[]` 之处在于可以访问多级路径，要求遵循 JSON
+Pointer 标准，必须以 `/` 开头，中间键名本身若含 `/` 或 `~` 特殊字符需要分别转
+义为 `~1` 与 `~1`。当然对于实际项目，强烈建议避免键名含特殊字符，仅须注意以
+`/` 开头。
+
+```cpp
+yyjson::Document doc;
+doc << R"({"name": "Alice", "age": 30, "score": [10, 20, 30],
+    "friend": [{"name": "Bob", "age": 35}, {"name": "Cous", "age": 20}]
+})";
+
+auto json = doc / "/friend/0/age";
+std::cout << json << std::endl; // 输出: 35
+
+// 不是 Json Pointer ，与 [] 一样尝试找直接字段名
+json = doc / "friend/0/age";
+if (!json) {
+  std::cout << "路径操作错误" << std::endl;
+}
+```
 
 当参数不是以 `/` 字符开头时，路径操作符 `/` 与索引操作符 `[]` 意义相同，即使中
 间含有 `/` 字符时，也只当作单层的直接键名查找。
 
-多级路径适于动态配置，若键名固定，分开链式访问显然性能更高。
+- **性能提示**：多级路径适于动态配置，若键名固定，就用分开的链式路径。
+- **错误警示**：避免在 Json 键名中使用特殊字符。
 
-#### 错误处理
+### 取值操作
 
-当路径操作失败时，返回无效 `Value` 值。由于重载了 `operator bool` ，可直接放在
-bool 上下文直接使用判断：
+从 Json 标量叶结点提取值到 C++ 相应的基本类型的变量中，是非常常见的操作。Value
+类有一系列 `get` 方法重载，支持该操作，但更建议使用操作符。
+
+#### 带默认值的取值操作
+
+形如 `json | defaultValue` 的操作符用法，是位或符号的重载，就可读作或，它有两
+层含义：
+
+- 返回值的类型是右侧参数；
+- 如果json 结点无效，返回右侧的默认值。
 
 ```cpp
-// 有效性检查
-if (doc / "nonexistent") {
-    // 结点存在
-} else {
-    // 结点不存在
-}
+yyjson::Document doc;
+doc << R"({"name": "Alice", "age": 30, "ratio": 0.618, "pass": true})";
+
+const char* name = doc / "name" | "";
+int age = doc / "age" | 0;
+double ratio = doc / "ratio" | 0.0;
+bool pass = doc / "pass" | false;
 ```
 
-### 读取值
+以上示例 `|` 右侧是常用基本类型的零值字面量，非常适合用于 `|` 的参数。`=` 左侧
+的被赋值变量的类型不一定要与 `|` 右侧参数完全一致，只要满足 C++ 类型转换规则即
+可。例如：
 
-对于 Json 叶结点，非容器类型的 Value ，可以用取值操作符 `|` 按适配类型取值。这
-是位或符号的重载，就可读作或，表示如果 Value 值无效或类型不匹配，就返回右侧的
-默认值。
+```cpp
+yyjson::Document doc;
+doc << R"({"name": "Alice", "age": 30, "ratio": 0.618, "pass": true})";
+
+// | 先返回 const char* ，= 再转为 std::string
+std::string name = doc / "name" | "";
+
+std::string nameDefault("unknown");
+std::string name2 = doc / "name" | nameDefault;
+std::string name3 = doc / "name" | std::string();
+
+// | 先返回 int ，= 再提升为 uint_64
+uint64_t age = doc / "age" | 0;
+```
+
+如果 json 结点中存储的整数真的超过 21 亿，只将 `=` 号左右的接收变量声明为
+`uint_64t` 是没用右，`|` 右侧参数也得是 `uint_64t` 才行。因为 `0` 字面量是
+`int` ，`json | 0` 返回 `int` ，会先被截断。
+
+- **性能提示**：字符串结点优先用 `|""` 取值，必要时再构造 `std::string`。
+- **错误警示**：`|` 有严格类型判断，须保存类型适配。
+
+#### 使用变量原来的默认值提取
 
 也支持 `|=` 复合操作，`result |= json` 相当于 `result = json | result` ，表示
 只有当 json 类型类型符合 `result` 这样的基本类型时才读取并赋值。
 
+```cpp
+yyjson::Document doc;
+doc << R"({"name": "Alice", "age": 30})";
+
+int age = 18;
+age = doc / "age" | age; // 30
+age |= doc / "age";
+age |= doc / "Age"; // 值不变，Age 键名有误
+
+std::string name = "unknown";
+name = doc / "name" | name; // 可能多一次字符串拷贝
+name |= doc / "name";
+name |= doc / "Name"; // 键名有误，无影响，完全不涉及字符串的拷贝与赋值
+```
+
+操作符 `|=` 的返回类型是左侧参数的自身引用，与 `|` 相比可以减少一次等值拷贝。
+故虽然主操作对象不在左侧似乎有点别扭，但有些情况还是有用的。
+
+#### 明确判断取值操作是否成功
+
 如果希望显式知道读取是否成功，可用 `json >> target` 操作，它返回 true 时会更新
-target 的值。但一般情况下仅用 `|` 带默认值读取最方便。
+target 的值。
 
 ```cpp
-// 带默认值的提取
-std::string name = doc / "name" | "unknown";
-int age = doc / "age" | 0;
-double price = doc / "price" | 0.0;
-bool active = doc / "active" | false;
+yyjson::Document doc;
+doc << R"({"name": "Alice", "age": 30})";
 
-// 再尝试读另一个键
-name |= doc / "nickName";
-
-// 安全提取（返回 bool 表示成功）
-std::string extractedName;
-if (doc / "name" >> extractedName) {
-    // 成功提取
+std::string name;
+if (doc / "name" >> name) {
+    std::cout << name << std::endl; // 输出：Alice
 }
+```
 
-// 自定义管道函数
-std::string uppercaseName = doc / "name" | [](const yyjson::Value& value) {
-    std::string result = value | "";
+一般情况下选个合适的默认值，用 `|` 取值最方便。可以根据业务在取值后对值有效性
+作判断。
+
+```cpp
+yyjson::Document doc;
+doc << R"({"name": "Alice", "age": 30})";
+
+std::string name = doc / "name" | "";
+if (name.empty()) {
+    std::cout << "无效名字" << std::endl; //! 不会执行到这行
+    return;
+}
+```
+
+#### 自定义管道函数取值
+
+取值操作符 `|` 还有个扩展的高级用法。右侧可接一个自定义函数，该函数接收一个
+Value 参数，由它决定如何处理这个 json 结点，然后返回一个值。例如作自定义转换：
+
+```cpp
+yyjson::Document doc;
+doc << R"({"name": "Alice", "age": 30})";
+
+// 取值转大写
+std::string name = doc / "name" | [](yyjson::Value json) {
+    std::string result = json | "";
     std::transform(result.begin(), result.end(), result.begin(), ::toupper);
     return result;
 };
+
+std::cout << name << std::endl; // 输出：ALICE
 ```
 
-### 类型判断与错误处理
+在这种用法下，`|` 可读为管道，或过滤。右侧是基本类型的情况也可以视为管道函数的
+特例，只因太常用，xyjson 库内置了简化用法。
+
+```cpp
+yyjson::Document doc;
+doc << R"({"name": "Alice", "age": 30})";
+
+// int age = doc / "age" | 0;
+int age = doc / "age" | [](yyjson::Value json) {
+    return json.getor(0);
+};
+
+std::cout << name << std::endl; // 输出：ALICE
+```
+
+一个更复杂的对象读取示例：
+
+```cpp
+struct User {
+    std::string name;
+    int age;
+};
+
+yyjson::Document doc;
+doc << R"({"name": "Alice", "age": 30})";
+
+// 使用自定义函数
+User user = doc.root() | [](yyjson::Value json) -> User {
+    User result;
+    result.name = json / "name" | "";
+    result.age = json / "age" | 0;
+    return result;
+};
+
+// 等效的写法
+User user2;
+user2.name = doc / "name" | "";
+user2.age = doc / "age" | 0;
+```
+
+仅从这个示例看，似乎用 lambda 函数还更复杂了，不过管道函数的扩展意义在于可以调
+用任意已有可复用函数。
+
+另外注意，Document 类不支持 `|` 操作，因为它的原始设计是提取叶结点的值。
+
+### 类型判断
 
 一般而言，取值操作符 `|` 自带类型感知与类型安全判断，但如果只想判断安全或要求
 显式判断类型时，可用 `&` 操作符替换 `|` 操作符，这时可读作且。`json & 0` 判断
@@ -261,8 +521,18 @@ if ((doc / "version" | std::string()) == "1.0") {
 是最高效方便的，先返回 `const char*` 避免拷贝，然后也可按需赋给 `std::string`
 创建 C++ 字符串对象。
 
-### 一元操作符的类型转换
+### 类型转换的一元操作符
 
+Json 标量类型中最常用的就是整数与字符串两种，所以 Value 类提供了两个方法将
+Json 结点尽量转为整数与字符串：
+
+- `+`: toNumber 转整数
+- `-`: toString 转字符串
+
+可类比于 `!` 将 Json 放在布尔逻辑上下文使用，`+` 与 `-` 就将 Json 分别放在
+整数与字符串上下文使用。
+
+#### JSON 转整数
 一元操作符 `+` 和 `-` 提供了简洁的类型转换语法：
 
 ```cpp
@@ -280,6 +550,32 @@ yyjson::Value root = *doc;
 yyjson::MutableDocument mutableCopy = ~doc;  // 只读转可写
 yyjson::Document readonlyCopy = ~mutDoc;     // 可写转只读
 ```
+
+#### JSON 转字符串
+
+Value 类另有一个转字符串的方法 `toString` ，返回 json 的字符串表示，在大多情况
+下与 write 的输出是相同的，只有当 json 是字符串类型时，`toString` 默认返回的是
+不带序列化引号包围的纯值。在传入可选参数 `true` 时，`toString` 返回格式化的
+Json 串，也与 `write` 无格式序列化不一样。
+
+```cpp
+// 转字符串
+std::string jsonString = doc.root().toString();
+
+// 输出至字符串
+doc >> jsonString;
+
+// 流输出
+std::cout << doc << std::endl;
+
+// 真序列化输出，支持仅输出一部分子树
+std::cout << doc["key"].toString(true) << std::endl;
+
+// 写入文件
+doc.writeFile("output.json");
+```
+
+#### Document 只读可写互转
 
 ### 管道函数自定义处理
 

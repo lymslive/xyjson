@@ -553,6 +553,21 @@ key 的字符串类型。
 
 ### DONE: 20251018-011944
 
+## TODO:2025-10-19/1 检查对 json 大整数的支持
+
+我对 yyjson 库对大整数的处理还不太确定，请帮忙查阅其 API 说明，它对 int uint
+sint 是怎么区分的，有什么联系，包括 `is_` 判断与 `get_` 取值。
+
+在 `utest/t_experiment.cpp` 写个演示性单元测试，使用 yyjson 的 C API ，说明它
+是如何处理各类整数的。然后在 `utest/t_basic.cpp` 写个稍简短的测试，以确保
+xyjson 封装的操作符处理大整数也是正确的。
+
+在分析一下 toNumberCast 方法的实现，是否可以简化一些 if 分析。isInt 是否就已隐
+含 isUint 或 isSint ?
+
+
+### DONE: 20251019-094102
+
 ## TODO: 优化文档示例代码管理同步单元测试
 
 - 针对文档：READE.md docs/usage.md
