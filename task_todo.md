@@ -591,6 +591,28 @@ yyjson 本地安装于： /usr/local/include/yyjson.h
 
 ### DONE: 20251019-105930
 
+## TODO:2025-10-19/3 采用混合方案为 Value 添加 < 比较操作
+
+根据上一任务的评估报告，`doing_plan.tmp/20251019-2.md` ，采用混合方案实现 < 比
+较操作。
+- 标量按内容值比较
+- 容器，包括数组与对象，都先按 size() 比较，再回退指针比较
+
+一些实现要求：
+- 在两个 Value 类原有 equal 方法附近实现 less 方法
+- 参考 toNumberCast 的模板函数，提炼两 Value 的 less 方法的公共代码，减少重复
+- 在 == 操作符实现附近添加 < 实现
+- 原来在 t_basic.cpp 的测试用例 basic_compare_ops 移到 t_advanced.cpp 中，然后
+  也在 t_advanced.cpp 中增加新功能 < 的测试用例
+
+测试用例除了一个基本的测试覆盖各种类型的 json 比较外，再构建一个可能的应用示例测试：
+- 构造一个只读 Document ，一个数组内包含各种类型的子 json
+- 构造另一个可写 MutableDocument ，复制原数组内的每个元素，放到 std::vector 中
+- 排序后再写回 MutableDocument 的一个数组中
+- 验证比较前后两上 Document 的数组结点的序列化结果
+
+### DONE: 20251019-152200
+
 ## TODO: 优化文档示例代码管理同步单元测试
 
 - 针对文档：READE.md docs/usage.md

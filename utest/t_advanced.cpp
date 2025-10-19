@@ -6,6 +6,7 @@
  * */
 #include "couttast/couttast.h"
 #include "xyjson.h"
+#include <algorithm>
 
 /* t_advanced.cpp - 高级功能测试
  * 包含：
@@ -264,4 +265,153 @@ DEF_TAST(advanced_trait, "test type traits for yyjson wrapper classes")
             COUT(false, true); // This branch should not be taken
         }
     }
+}
+
+DEF_TAST(advanced_compare_ops, "test comparison operators")
+{
+    using namespace yyjson;
+
+    // Test Value comparison
+    {
+        Document doc1("{\"name\": \"John\", \"age\": 30}");
+        Document doc2("{\"name\": \"John\", \"age\": 30}");
+        Document doc3("{\"name\": \"Jane\", \"age\": 25}");
+
+        COUT(doc1.root() == doc2.root(), true);
+        COUT(doc1.root() == doc3.root(), false);
+        COUT(doc1.root() != doc3.root(), true);
+
+        // Test with null values
+        Value nullValue;
+        COUT(nullValue == doc1.root(), false);
+        COUT(nullValue != doc1.root(), true);
+    }
+
+    // Test Document comparison
+    {
+        Document doc1("{\"data\": \"same\"}");
+        Document doc2("{\"data\": \"same\"}");
+        Document doc3("{\"data\": \"different\"}");
+
+        COUT(doc1 == doc2, true);
+        COUT(doc1 == doc3, false);
+        COUT(doc1 != doc3, true);
+
+        // Test with invalid documents
+        Document invalidDoc;
+        COUT(invalidDoc == doc1, false);
+        COUT(invalidDoc != doc1, true);
+    }
+
+    // Test MutableValue comparison
+    {
+        MutableDocument doc1("{\"value\": 42}");
+        MutableDocument doc2("{\"value\": 42}");
+        MutableDocument doc3("{\"value\": 100}");
+
+        COUT(doc1.root() == doc2.root(), true);
+        COUT(doc1.root() == doc3.root(), false);
+        COUT(doc1.root() != doc3.root(), true);
+    }
+
+    // Test MutableDocument comparison
+    {
+        MutableDocument doc1("{\"config\": \"test\"}");
+        MutableDocument doc2("{\"config\": \"test\"}");
+        MutableDocument doc3("{\"config\": \"prod\"}");
+
+        COUT(doc1 == doc2, true);
+        COUT(doc1 == doc3, false);
+        COUT(doc1 != doc3, true);
+
+        // Test deep comparison with nested structures
+        MutableDocument nested1("{\"nested\": {\"a\": 1, \"b\": 2}}");
+        MutableDocument nested2("{\"nested\": {\"a\": 1, \"b\": 2}}");
+        MutableDocument nested3("{\"nested\": {\"a\": 1, \"b\": 3}}");
+
+        COUT(nested1 == nested2, true);
+        COUT(nested1 == nested3, false);
+    }
+
+    // Test array comparison
+    {
+        Document array1("[1, 2, 3]");
+        Document array2("[1, 2, 3]");
+        Document array3("[1, 2, 4]");
+
+        COUT(array1.root() == array2.root(), true);
+        COUT(array1.root() == array3.root(), false);
+    }
+
+    // Test string comparison
+    {
+        Document str1("\"hello\"");
+        Document str2("\"hello\"");
+        Document str3("\"world\"");
+
+        COUT(str1.root() == str2.root(), true);
+        COUT(str1.root() == str3.root(), false);
+    }
+
+    DESC("Test less-than and other comparison operators");
+    {
+        // comapre numbers, parsed root is number type
+        Document val1("123");
+        Document val2("45");
+        COUT(val1.root() < val2.root(), false);
+        COUT(val1.root() > val2.root(), true);
+        COUT(val1.root() <= val2.root(), false);
+        COUT(val1.root() >= val2.root(), true);
+
+        // compae strings
+        Document str1("\"abc\"");
+        Document str2("\"abd\"");
+        COUT(str1.root() < str2.root(), true);
+        COUT(str1.root() > str2.root(), false);
+
+        Document arr1("[1, 2]");
+        Document arr2("[1, 2, 3]");
+        COUT(arr1.root() < arr2.root(), true);
+    }
+}
+
+DEF_TAST(advanced_sort_mixed_array, "sort a mixed array of json values")
+{
+    using namespace yyjson;
+
+    const char* json_str = R"json(
+        [null, true, false, 1, 0, -1, 1.1, 0.0, -1.1, "abc", "abd", "", {}, {"a":1}, []]
+    )json";
+
+    Document doc(json_str);
+    COUT(doc.hasError(), false);
+
+    std::vector<Value> values;
+    for (auto it = doc.root().beginArray(); it.isValid(); it.next())
+    {
+        values.push_back(it->value);
+    }
+
+    std::sort(values.begin(), values.end());
+
+    MutableDocument sorted_doc;
+    auto sorted_arr = sorted_doc.createArray();
+    for (const auto& val : values)
+    {
+        sorted_arr.append(val);
+    }
+
+    std::string expected_str = "[null,false,true,-1.1,-1,0,0.0,1,1.1,\"\",\"abc\",\"abd\",[],{},{\"a\":1}]";
+    std::string actual_str = sorted_arr.toString();
+
+    // Normalize the output for consistent comparison
+    // remove spaces
+    auto normalize = [](std::string& s) {
+        s.erase(std::remove_if(s.begin(), s.end(), ::isspace), s.end());
+    };
+
+    normalize(expected_str);
+    normalize(actual_str);
+    
+    COUT(actual_str, expected_str);
 }
