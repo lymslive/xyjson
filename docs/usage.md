@@ -444,21 +444,69 @@ user2.age = doc / "age" | 0;
 
 另外注意，Document 类不支持 `|` 操作，因为它的原始设计是提取叶结点的值。
 
-### 类型判断
+#### 底层指针访问
 
-一般而言，取值操作符 `|` 自带类型感知与类型安全判断，但如果只想判断安全或要求
-显式判断类型时，可用 `&` 操作符替换 `|` 操作符，这时可读作且。`json & 0` 判断
-json 有效，且与 0 具有一样类型 `int` 。当然也有一系列的 `isXXX` 方法名可用。
+xyjson 旨在封装 yyjson 的常用功能，并未封装所有功能，对于有些不常用的高级功能，
+提供了获取底层指针的方法，允许直接使用 yyjson C API 。
+
+`Value` 类的不带参数的 `get` 方法获取 `yyjson_val` 指针，也可以使用带一个引用
+参数的 `get` 重载方法，也就支持 `|` `|=` 与 `>>` 这几个取值操作符。
 
 ```cpp
-// 类型判断操作符
-bool isString = doc / "name" & "";
-bool isNumber = doc / "age" & 0;
-bool isObject = doc / "user" & "{}";
-bool isArray = doc / "items" & "[]";
+Document doc("{}");
+
+yyjson_val* p  = doc.root().get();
+yyjson_val* p1 = doc.root() | (yyjson_val*)nullptr;
+yyjson_val* p2 = nullptr;
+p2 |= doc.root();
+yyjson_val* p3 = nullptr;
+if (doc.root() >> p3) {
+    // 使用 yyjson C API 直接操作
+}
+```
+
+`MutableValue` 除了能获取 `yyjson_mut_val` 指针，还能获取 `yyson_mut_doc` 指针
+，因为后者经常是可写 Json 操作的必要参数。
+
+```cpp
+MutDocument doc("{}");
+yyjson_mut_val* p1 = nullptr;
+yyjson_mut_doc* p2 = nullptr;
+p1 |= doc.root();
+p2 |= doc.root();
+```
+
+### Json 结点类型判断
+
+一般而言，取值操作 `|` 及其他许多操作都自带类型感知与类型安全判断。但如果只想
+判断类型或要求显式判断类型时，也有独立的方法实现。
+
+#### 方法与操作符
+
+Value 类提供了以下各种方法用于获取类型：
+- getType: 获取表示类型的 yyjson 常量
+- typeName: 获取类型的字符串表示，仅推荐在调试或打印日志时使用
+- isXXX: 系列方法，如 isInt isString 等
+- isType: 系列重载方法，接收一个表示类型的参数，如 isType(0), isType("") 等
+
+然后依托 `isType` 方法实现了 `&` 操作符重载。一般能放在 `|` 操作符右侧的参数，
+都可改为 `&` ，这时可读作且。`json & 0` 判断 json 有效，且与 0 具有一样类型
+`int` 。
+
+```cpp
+yyjson::Document doc;
+doc << R"({"name": "Alice", "age": 30, "score": [10, 20, 30]})";
+
+bool isString = doc["name"].isString();
+bool isNumber = doc["age"].isInt();
+bool isArray  = doc["score"].isArray();
+
+isString = doc / "name" & "";
+isNumber = doc / "age" & 0;
+isArray = doc / "score" & "[]";
 
 // 使用类型常量（推荐）
-bool isString = doc / "name" & xyjson::kStr;
+bool isString = doc / "name" & xyjson::kString;
 bool isObject = doc / "config" & xyjson::kObject;
 
 // 具名类型判断方法
@@ -470,13 +518,80 @@ if ((doc / "age").isNumber()) {
 std::string typeName = (doc / "name").typeName();
 ```
 
-注意：Json 树上的 `null` 结点也是语法上存在的结点，若 Value 引用这样的 `null`
-结点，它也认为是有效的，在 bool 上下文返回 `true` 。可用 `isNull` 方法显式判断
-是否 `null` 结点。而无效引用的 Value 用 `isNull` 时返回 `false`。应把 Json 的
-`null` 视为与整数、字符串并列的类型，即使它特殊只有一个值，便也不算太特殊，
-bool 类型只有两个值。
+#### 类型代表值
+
+在上一示例中看到，特殊字符字面量 `"[]"` 与 `"{}"` 用作 `&` 操作符的参数可以用
+于判断数组类型与对象类型。如果不习惯使用这样的字面量魔数，xyjson 库也提供了各
+类型的代表值常量（空值或零值），可以用于 `&` 的类型判断，与 `|` 的值提取。
+
+```cpp
+yyjson::Document doc;
+doc << R"({"name": "Alice", "age": 30, "ratio": 0.618, "score": [10, 20, 30]})";
+
+if(doc / "name" & kString) {
+    std::cout << (doc / "name" | kString) << std::endl;
+}
+if(doc / "age" & kInt) {
+    std::cout << (doc / "age" | kInt) << std::endl;
+}
+if(doc / "ratio" & kFloat) {
+    std::cout << (doc / "ratio" | kFloat) << std::endl;
+}
+
+if(doc / "score" & kArray) {
+    // kArray 与 kObject 用于 | 参数
+    std::cout << (doc / "score").toString() << std::endl;
+}
+```
+
+使用 `kArray` 与 `kObject` 常量判断比用 `"[]"` 与 `"{}"` 常量判断略快些，省去
+`::strcmp` 比较调用。
+
+#### 通用数字类型 Number
+
+按 Json 标准的类型划分，Number 是不分整数与浮点数。xyjson(yyjson) 库既支持强类
+型区分整数与浮点数，也支持通用数字类型，常量 `kNumber` 可用于类型判断 `&`与
+值提取 `|` 操作符。沿上例：
+
+```cpp
+// 整数与浮点数都属于 Number
+bool isNumber = doc / "age" & kNumber; // 结果：true
+isNumber = doc / "ration" & kNmuber;   // 结果：true
+auto age = doc / "age" | kNumber;      // 结果: 30.0
+```
+
+注意 `| kNumber` 返回类型是 `double` 。在 C++ 中，除非特殊场景，尽量区分整数与
+浮点数；在 xyjson 中就该区分使用 `kInt(0)` 与 `kFloat(0.0)` 。
+
+#### 特殊 Json 类型 Null
+
+xyjson 也提供了 `kNull` 常量（其实也就是 `nullptr`）与 `isNull` 方法来判断一个
+`Value` 是否 Null 结点。但要注意，Null 结点也是有效结点，无效结点却不是 Null
+结点，也不是任何其他类型的结点。
+
+```cpp
+yyjson::Document doc;
+doc << R"({"name": "Alice", "age": 30, "sex": null})";
+
+auto sex = doc / "sex";
+if (sex) {
+    bool tf1 = sex.isNull(); // 结果：true
+    bool tf2 = sex & kNull;  // 结果：true
+}
+
+// 查找错误字段，无效 Value
+sex = doc / "Sex";
+if (!sex) {
+    bool tf1 = sex.isNull(); // 结果：false
+    bool tf2 = sex & kNull;  // 结果：false
+}
+```
+
+- **错误警示**：不要用 `isNull()` 判断 `Value` 无效，直接使用 `!` 布尔上下文。
 
 ### 比较操作
+
+#### 等值比较 ==
 
 Document 类与 Value 类都重载了 `==` 及 `!=` 操作符，执行两棵 Json 树的深度比较：
 
@@ -520,6 +635,8 @@ if ((doc / "version" | std::string()) == "1.0") {
 `const char*` 的指针比较，那很可能不是想要的结果。而其他情况下使用 `| ""` 可能
 是最高效方便的，先返回 `const char*` 避免拷贝，然后也可按需赋给 `std::string`
 创建 C++ 字符串对象。
+
+#### 有序比较 <
 
 ### 类型转换的一元操作符
 
@@ -614,24 +731,6 @@ UserProfile profile = doc / "user" | [](const yyjson::Value& v) -> UserProfile {
 
 ```
 
-### 底层指针访问
-
-对于需要直接使用 yyjson C API 的高级场景，可以获取底层指针：
-
-```cpp
-// 获取只读结点指针
-yyjson_val* nodePtr;
-if (doc / "data" >> nodePtr) {
-    // 使用 yyjson C API 直接操作
-    yyjson_type type = yyjson_get_type(nodePtr);
-}
-
-// 获取可写文档指针
-yyjson_mut_doc* docPtr;
-if (mutDoc >> docPtr) {
-    // 使用完整的 yyjson 可写 API
-}
-```
 ## 可写 JSON 模型操作
 
 可写 JSON 模型（MutableDocument 和 MutableValue）提供了创建和修改 JSON 数据的能力。与只读模型相比，可写模型在内存布局上采用环形链表结构，支持动态添加和修改结点。

@@ -634,6 +634,24 @@ yyjson 本地安装于： /usr/local/include/yyjson.h
 
 ### DONE: 20251020-000000
 
+## TODO: 扩展与基本类型直接作比较
+
+支持直接 == 比较的基本类型：
+int int64_t uint64_t double `const char * ` std::string bool
+
+无效 Value 与基本类型比较返回 false ，类型不匹配返回 false
+
+使用模板泛型实现，(json & rhl) && ((json | rhl) == rhl)
+
+同样实现与基本类型的 < 比较
+(json & rhl) && ((json | rhl) < rhl)
+
+## TODO: 支持字面量运算符直接转 Document
+
+在 yyjson::literals 子空间中定义 operator""_xyjson ，生成 Document.
+
+放在 Part 5 最后，Part 6 之前。
+
 ## TODO: 优化文档示例代码管理同步单元测试
 
 - 针对文档：READE.md docs/usage.md
