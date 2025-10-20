@@ -634,17 +634,31 @@ yyjson 本地安装于： /usr/local/include/yyjson.h
 
 ### DONE: 20251020-000000
 
-## TODO: 扩展与基本类型直接作比较
+## TODO:2025-10-20/1 扩展与基本类型直接作相等性比较
 
-支持直接 == 比较的基本类型：
+支持 json 与基本类型直接 == 比较：
 int int64_t uint64_t double `const char * ` std::string bool
 
-无效 Value 与基本类型比较返回 false ，类型不匹配返回 false
+无效 Value 或类型不匹配返回 false
 
-使用模板泛型实现，(json & rhl) && ((json | rhl) == rhl)
+请分析一下能否根据已有操作符使用模板泛型实现，
+类似这样的逻辑： (json & rhl) && ((json | rhl) == rhl)
+左参数类型用 `jsonT` ，`is_value` 限定
+右参数类型用 `scalarT` 命名，不是 `is_value`
 
-同样实现与基本类型的 < 比较
-(json & rhl) && ((json | rhl) < rhl)
+与 `const char*` 比较需要特化，否则 `|` 返回指针，然后 `==` 比较指针而不是比较
+内容了
+
+然后 `!=` 操作符用 `==` 实现。
+当前有许多 `!=` 单独实现，尝试先注释屏蔽，改成通用的模板
+
+代码修改在 include/xyjson.h @Section 5.3 位置，
+单元测试在 `utest/t_advanced.cpp` 文件
+
+再评估一下大小比较 `<` 能否扩展至支持比较 json 与基本类型？
+我初步分析是没必要的，考虑到类型不一致时 `<` 与 `>` 都 false 就不自洽了。
+
+### DONE: 20251020-114104
 
 ## TODO: 支持字面量运算符直接转 Document
 

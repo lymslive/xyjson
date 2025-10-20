@@ -373,6 +373,73 @@ DEF_TAST(advanced_compare_ops, "test comparison operators")
         Document arr2("[1, 2, 3]");
         COUT(arr1.root() < arr2.root(), true);
     }
+
+    // Test JSON value and scalar type direct comparison
+    {
+        Document doc("{\"int\": 42, \"double\": 3.14, \"string\": \"hello\", \"bool\": true}");
+        
+        // Test integer comparison
+        COUT((doc / "int") == 42, true);
+        COUT((doc / "int") == 43, false);
+        COUT((doc / "int") != 42, false);
+        COUT((doc / "int") != 43, true);
+        COUT(42 == (doc / "int"), true);
+        COUT(43 == (doc / "int"), false);
+        
+        // Test double comparison
+        COUT((doc / "double") == 3.14, true);
+        COUT((doc / "double") == 2.71, false);
+        COUT(3.14 == (doc / "double"), true);
+        COUT(2.71 == (doc / "double"), false);
+        
+        // Test string comparison
+        COUT((doc / "string") == "hello", true);
+        COUT((doc / "string") == "world", false);
+        COUT("hello" == (doc / "string"), true);
+        COUT("world" == (doc / "string"), false);
+        
+        // Test std::string comparison
+        std::string hello_str = "hello";
+        std::string world_str = "world";
+        COUT((doc / "string") == hello_str, true);
+        COUT((doc / "string") == world_str, false);
+        COUT(hello_str == (doc / "string"), true);
+        COUT(world_str == (doc / "string"), false);
+        
+        // Test boolean comparison
+        COUT((doc / "bool") == true, true);
+        COUT((doc / "bool") == false, false);
+        COUT(true == (doc / "bool"), true);
+        COUT(false == (doc / "bool"), false);
+        
+        // Test with MutableValue
+        MutableDocument mutDoc("{\"number\": 100}");
+        COUT((mutDoc / "number") == 100, true);
+        COUT(100 == (mutDoc / "number"), true);
+        COUT((mutDoc / "number") != 50, true);
+        
+        // Test with invalid values
+        Value nullValue;
+        COUT(nullValue == 42, false);
+        COUT(nullValue == "hello", false);
+        COUT(42 == nullValue, false);
+        COUT("hello" == nullValue, false);
+        
+        // Test with type mismatches
+        COUT((doc / "int") == "hello", false);
+        COUT((doc / "string") == 42, false);
+        COUT((doc / "bool") == 42, false);
+        
+        // Test with 64-bit integers
+        // yyjson may store positive numbers as uint64_t
+        COUT((doc / "int") == uint64_t(42), true);
+        COUT(uint64_t(42) == (doc / "int"), true);
+        
+        // Test negative numbers which should be stored as int64_t
+        Document negDoc("{\"negative\": -42}");
+        COUT((negDoc / "negative") == int64_t(-42), true);
+        COUT(int64_t(-42) == (negDoc / "negative"), true);
+    }
 }
 
 DEF_TAST(advanced_sort_mixed_array, "sort a mixed array of json values")

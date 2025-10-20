@@ -573,7 +573,7 @@ DEF_TAST(basic_type_checking, "type checking with isType method and & operator")
     // Test with type representative constants
     using namespace yyjson;
     COUT(doc["intVal"] & kInt, true);
-    COUT(doc["floatVal"] & kFloat, true);
+    COUT(doc["floatVal"] & kReal, true);
     COUT(doc["boolVal"] & kBool, true);
     COUT(doc["strVal"] & kString, true);
     COUT(doc["nullVal"] & kNull, true);

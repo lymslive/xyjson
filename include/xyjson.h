@@ -97,7 +97,7 @@ constexpr int64_t kSint = 0L;
 constexpr uint64_t kUint = 0uL;
 constexpr EmptyString kString;
 constexpr ZeroNumber kNumber;
-constexpr double kFloat = 0.0;
+constexpr double kReal = 0.0;
 constexpr bool kBool = false;
 constexpr std::nullptr_t kNull = nullptr;
 constexpr EmptyArray kArray;
@@ -189,20 +189,20 @@ public:
     bool isType(double) const { return isReal(); }
     bool isType(bool) const { return isBool(); }
     bool isType(std::nullptr_t) const { return isNull(); }
-    // Support empty-type sentinels
+    bool isType(const std::string& type) const { return isString(); }
+    bool isType(ZeroNumber) const { return isNumber(); }
     bool isType(EmptyString) const { return isString(); }
     bool isType(EmptyArray) const { return isArray(); }
     bool isType(EmptyObject) const { return isObject(); }
-    bool isType(ZeroNumber) const { return isNumber(); }
     bool isType(const char* type) const 
     { 
-        // Special handling for "{}" and "[]" to check for object/array types
         if (type != nullptr) {
-            if (strcmp(type, "{}") == 0) return isObject();
-            if (strcmp(type, "[]") == 0) return isArray();
+            if (::strcmp(type, "{}") == 0) return isObject();
+            if (::strcmp(type, "[]") == 0) return isArray();
         }
         return isString(); 
     }
+    
     bool isType(yyjson_val*) const { return isValid(); }
     
     // Value extraction with result reference
@@ -423,20 +423,20 @@ public:
     bool isType(double) const { return isReal(); }
     bool isType(bool) const { return isBool(); }
     bool isType(std::nullptr_t) const { return isNull(); }
-    // Support empty-type sentinels
+    bool isType(const std::string& type) const { return isString(); }
+    bool isType(ZeroNumber) const { return isNumber(); }
     bool isType(EmptyString) const { return isString(); }
     bool isType(EmptyArray) const { return isArray(); }
     bool isType(EmptyObject) const { return isObject(); }
-    bool isType(ZeroNumber) const { return isNumber(); }
     bool isType(const char* type) const 
     { 
-        // Special handling for "{}" and "[]" to check for object/array types
         if (type != nullptr) {
             if (strcmp(type, "{}") == 0) return isObject();
             if (strcmp(type, "[]") == 0) return isArray();
         }
         return isString(); 
     }
+    
     bool isType(yyjson_mut_val*) const { return isValid(); }
     bool isType(yyjson_mut_doc*) const { return m_doc != nullptr; }
     
@@ -2895,11 +2895,35 @@ operator==(const jsonT& lhs, const jsonT& rhs)
     return lhs.equal(rhs);
 }
 
+// Specialization for const char* to avoid pointer comparison issues
 template<typename jsonT>
 inline typename std::enable_if<is_value<jsonT>::value, bool>::type
-operator!=(const jsonT& lhs, const jsonT& rhs)
+operator==(const jsonT& json, const char* scalar)
 {
-    return !lhs.equal(rhs);
+    return (json & scalar) && (::strcmp(json | "", scalar) == 0);
+}
+
+template<typename jsonT>
+inline typename std::enable_if<is_value<jsonT>::value, bool>::type
+operator==(const char* scalar, const jsonT& json)
+{
+    return json == scalar; // Use the reverse implementation
+}
+
+// JSON value and scalar type comparison operators
+template<typename jsonT, typename scalarT>
+inline typename std::enable_if<is_value<jsonT>::value && !is_value<scalarT>::value, bool>::type
+operator==(const jsonT& json, const scalarT& scalar)
+{
+    return (json & scalar) && ((json | scalar) == scalar);
+}
+
+// Scalar type and JSON value comparison operators
+template<typename scalarT, typename jsonT>
+inline typename std::enable_if<is_value<jsonT>::value && !is_value<scalarT>::value, bool>::type
+operator==(const scalarT& scalar, const jsonT& json)
+{
+    return json == scalar; // Use the reverse implementation
 }
 
 // Document and MutableDocument comparison operators
@@ -2910,13 +2934,6 @@ operator==(const docT& lhs, const docT& rhs)
     return lhs.equal(rhs);
 }
 
-template<typename docT>
-inline typename std::enable_if<is_document<docT>::value, bool>::type
-operator!=(const docT& lhs, const docT& rhs)
-{
-    return !lhs.equal(rhs);
-}
-
 // Iterator comparison operators
 template<typename iteratorT>
 inline typename std::enable_if<is_iterator<iteratorT>::value, bool>::type
@@ -2925,39 +2942,38 @@ operator==(const iteratorT& lhs, const iteratorT& rhs)
     return lhs.equal(rhs);
 }
 
-template<typename iteratorT>
-inline typename std::enable_if<is_iterator<iteratorT>::value, bool>::type
-operator!=(const iteratorT& lhs, const iteratorT& rhs)
+template <typename leftT, typename rightT>
+inline bool operator!=(const leftT& lhs, const rightT& rhs)
 {
-    return !lhs.equal(rhs);
+    return !(lhs == rhs);
 }
 
 // Less-than comparison operator for Value and MutableValue
-template<typename T>
-inline typename std::enable_if<is_value<T>::value, bool>::type
-operator<(const T& lhs, const T& rhs)
+template<typename jsonT>
+inline typename std::enable_if<is_value<jsonT>::value, bool>::type
+operator<(const jsonT& lhs, const jsonT& rhs)
 {
     return lhs.less(rhs);
 }
 
 // Other comparison operators
-template<typename T>
-inline typename std::enable_if<is_value<T>::value, bool>::type
-operator>(const T& lhs, const T& rhs)
+template<typename jsonT>
+inline typename std::enable_if<is_value<jsonT>::value, bool>::type
+operator>(const jsonT& lhs, const jsonT& rhs)
 {
     return rhs < lhs;
 }
 
-template<typename T>
-inline typename std::enable_if<is_value<T>::value, bool>::type
-operator<=(const T& lhs, const T& rhs)
+template<typename jsonT>
+inline typename std::enable_if<is_value<jsonT>::value, bool>::type
+operator<=(const jsonT& lhs, const jsonT& rhs)
 {
     return !(rhs < lhs);
 }
 
-template<typename T>
-inline typename std::enable_if<is_value<T>::value, bool>::type
-operator>=(const T& lhs, const T& rhs)
+template<typename jsonT>
+inline typename std::enable_if<is_value<jsonT>::value, bool>::type
+operator>=(const jsonT& lhs, const jsonT& rhs)
 {
     return !(lhs < rhs);
 }

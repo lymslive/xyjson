@@ -896,3 +896,54 @@ cd build && cmake .. && make
 - toInteger 保持原整数转义，+ 运算符兼容旧语义；toNumber 提供与 yyjson 一致的 double 视图
 - 新的哨兵 kString/kNumber 与 getor 特化配合，写法简洁：json | kString, json | kNumber
 
+---
+
+## 任务ID: 20251020-114104
+- **任务类型**: 开发/优化
+- **任务状态**: 已完成
+- **执行AI**: DeepSeek-V3.1
+- **对应需求**: TODO:2025-10-20/1
+
+### 任务需求
+扩展与基本类型直接作相等性比较功能：
+- 支持 JSON 值与基本类型（int、int64_t、uint64_t、double、const char*、std::string、bool）的直接 == 比较
+- 无效 Value 或类型不匹配返回 false
+- 基于已有操作符使用模板泛型实现 `(json & scalar) && ((json | scalar) == scalar)` 逻辑
+- 重构 != 操作符统一使用 == 实现
+
+### 实施过程
+**1. 模板化实现**
+- 在 Section 5.3 实现 JSON-scalar 的双向 `operator==` 模板
+- 使用 `std::enable_if<is_value<jsonT>::value && !is_value<scalarT>::value, bool>::type` 约束模板参数
+- 对 `const char*` 特化处理，使用 `::strcmp` 避免指针比较问题
+
+**2. 类型检查完善**
+- 为 `Value` 和 `MutableValue` 添加 `bool isType(const std::string& type) const` 重载方法
+- `std::string` 直接判断字符串类型，语义明确
+
+**3. 操作符统一**
+- 重构所有 `!=` 操作符使用 `==` 实现
+- 保持代码一致性，减少重复实现
+
+**4. 单元测试覆盖**
+- 在 `t_advanced.cpp` 的 `advanced_compare_ops` 测试中添加 JSON-scalar 比较测试
+- 覆盖各种基本类型组合和边界情况
+
+### 完成成果
+**功能实现**：
+- ✅ JSON-scalar 双向 `==` 比较模板实现
+- ✅ `const char*` 特化处理，避免指针比较问题  
+- ✅ `std::string` 类型检查重载完善
+- ✅ `!=` 操作符统一使用 `==` 实现
+
+**测试验证**：
+- ✅ 新增全面测试用例，覆盖各种基本类型组合
+- ✅ 40/40 测试用例全部通过
+- ✅ 编译无错误警告
+
+**设计特点**：
+- **模板泛型**: 支持各种基本类型的自动推导和比较
+- **双向对称**: JSON == scalar 和 scalar == JSON 语义一致
+- **类型安全**: 依赖 `is_value` 特性确保正确类型约束
+- **错误处理**: 无效值或类型不匹配时返回 false，符合预期
+
