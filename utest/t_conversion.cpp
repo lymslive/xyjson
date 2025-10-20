@@ -601,3 +601,111 @@ DEF_TAST(conversion_doc_unary, "test Document and MutableDocument unary operator
     }
 }
 
+DEF_TAST(conversion_user_literals, "test user-defined literals for direct Document creation")
+{
+    using namespace yyjson::literals;
+
+    DESC("Test basic JSON object creation with user-defined literal");
+    {
+        // Basic object
+        auto doc = "{\"name\": \"Alice\", \"age\": 25}"_xyjson;
+        COUT(doc.isValid(), true);
+        COUT(doc / "name" | std::string(), "Alice");
+        COUT(doc / "age" | 0, 25);
+    }
+
+    DESC("Test JSON array creation with user-defined literal");
+    {
+        // Array
+        auto doc = "[1, 2, 3, 4, 5]"_xyjson;
+        COUT(doc.isValid(), true);
+        COUT(doc.root().size(), 5);
+        COUT(doc / 0 | 0, 1);
+        COUT(doc / 4 | 0, 5);
+    }
+
+    DESC("Test nested JSON structures with user-defined literal");
+    {
+        // Nested object with array
+        auto doc = "{\"users\": [{\"name\": \"Bob\", \"scores\": [90, 85, 95]}, {\"name\": \"Charlie\", \"scores\": [88, 92]}], \"meta\": {\"version\": 1}}"_xyjson;
+        COUT(doc.isValid(), true);
+        COUT(doc / "users" / 0 / "name" | std::string(), "Bob");
+        COUT(doc / "users" / 0 / "scores" / 2 | 0, 95);
+        COUT(doc / "users" / 1 / "name" | std::string(), "Charlie");
+        COUT(doc / "meta" / "version" | 0, 1);
+    }
+
+    DESC("Test scalar values with user-defined literal");
+    {
+        // String
+        auto str_doc = "\"Hello, World!\""_xyjson;
+        COUT(str_doc.isValid(), true);
+        COUT(*str_doc | std::string(), "Hello, World!");
+
+        // Number
+        auto num_doc = "42"_xyjson;
+        COUT(num_doc.isValid(), true);
+        COUT(*num_doc | 0, 42);
+
+        // Boolean
+        auto bool_doc = "true"_xyjson;
+        COUT(bool_doc.isValid(), true);
+        COUT(*bool_doc | false, true);
+
+        // Null
+        auto null_doc = "null"_xyjson;
+        COUT(null_doc.isValid(), true);
+        COUT(null_doc.root().isNull(), true);
+    }
+
+    DESC("Test empty and edge cases with user-defined literal");
+    {
+        // Empty object
+        auto empty_obj = "{}"_xyjson;
+        COUT(empty_obj.isValid(), true);
+        COUT(empty_obj.root().isObject(), true);
+        COUT(empty_obj.root().size(), 0);
+
+        // Empty array
+        auto empty_arr = "[]"_xyjson;
+        COUT(empty_arr.isValid(), true);
+        COUT(empty_arr.root().isArray(), true);
+        COUT(empty_arr.root().size(), 0);
+
+        // Invalid JSON (should handle gracefully)
+        auto invalid_doc = "{invalid json}"_xyjson;
+        COUT(invalid_doc.isValid(), false);
+        COUT(invalid_doc.hasError(), true);
+    }
+
+    DESC("Test combining with other operations");
+    {
+        auto doc = "{\"data\": {\"values\": [10, 20, 30]}}"_xyjson;
+        
+        // Use with path operator
+        COUT(doc / "data" / "values" / 1 | 0, 20);
+        
+        // Use with unary operators
+        COUT(+ (doc / "data" / "values"), 3);
+        
+        // Use with stream output
+        std::ostringstream oss;
+        oss << doc;
+        COUT(oss.str().find("values") != std::string::npos, true);
+    }
+
+    DESC("Test namespace qualification");
+    {
+        // Qualified usage
+        auto doc1 = yyjson::literals::operator""_xyjson("{\"test\": \"value\"}", 17);
+        COUT(doc1.isValid(), true);
+        COUT(doc1 / "test" | std::string(), "value");
+
+        // Compare with unqualified usage
+        using namespace yyjson::literals;
+        auto doc2 = "{\"test\": \"value\"}"_xyjson;
+        COUT(doc2.isValid(), true);
+        COUT(doc2 / "test" | std::string(), "value");
+    }
+}
+

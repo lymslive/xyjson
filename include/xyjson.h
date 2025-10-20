@@ -21,52 +21,53 @@
 
 /* Table of Content (TOC) */
 /* ======================================================================== */
-/* Part 1: Front Definitions                                       Line: 75 */
-/* Part 2: Class Definitions                                      Line: 129 */
-/*   Section 2.1: Read-only Json Model                            Line: 132 */
-/*   Section 2.2: Mutable Json Model                              Line: 360 */
-/*   Section 2.3: Helper Class for Mutable Json                   Line: 710 */
-/*   Section 2.4: Iterator Json                                   Line: 758 */
-/*   Section 2.5: Type Traits                                    Line: 1019 */
-/* Part 3: Non-Class Functions                                   Line: 1068 */
-/*   Section 3.1: Underlying yyjson_mut_val Creation             Line: 1071 */
-/*   Section 3.2: Conversion Helper Functions                    Line: 1212 */
-/* Part 4: Class Implementations                                 Line: 1291 */
-/*   Section 4.1: Value Methods                                  Line: 1294 */
-/*     Group 4.1.1: get and getor                                Line: 1297 */
-/*     Group 4.1.2: size and index/path                          Line: 1386 */
-/*     Group 4.1.3: create iterator                              Line: 1433 */
-/*     Group 4.1.4: others                                       Line: 1480 */
-/*   Section 4.2: Document Methods                               Line: 1530 */
-/*     Group 4.2.1: primary manage                               Line: 1533 */
-/*     Group 4.2.2: read and write                               Line: 1565 */
-/*   Section 4.3: MutableValue Methods                           Line: 1650 */
-/*     Group 4.3.1: get and getor                                Line: 1653 */
-/*     Group 4.3.2: size and index/path                          Line: 1748 */
-/*     Group 4.3.3: assignment set                               Line: 1824 */
-/*     Group 4.3.4: array append                                 Line: 1979 */
-/*     Group 4.3.5: object add                                   Line: 2013 */
-/*     Group 4.3.6: tag create KeyValue                          Line: 2060 */
-/*     Group 4.3.7: smart input                                  Line: 2103 */
-/*     Group 4.3.8: create iterator                              Line: 2172 */
-/*     Group 4.3.9: others                                       Line: 2219 */
-/*   Section 4.4: MutableDocument Methods                        Line: 2269 */
-/*     Group 4.4.1: primary manage                               Line: 2272 */
-/*     Group 4.4.2: read and write                               Line: 2319 */
-/*     Group 4.4.3: create mutable value                         Line: 2416 */
-/*   Section 4.5: ArrayIterator Methods                          Line: 2454 */
-/*   Section 4.6: ObjectIterator Methods                         Line: 2501 */
-/*   Section 4.7: MutableArrayIterator Methods                   Line: 2572 */
-/*   Section 4.8: MutableObjectIterator Methods                  Line: 2625 */
-/* Part 5: Operator Interface                                    Line: 2699 */
-/*   Section 5.1: Primary Path Access                            Line: 2702 */
-/*   Section 5.2: Conversion Unary Operator                      Line: 2786 */
-/*   Section 5.3: Comparison Operator                            Line: 2840 */
-/*   Section 5.4: Create and Bind KeyValue                       Line: 2926 */
-/*   Section 5.5: Stream and Input Operator                      Line: 2993 */
-/*   Section 5.6: Iterator Creation and Operation                Line: 3081 */
-/*   Section 5.7: Document Forward Root Operator                 Line: 3156 */
-/* Part 6: Last Definitions                                      Line: 3221 */
+/* Part 1: Front Definitions                                       Line: 76 */
+/* Part 2: Class Definitions                                      Line: 130 */
+/*   Section 2.1: Read-only Json Model                            Line: 133 */
+/*   Section 2.2: Mutable Json Model                              Line: 361 */
+/*   Section 2.3: Helper Class for Mutable Json                   Line: 711 */
+/*   Section 2.4: Iterator Json                                   Line: 759 */
+/*   Section 2.5: Type Traits                                    Line: 1020 */
+/* Part 3: Non-Class Functions                                   Line: 1069 */
+/*   Section 3.1: Underlying yyjson_mut_val Creation             Line: 1072 */
+/*   Section 3.2: Conversion Helper Functions                    Line: 1213 */
+/* Part 4: Class Implementations                                 Line: 1292 */
+/*   Section 4.1: Value Methods                                  Line: 1295 */
+/*     Group 4.1.1: get and getor                                Line: 1298 */
+/*     Group 4.1.2: size and index/path                          Line: 1387 */
+/*     Group 4.1.3: create iterator                              Line: 1434 */
+/*     Group 4.1.4: others                                       Line: 1481 */
+/*   Section 4.2: Document Methods                               Line: 1531 */
+/*     Group 4.2.1: primary manage                               Line: 1534 */
+/*     Group 4.2.2: read and write                               Line: 1566 */
+/*   Section 4.3: MutableValue Methods                           Line: 1651 */
+/*     Group 4.3.1: get and getor                                Line: 1654 */
+/*     Group 4.3.2: size and index/path                          Line: 1749 */
+/*     Group 4.3.3: assignment set                               Line: 1825 */
+/*     Group 4.3.4: array append                                 Line: 1980 */
+/*     Group 4.3.5: object add                                   Line: 2014 */
+/*     Group 4.3.6: tag create KeyValue                          Line: 2061 */
+/*     Group 4.3.7: smart input                                  Line: 2104 */
+/*     Group 4.3.8: create iterator                              Line: 2173 */
+/*     Group 4.3.9: others                                       Line: 2220 */
+/*   Section 4.4: MutableDocument Methods                        Line: 2270 */
+/*     Group 4.4.1: primary manage                               Line: 2273 */
+/*     Group 4.4.2: read and write                               Line: 2320 */
+/*     Group 4.4.3: create mutable value                         Line: 2417 */
+/*   Section 4.5: ArrayIterator Methods                          Line: 2455 */
+/*   Section 4.6: ObjectIterator Methods                         Line: 2502 */
+/*   Section 4.7: MutableArrayIterator Methods                   Line: 2573 */
+/*   Section 4.8: MutableObjectIterator Methods                  Line: 2626 */
+/* Part 5: Operator Interface                                    Line: 2700 */
+/*   Section 5.1: Primary Path Access                            Line: 2703 */
+/*   Section 5.2: Conversion Unary Operator                      Line: 2787 */
+/*   Section 5.3: Comparison Operator                            Line: 2841 */
+/*   Section 5.4: Create and Bind KeyValue                       Line: 2927 */
+/*   Section 5.5: Stream and Input Operator                      Line: 2994 */
+/*   Section 5.6: Iterator Creation and Operation                Line: 3082 */
+/*   Section 5.7: Document Forward Root Operator                 Line: 3157 */
+/*   Section 5.8: User-defined Literal Operator                  Line: 3222 */
+/* Part 6: Last Definitions                                      Line: 3239 */
 /* ======================================================================== */
 
 namespace yyjson
@@ -3217,6 +3218,23 @@ operator<<(std::ostream& os, const docT& doc)
 {
     return os << doc.root();
 }
+
+/* @Section 5.8: User-defined Literal Operator */
+/* ------------------------------------------------------------------------ */
+
+namespace literals
+{
+
+/**
+ * User-defined literal operator for converting string literals to Document
+ * Usage: "{\"key\": \"value\"}"_xyjson
+ */
+inline yyjson::Document operator""_xyjson(const char* jsonStr, std::size_t len)
+{
+    return yyjson::Document(jsonStr, len);
+}
+
+} /* end of namespace yyjson::literals */
 
 /* @Part 6: Last Definitions */
 /* ======================================================================== */

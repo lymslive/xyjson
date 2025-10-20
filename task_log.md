@@ -947,3 +947,40 @@ cd build && cmake .. && make
 - **类型安全**: 依赖 `is_value` 特性确保正确类型约束
 - **错误处理**: 无效值或类型不匹配时返回 false，符合预期
 
+---
+
+## 任务ID: 20251020-155345
+- **任务类型**: 开发
+- **任务状态**: 已完成
+- **执行AI**: DeepSeek-V3.1
+
+### 任务需求
+需求ID: 2025-10-20/3 - 支持字面量运算符直接转 Document
+
+在 yyjson::literals 子命名空间中定义 operator""_xyjson，生成 Document。新测试用例添加在 t_conversion.cpp 文件。
+
+### 执行过程
+**1. 用户定义字面量操作符实现**
+- 在 include/xyjson.h 的 Part 5 最后添加 Section 5.8
+- 在 yyjson::literals 命名空间中定义 operator""_xyjson
+- 直接调用 const char* 与 size_t 的构造函数，避免不必要的字符串复制
+
+**2. 测试用例开发**
+- 在 utest/t_conversion.cpp 中添加 conversion_user_literals 测试用例
+- 覆盖基本对象、数组、嵌套结构、标量值、边界情况等场景
+- 验证与其他操作符的组合使用
+
+**3. 构建与测试验证**
+```bash
+cd build && make -j4
+./utxyjson --cout=silent conversion_user_literals
+./utxyjson --cout=silent
+```
+
+### 完成成果
+- 成功实现用户定义字面量操作符 "_xyjson
+- 新增测试用例全部通过
+- 所有现有 41 个测试用例保持通过，无回归问题
+
+---
+

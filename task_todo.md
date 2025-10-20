@@ -672,11 +672,14 @@ int int64_t uint64_t double `const char * ` std::string bool
 
 ### DONE: 20251020-152112
 
-## TODO: 支持字面量运算符直接转 Document
+## TODO:2025-10-20/3 支持字面量运算符直接转 Document
 
-在 yyjson::literals 子空间中定义 operator""_xyjson ，生成 Document.
+在 yyjson::literals 子命名空间中定义 operator""_xyjson ，生成 Document.
+新测试用例添加在 `t_conversion.cpp` 文件
 
 放在 Part 5 最后，Part 6 之前。
+
+### DONE: 20251020-155345
 
 ## TODO: 优化文档示例代码管理同步单元测试
 
