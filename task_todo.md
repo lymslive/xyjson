@@ -660,6 +660,18 @@ int int64_t uint64_t double `const char * ` std::string bool
 
 ### DONE: 20251020-114104
 
+## TODO:2025-10-20/2 重新组织 Document 转 root 的操作符
+
+单独开一节 @Section 5.7 收集转 root 的同义操作符。
+迁移： /  + - <<(标准流输出)
+增补：%
+修改：== ，删除 Document 的 equal 方法，直接转调 root ，不判断 doc 指针，开销
+影响极小，相同指针的 doc 取的 root 指针也该一样
+
+手动完成
+
+### DONE: 20251020-152112
+
 ## TODO: 支持字面量运算符直接转 Document
 
 在 yyjson::literals 子空间中定义 operator""_xyjson ，生成 Document.
