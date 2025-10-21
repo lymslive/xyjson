@@ -40,9 +40,9 @@ MutableValue 是对某个 Json 结点的引用，其中根结点可用 root 方�
 本节讲解只读模型与可写模型都支持的基本操作， Document 一般泛指两个文档类，
 Value 泛指两个 Json 结点类。
 
-### Document 整体的输入输出
+### Document 整体的读写操作
 
-#### 输入操作
+#### 读入操作 `<<`
 
 Document 类对象可以从字符串直接构造：
 ```cpp
@@ -118,9 +118,9 @@ if (ifs) {
 有权也转给了 Document 对象，在析构时自动释放，注意不要再手动释放了避免二次
 free 的错误。
 
-#### 输出操作
+#### 写出操作 `>>`
 
-输出是输入的逆操作，Document 提供 wirte 方法及 `>>` 操作符将整个 Json 树序列化
+输出是输入的逆操作，Document 提供 `wirte` 方法及 `>>` 操作符将整个 Json 树序列化
 输出至右侧参数目标。支持的参数与 `<<` 类似：
 
 - 字符串，只支持 `std::string`, 而 C 风格的字符串指针不能当作安全的可写目标；
@@ -188,7 +188,7 @@ std::cout << doc << std::endl;
 std::cout << *doc << std::endl;
 ```
 
-#### 索引操作 []
+#### 索引操作 `[]`
 
 按索引或路径访问属于 Value 类的方法，但也可直接作用于 Document ，自动转为根结
 点调用。
@@ -225,7 +225,7 @@ if (!json) {
 }
 ```
 
-#### 路径操作 /
+#### 路径操作 `/`
 
 但更推荐使用路径操作符 `/` 平替索引操作符 `[]`，这几乎是 xyjson 库的精髓与灵感
 来源。在链式路径操作中，`/` 比 `[]` 更直观方便。
@@ -284,7 +284,7 @@ if (!json) {
 从 Json 标量叶结点提取值到 C++ 相应的基本类型的变量中，是非常常见的操作。Value
 类有一系列 `get` 方法重载，支持该操作，但更建议使用操作符。
 
-#### 带默认值的取值操作
+#### 带默认值的取值操作 `|`
 
 形如 `json | defaultValue` 的操作符用法，是位或符号的重载，就可读作或，它有两
 层含义：
@@ -326,9 +326,9 @@ uint64_t age = doc / "age" | 0;
 `int` ，`json | 0` 返回 `int` ，会先被截断。
 
 - **性能提示**：字符串结点优先用 `|""` 取值，必要时再构造 `std::string`。
-- **错误警示**：`|` 有严格类型判断，须保存类型适配。
+- **错误警示**：`|` 有严格类型判断，须保证类型适配。
 
-#### 使用变量原来的默认值提取
+#### 使用变量原来的默认值提取 `|=`
 
 也支持 `|=` 复合操作，`result |= json` 相当于 `result = json | result` ，表示
 只有当 json 类型类型符合 `result` 这样的基本类型时才读取并赋值。
@@ -351,7 +351,7 @@ name |= doc / "Name"; // 键名有误，无影响，完全不涉及字符串的�
 操作符 `|=` 的返回类型是左侧参数的自身引用，与 `|` 相比可以减少一次等值拷贝。
 故虽然主操作对象不在左侧似乎有点别扭，但有些情况还是有用的。
 
-#### 明确判断取值操作是否成功
+#### 明确判断取值操作是否成功 `>>`
 
 如果希望显式知道读取是否成功，可用 `json >> target` 操作，它返回 true 时会更新
 target 的值。
@@ -380,7 +380,7 @@ if (name.empty()) {
 }
 ```
 
-#### 自定义管道函数取值
+#### 自定义管道函数取值 `|`
 
 取值操作符 `|` 还有个扩展的高级用法。右侧可接一个自定义函数，该函数接收一个
 Value 参数，由它决定如何处理这个 json 结点，然后返回一个值。例如作自定义转换：
@@ -476,7 +476,7 @@ p1 |= doc.root();
 p2 |= doc.root();
 ```
 
-### Json 结点类型判断
+### Json 结点类型判断 `&`
 
 一般而言，取值操作 `|` 及其他许多操作都自带类型感知与类型安全判断。但如果只想
 判断类型或要求显式判断类型时，也有独立的方法实现。
@@ -535,7 +535,7 @@ if(doc / "age" & kInt) {
     std::cout << (doc / "age" | kInt) << std::endl;
 }
 if(doc / "ratio" & kFloat) {
-    std::cout << (doc / "ratio" | kFloat) << std::endl;
+    std::cout << (doc / "ratio" | kReal) << std::endl;
 }
 
 if(doc / "score" & kArray) {
@@ -547,7 +547,7 @@ if(doc / "score" & kArray) {
 使用 `kArray` 与 `kObject` 常量判断比用 `"[]"` 与 `"{}"` 常量判断略快些，省去
 `::strcmp` 比较调用。
 
-#### 通用数字类型 Number
+#### 数字类型细分
 
 按 Json 标准的类型划分，Number 是不分整数与浮点数。xyjson(yyjson) 库既支持强类
 型区分整数与浮点数，也支持通用数字类型，常量 `kNumber` 可用于类型判断 `&`与
@@ -561,7 +561,79 @@ auto age = doc / "age" | kNumber;      // 结果: 30.0
 ```
 
 注意 `| kNumber` 返回类型是 `double` 。在 C++ 中，除非特殊场景，尽量区分整数与
-浮点数；在 xyjson 中就该区分使用 `kInt(0)` 与 `kFloat(0.0)` 。
+浮点数；在 xyjson 中就该区分使用 `kInt(0)` 与 `kReal(0.0)` 。
+
+事实上，整数在 yyjson 也进一步分为无符号（正整数）与有符号（负整数），分别用
+`uint64_t` 与 `int64_t` 存储，api 命名上分别以 `uint` 与 `sint` 表示。在
+xyjson 定义的常量符号分别是 `kInt`, `kUint` 与 `kSint` 。
+
+尤其要注意的是，正整数与负整数的分类是互斥的，一个 json 数字当然不会既是正整数
+又是负整数。四字节范围内的正整数与负整数都可用 `int` 存储，所以大部分情况下使
+用 `int` 就可以了。一个容易困惑的是小正整数，它只属于 `int` 与 `uint64_t` ，但
+不属于 `int64_t`。
+
+```cpp
+yyjson::Document doc;
+doc << R"({"uint": "1", "sint": -1, "int": 100})";
+
+bool check;
+check = doc / "uint" & int(0);  // 结果: true
+check = doc / "uint" & uint64_t(0);  // 结果: true
+check = doc / "uint" &  int64_t(0);  // 结果: false
+
+check = doc / "sint" & int(0);  // 结果: true
+check = doc / "sint" & uint64_t(0);  // 结果: false
+check = doc / "sint" &  int64_t(0);  // 结果: true
+
+// 用类型常量判断可能更直观些
+check = doc / "uint" & kInt;   // 结果: true
+check = doc / "uint" & kUint;  // 结果: true
+check = doc / "uint" & kSint;  // 结果: false
+
+check = doc / "sint" & kInt;   // 结果: true
+check = doc / "sint" & kUint;  // 结果: false
+check = doc / "sint" & kSint;  // 结果: true
+
+// 取值失败，"int" 结点不是负整数
+int64_t value = 0;
+value |= doc / "int";
+std::cout << value << std::endl; // 输出：0
+
+// 取值成功，字面量 `0` 属于 `int` 类型，与 json 结点匹配
+std::cout << (doc / "int" | 0) << std::endl; // 输出：100
+```
+
+- **性能提示**：尽量使用最常用的 `int` ，不要使用太通用的 Number 。
+- **错误警示**：在使用 64 位大整数时，最好先判断实际的整数类型。
+
+#### 字符串类型
+
+从 Json 字符串结点中读取后能存入到两种常用的 C++ 字符串类型中：
+- C 风格字符串 `const char*`，只保存指针仍指向原 Json 的字符串
+- 标准库字符串 `std::string`，拷贝字符串到独立副本
+
+这两种类型的变量都可以放到 `|` 或 `&` 的后面，用于读取（默认值）或类型判断。
+由于 `std::string` 可以从 `const char*` 构造或赋值，所以读取字符串最简单的写法
+就是 `| ""` ，再由 `=` 左侧的变量决定最终使用什么字符串类型。
+
+```cpp
+yyjson::Document doc;
+doc << R"({"name": "Alice", "age": 30})";
+
+const char* pszName = doc / "name" | "";
+std::string strName = doc / "name" | ""; // 或 | std::string()
+
+if (doc / "name" & kString)
+{
+    pszName = doc / "name" | kString;
+}
+```
+
+此外，还有个特殊类型 `EmptyString` 及其常量 `kString` ，只能用于 `|` 与 `&` 等
+重载操作符后面作为一种类型标识，而作为普通变量是没有意义的。这个标识类型的提出，
+是由于字面 `""` 与 `"{}"` ，`"[]"` 在用于 `&` 的参数时，调用的是同一个方法，接
+收的参数类型是 `const char*` ，这就需要对后面两种特殊字面作额外的比较判断是否
+对象或数组。
 
 #### 特殊 Json 类型 Null
 
@@ -591,52 +663,53 @@ if (!sex) {
 
 ### 比较操作
 
-#### 等值比较 ==
+#### 等值比较 `==`
 
 Document 类与 Value 类都重载了 `==` 及 `!=` 操作符，执行两棵 Json 树的深度比较：
 
 ```cpp
-// 深度比较两个文档
+std::string jsonText = R"({"name": "Alice", "age": 30})";
+yyjson::Document doc1(jsonText);
+yyjson::Document doc2(jsonText);
+
 if (doc1 == doc2) {
-    // 文档内容完全相同
+    std::cout << "相等" << std::endl;
 }
 
-// 比较两个 JSON 值，也可能是子树
-if ((doc1 / "version") == (doc2 / "version")) {
-    // 版本字段相同
+if ((doc1 / "name") == (doc2 / "name")) {
+    std::cout << "相等" << std::endl;
 }
 ```
 
-但是 Json 标量结点不能直接与基本类型比较，需要先提取值再比较：
+Json 标量结点也可以直接与基本类型比较：
 
 ```cpp
-//! 错误示例：JSON 值不能直接与基本类型比较
-//! if (doc / "version" == "1.0") {  // 编译错误
-//! }
+std::string jsonText = R"({"name": "Alice", "age": 30})";
+yyjson::Document doc1(jsonText);
 
-// 正确做法：先提取值再比较
-std::string version = doc / "version" | "";
-if (version == "1.0") {
-    // 版本匹配
+if ((doc1 / "name") == "Alice") {
+    std::cout << "相等" << std::endl;
 }
 
-// 可能错误：| "" 返回 const char* 作指针比较
-if ((doc / "version" | "") == "1.0") {
-    // 版本匹配
-}
-
-// 正确：| 返回 std::string 作字符串内容比较
-if ((doc / "version" | std::string()) == "1.0") {
-    // 版本匹配
+if ((doc1 / "age") == 30) {
+    std::cout << "相等" << std::endl;
 }
 ```
 
-特别注意提取 Json 字符串结点时，返回的具体类型取决于 `|` 右侧的参数，避免
-`const char*` 的指针比较，那很可能不是想要的结果。而其他情况下使用 `| ""` 可能
-是最高效方便的，先返回 `const char*` 避免拷贝，然后也可按需赋给 `std::string`
-创建 C++ 字符串对象。
+#### 有序比较 `<`
 
-#### 有序比较 <
+也重载了 `<` 用于比较两个同类型的 `Value` 或 `MutableValue` ，但交叉比较
+`Value` 与 `Mutable` 的大小（或相等）没有定义。有序比较不如等值比较常用，但在
+有需要时 `<` 定义了确定性的排序，其规则大致是：
+
+- 先按 json 类型排序：null 最小，object 最大
+- 标量类型，主要是数字与字符串，按其内容或值比较
+- 容器类型，数组与对象，先按容器大小比较，再按内部指针比较（避免递归性能问题）
+
+由 `<` 也衍生出其他几个比较操作 `>` , `<=` 与 `>=` 。在实际业务项目中，若先确
+知两个 json 的类型相同，可选使用简化操作。
+
+但是 `<` 不能用于 json 与基本类型比较，因为考虑到类型不同时难以逻辑自洽。
 
 ### 类型转换的一元操作符
 
@@ -649,26 +722,40 @@ Json 结点尽量转为整数与字符串：
 可类比于 `!` 将 Json 放在布尔逻辑上下文使用，`+` 与 `-` 就将 Json 分别放在
 整数与字符串上下文使用。
 
-#### JSON 转整数
-一元操作符 `+` 和 `-` 提供了简洁的类型转换语法：
+#### JSON 转整数 `+`
+
+相对于  `| kInt` 有严格的类型检查，操作符 `+` 或 `toInteger` 方法则有相当宽松
+的规则将任意 json 结点转为一个整数 `int`：
+
+- 整数类型，最直接，但大整数可能会被截断；
+- 实数类型，取整；
+- 字符串类型，按 `atoi` 转换方法将字符串前缀转整数；
+- 容器类型，数组或对象，取容器大小；
+- 特殊类型，`null` 与 `false` 转 `0`，`ture` 转 `1`；
+- 无效值，`Value` 本身无效也返回 `0`。
 
 ```cpp
-// + 操作符：转换为数字
-int size = +(doc / "items");        // 数组/对象返回元素个数
-int number = +(doc / "value");      // 数字返回原值，字符串尝试转换
+yyjson::Document doc;
+doc << R"({"name": "Alice", "age": 30, "ratio": "61.8", "score": [10, 20, 30]})";
 
-// - 操作符：转换为字符串  
-std::string str = -(doc / "name");  // 返回字符串表示
+int result = 0;
+result = +(doc / "name");  // 结果：0
+result = +(doc / "age");   // 结果：30
+result = +(doc / "ratio"); // 结果：61
+result = +(doc / "score"); // 结果：3
 
-// * 操作符：获取根结点
-yyjson::Value root = *doc;
-
-// ~ 操作符：模式转换
-yyjson::MutableDocument mutableCopy = ~doc;  // 只读转可写
-yyjson::Document readonlyCopy = ~mutDoc;     // 可写转只读
+result = (doc / "score").toInteger(); // 结果：3
 ```
 
-#### JSON 转字符串
+`toInteger` 的意义在于有些 json 数字可能会被有意或无意地加上引号当成字符串传输
+（比如从前端输入框收集的数据），这样的话 `| 0` 就会因类型不匹配取值失败。选择
+`+` 正号作为强转整数的符号是因为将其整数前仍保持原义。
+
+还有个相关的方法 `toNumber` 方法，它只能将各种数字类型的 Json 值统一转为
+`double` ，其他类型如字符串、数组、对象都无法转换，返回零值 `0.0` 。该方法与
+操作符 `| kNumber` 效果相同。
+
+#### JSON 转字符串 `-`
 
 Value 类另有一个转字符串的方法 `toString` ，返回 json 的字符串表示，在大多情况
 下与 write 的输出是相同的，只有当 json 是字符串类型时，`toString` 默认返回的是
@@ -676,64 +763,68 @@ Value 类另有一个转字符串的方法 `toString` ，返回 json 的字符�
 Json 串，也与 `write` 无格式序列化不一样。
 
 ```cpp
-// 转字符串
-std::string jsonString = doc.root().toString();
+yyjson::Document doc;
+doc << R"({"name": "Alice", "age": 30})";
 
-// 输出至字符串
-doc >> jsonString;
+std::string result; // toString 的返回类型
+result = -(doc / "name");  // 结果：name
+result = -(doc / "age");   // 结果：30
+result = -doc.root();      // 结果：{"name":"Alice","age":30}
 
-// 流输出
-std::cout << doc << std::endl;
-
-// 真序列化输出，支持仅输出一部分子树
-std::cout << doc["key"].toString(true) << std::endl;
-
-// 写入文件
-doc.writeFile("output.json");
+result = (doc / "name").toString(true); // 结果："name"
+result = doc.root().toString(true);
+std::cout << result << std::endl;
 ```
 
-#### Document 只读可写互转
+最后一条语句的结果是：
+```
+{
+    "name": "Alice",
+    "age": 30
+}
+```
 
-### 管道函数自定义处理
+#### Document 只读可写互转 `~`
 
-管道函数允许对 JSON 值进行自定义转换处理：
+操作符 `~` 可以将 `Document` 转为 `MutableDocument` 或反向转换，相应方法名是
+`mutate` 和 `freeze` 。
 
 ```cpp
-// 简单的字符串处理
-std::string uppercase = doc / "name" | [](const yyjson::Value& v) {
-    std::string result = v | "";
-    std::transform(result.begin(), result.end(), result.begin(), ::toupper);
-    return result;
-};
+yyjson::Document doc;
+doc << R"({"name": "Alice", "age": 30})";
 
-// 复杂对象转换
-struct UserProfile {
-    std::string name;
-    int age;
-    std::vector<std::string> skills;
-};
-
-UserProfile profile = doc / "user" | [](const yyjson::Value& v) -> UserProfile {
-    UserProfile result;
-    result.name = v / "name" | "";
-    result.age = v / "age" | 0;
-    
-    // 处理技能数组
-    auto skills = v / "skills";
-    if (skills) {
-        for (auto iter = skills % 0; iter; ++iter) {
-            result.skills.push_back(iter->value | "");
-        }
-    }
-    
-    return result;
-};
-
+yyjson::MutableDocument mutDoc = ~doc;
+auto doc2 = ~mutDoc;
+bool result = (doc2 == doc); // 结果：true
 ```
+
+只读的 Document 效率更高，一般的建议是先将输入 Json 解析为 `Document`，在有需
+要修改时再转为 `MutableDocument` 。
+
+#### 字符串字面量直接转 Document `_xyjson`
+
+字面量运算符不是传统的操作符，它是在 C++11 开始引入的，通过在字面量加后缀来自
+定义某种操作。在 `yyjson::literals` 命名空间定义了 `_xyjson` 操作符，可以从字
+面量构造 `Document` 类对象。其用法如下：
+
+```cpp
+using namespace yyjson::literals;
+auto doc = R"({"name": "Alice", "age": 30})"_xyjson;
+auto name = doc / "name" | "";
+auto age = doc / "age" | 0;
+
+std::cout << name << "=" << age << std::endl; // 输出：Alice=30
+```
+
+从之前的示例可以看到，通过操作符重载，在代码中除了需要用法 `Document` 类构造外，
+就几乎不必显式用到其他类与方法名。现在再通过 `_xyjson` 后缀操作符，连起点的
+`Document` 类名都可以不出现在代码中了。当然了，字面量操作符可能只在测试中更常
+见且简洁，而实际的项目中很少出现固定字面量的 json 串。
 
 ## 可写 JSON 模型操作
 
-可写 JSON 模型（MutableDocument 和 MutableValue）提供了创建和修改 JSON 数据的能力。与只读模型相比，可写模型在内存布局上采用环形链表结构，支持动态添加和修改结点。
+可写 JSON 模型（MutableDocument 和 MutableValue）也支持上一节的所有操作，
+本节着重讲解它额外支持的动态修改和添加 Json 数据结点的功能。
 
 ### 创建与初始化可写文档
 
@@ -744,7 +835,7 @@ UserProfile profile = doc / "user" | [](const yyjson::Value& v) -> UserProfile {
 yyjson::MutableDocument mutDoc("{}");
 
 // 创建带初始内容的文档
-yyjson::MutableDocument mutDoc2("{\"title\": \"Configuration\"}");
+yyjson::MutableDocument mutDoc2(R"({"name": "Alice", "age": 30})");
 
 // 创建空数组文档
 yyjson::MutableDocument mutDoc3("[]");
@@ -754,7 +845,97 @@ yyjson::MutableDocument mutDoc3("[]");
 一个空对象的根结点，与传入 `"{}"` 参数是一样的。这是为了方便用户有个直接可以开
 始写的根结点对象。虽然 yyjson 支持在之后重新设定根结点，但一般不建议这样做。
 
-### 字段操作的正确方法
+### 赋值操作修改已有结点 `=`
+
+`MutableValue` 支持操作符 `=` 或 `set` 方法修改已有 Json 结点的值。
+
+```cpp
+yyjson::MutableDocument mutDoc;
+mutDoc << R"({"name": "Alice", "age": 30})";
+
+mutDoc / "age" = 18;
+mutDoc / "name" = "bob";
+std::string strName = mutDoc / "name" | ""; // 结果：bob
+strName[0] = 'B';
+mutDoc / "name" = strName;
+std::cout << mutDoc / "name" << std::endl;  // 输出：Bob
+std::cout << mutDoc << std::endl;  // 输出：{"name":"Bob","age":18}
+```
+
+#### 修改整数类型
+
+前文提到，yyjson 在解析只读文档时，只会将负整数保存为 `int64_t`，非负整数保存为
+`uint64_t`。但在可写文档中，可以显式修改设定整数类型：
+
+```cpp
+yyjson::MutableDocument mutDoc;
+mutDoc << R"({"name": "Alice", "age": 30})";
+
+auto age = mutDoc / "age";
+if(age & 0);           // kInt:  true
+if(age & uint64_t(0)); // kUint: true
+if(age & int64_t(0));  // kSint: false
+
+// 显式将 age 修改为使用 int64_t 存储整数
+age = int64_t(3000);
+if(age & 0);           // kInt:  true
+if(age & uint64_t(0)); // kUint: false
+if(age & int64_t(0));  // kSint: true
+
+// 重新序列化与反序列化
+std::string json = mutDoc.toString();
+yyjson::Document doc(json);
+if (doc / "age" & int64_t())); // kSint: false
+```
+
+然而要注意的是，将 json 序列化后，这种细节类型信息就丢失了。重新读入后，非负整
+数仍然会保存为 `uint64_t`，而不是 `int64_t` 。
+
+#### 使用类型常量赋值
+
+那些可用于 `&` 作类型判断的常量符号，也可用于 `=` 赋值，将目标结点改为各类型的
+默认值，也就是零值或空值。
+
+```cpp
+yyjson::MutableDocument mutDoc;
+mutDoc << R"({"name":"Alice", "age":"30", "sex":"null", "score":100, "friend":"Bob"})";
+
+mutDoc / "name" = "";     // kString
+mutDoc / "age" = 0;       // kInt
+mutDoc / "sex" = nullptr; // kNull
+mutDoc / "score" = "{}";  // kObject
+mutDoc / "friend" = "[]"; // kArray
+
+std::cout << mutDoc << std::endl;
+// 输出：{"name":"","age":0,"sex":null,"score":{},"friend":[]}
+```
+
+可以修改 Json 标量结点的类型，但根据 yyjson 的建议，不要为非空数组或对象重新赋
+值为标量，这会导致容器内大量子结点变得不可访问，很可能是非预期的。但是将标量先
+改为空数组或空对象，一般是安全且有用的，以备后面扩展 Json 结构。
+
+#### Value 类型本身的赋值
+
+请注意 `=` 操作符还承担了标准的类对象赋值拷贝功能。`Value` 与 `MutableValue`
+是值类型的类，支持拷贝与同类赋值（Document 不可拷贝只能移动）。同类赋值只是拷
+贝底层 Json 结点的指针引用，赋值为基本类型则会修改改所引用结点的存储值，所以只
+支持 `MutableValue` 不支持 `Value` 。
+
+```cpp
+yyjson::MutableDocument mutDoc;
+mutDoc << R"({"name": "Alice", "age": 30})";
+
+auto age = mutDoc / "age";
+auto age2 = age;
+age = 20;
+
+// 以下三行都输出：20
+std::cout << age << std::endl;
+std::cout << age2 << std::endl;
+std::cout << mutDoc / "age" << std::endl;
+```
+
+### 索引操作自动插入结点 `[]`
 
 在可写模型中，操作符 `[]` 和 `/` 有不同的语义和行为：
 
@@ -762,33 +943,41 @@ yyjson::MutableDocument mutDoc3("[]");
 - **`/` 操作符**：只能访问已存在的路径，如果路径不存在会返回无效值
 
 ```cpp
-// 使用 [] 操作符创建新字段（推荐）
-mutDoc["name"] = "Alice";    // 自动创建并设置 name 字段
+yyjson::MutableDocument mutDoc;
+
+mutDoc["name"] = "Alice";     // 自动创建并设置 name 字段
 mutDoc["age"] = 30;           // 自动创建并设置 age 字段
 
-// 使用 / 操作符修改已存在的字段
 mutDoc / "name" = "Bob";      // 修改已存在的 name 字段
 
-//! 错误示例：尝试用 / 操作符创建新字段，没有任何效果
-mutDoc / "new_field" = "value"; 
+//! 错误用法：尝试用 / 操作符创建新字段，没有任何效果
+mutDoc / "sex" = "female"; 
+if (mutDoc / "sex"); // false
 
-// 正确做法：先用 [] 创建，再用 / 修改
-mutDoc["new_field"] = "initial value";   // 创建
-mutDoc / "new_field" = "updated value";  // 修改
+// 正确做法：先用 [] 创建，再用 / 或 [] 修改
+mutDoc["sex"] = "female";   // 创建
+mutDoc / "sex" = "Female";  // 修改
+mutDoc["sex"] = "Male";     // 修改
+if (mutDoc / "sex"); // true
 ```
 
-以上代码，第一次执行 `mutDoc / "new_field" = "value"` 时，虽没有语法编译错误，
+以上代码，第一次执行 `mutDoc / "sex" = "female"` 时，虽没有语法编译错误，
 但没有实际效果，也不会抛异常或错误，只是完全没有影响到 `mutDoc` 。事实上，这个
-时间点前后 `mutDoc / "new_field"` 返回一个无效状态的 `MutableValue` ，它封装一
+时间点前后 `mutDoc / "sex"` 返回一个无效状态的 `MutableValue` ，它封装一
 个空指针结点，对它不管是读值或赋值都没有效果。
 
-而 `mutDoc["new_field"]` 操作是先在 `mutDoc` 中插入一个 null 类型的 json 结点，
+而 `mutDoc["sex"]` 操作是先在 `mutDoc` 中插入一个 null 类型的 json 结点，
 返回一个指向了该 null 结点的 MutableValue ，随后就可以为它赋值了，改成一个字符
 串类型。然后用 `/` 操作符也能索引到该结点了。另注意即使 `[]` 在 `=` 右侧也会自
 动插入不存在的结点，所以要尽量避免这个不期望的副作用。
 
-还有一个区别，`/` 与 `[]` 操作符的优先级不同，如果习惯使用具名方法，用 `[]` 取
-字段更简洁些，而 `/` 需要额外加 `()` 强制优先级。例如：
+索引操作自动增加结点的行为，仅限 Json 对象，数组是不行的。类似 `[10000]` 索引
+大整数仍可能越界无效，并不会自动为数组扩容。所以 `[]` 的语义在 `MutableValue`
+中比较接近标准容器 `std::map` 与 `std::vector` ，一般只建议在加字段时使用，其
+他场景使用只读的路径操作符 `/` 。
+
+`[]` 与 `/` 操作符还有优先级的不同，如果习惯使用具名方法，用 `[]` 取字段更简洁
+些，而 `/` 需要额外加 `()` 改变优先级。例如：
 
 ```cpp
 std::cout << mutDoc["name"].toString();
@@ -797,52 +986,109 @@ std::cout << (mutDoc / "name").toString();
 //! std::cout << mutDoc / "name" . toString();
 ```
 
-### 构建复杂数据结构
+### 输入操作增加新结点 `<<`
 
-可写模型支持构建嵌套的复杂数据结构，以下是构建用户配置信息的示例：
+输入操作符 `<<` 可以向 Json 容器，数组与对象，添加新结点。这是有类型判断的智能
+输入，甚至也支持向标量结点输入，即赋值。
 
-```cpp
-// 创建用户信息对象
-mutDoc["user"] = "{}";
-mutDoc / "user" / "name" = "Alice";
-mutDoc / "user" / "age" = 25;
-mutDoc / "user" / "active" = true;
+#### 给数组添加结点
 
-// 添加爱好数组
-mutDoc["user"]["hobbies"] = "[]";
-mutDoc / "user" / "hobbies" << "reading" << "music" << "programming";
-
-// 添加联系信息对象
-mutDoc["user"]["contact"] = "{}";
-mutDoc / "user" / "contact" / "email" = "alice@example.com";
-mutDoc / "user" / "contact" / "phone" = "+1234567890";
-
-std::cout << mutDoc;
-```
-
-以上代码输出单行紧凑格式的 json 串：
-
-```
-{"user":{"name":"Alice","age":25,"active":true,"hobbies":["reading","music","programming"],"contact":{"email":"alice@example.com","phone":"+1234567890"}}}
-```
-
-### 使用 `<<` 操作符批量操作
-
-智能输入 `<<` 操作符提供了一种高效的批量数据添加方式，特别适合数组和对象的快速构建：
+相应的具名方法是 `append` ，可以添加各种基本类型的值或其常量代表值，以及
+`Value` 与 `MutableValue` 。
 
 ```cpp
 MutableDocument mutDoc;
 
-// 批量添加数组元素
-mutDoc["numbers"] = "[]";
+mutDoc["num1"] = "[]";
+mutDoc["num1"] = kArray;
+
+mutDoc["num1"].append(1).append(2).append(3);
+mutDoc / "num2" << 1 << 2 << 3;
+
+std::cout << mutDoc / "num1" << std::endl; // 输出：[1,2,3]
+std::cout << mutDoc / "num2" << std::endl; // 输出：[1,2,3]
+
+(mutDoc["mix"] = kArray) << false << 5.5 << 666 << "[]" << "{}" << "end";
+std::cout << mutDoc / "mix" << std::endl; // 输出：[false,5.5,666,[],{},"end"]
+```
+
+可见 Json 数组内可以添加任意其他 Json 类型的值，虽然在实践项目中一般会规范要求
+数组元素应该相同类型。
+
+#### 给对象添加结点
+
+Json 对象容器的元素是键值对，包含两个值，这与数组有点不一样。`add` 方法要求两
+个参数，仍可用操作符 `<<` 但要求必须连续使用两次先后输入键与值。
+
+```cpp
+yyjson::MutableDocument mutDoc;
+auto root = *mutDoc;
+
+root.add("name", "Alice").add("age", 35);
+root << "sex" << "Female" << "login" << false;
+
+// 如果担心长链看不清键值对组合，建议一行写一对
+root << "name" << "Alice";
+root << "age" << "25";
+
+std::cout << mutDoc << std::endl;
+```
+
+在该示例中，`<<` 不能直接作用于 `mutDoc` ，那将是调用 `MutableDocument` 的
+`read` 方法读入并解析 Json 的，用在这里会出现编译错误。所以必须先取根结点以正
+确调用 `MutableValue` 的 `input` 方法。最后输出的序列化内容是：
+
+```json
+{"name":"Alice","age":35,"sex":"Female","login":false,"name":Alice,"age":25}
+```
+
+可见在 Json 对象中 `<<` 操作符也像在数组那样在末尾添加，并且没有去重，允许重复
+键。yyjson 也有 api 支持先查重再添加新键，但效率比较低，所以 xyjson 的操作符采
+用不查重的 api 。Json 对象键去重的保证工作转交实际的客户代码。yyjson 反序列化
+解析这种有重复键的 Json 串，也会保留重复键，而且各键还保留源串顺序；xyjson 的
+`/` 与 `[]` 访问重复键时的取前面的键。至于其他 json 库遇到重复键会保留哪个键是
+未定义的。
+
+`MutableValue` 类为支持 Json 对象这种写法作了一定牺牲，额外加了一个成员表示尚
+未成对的临时悬空键，当再次用 `<<` 输入一个值时，才一起将该键值对插入底层的
+Json 对象中。所以输入对象时，要求 `<<` 成对出现（且奇数位只能是能作为键的字符
+串类型），避免永久悬空键或键值错位。
+
+#### 给标量重新赋值
+
+相对于 Json 数组与对象这种可自动扩容的容器，如果把标量也视为固定容量为 1 的容
+器，那么用 `<<` 输入就不是添加元素，而是改变容器中那个唯一的元素，也就是赋值。
+这种情况下 `<<` 与 `=` 操作符是相同的效果。
+
+```cpp
+yyjson::MutableDocument mutDoc;
+mutDoc << R"({"name": "Alice", "age": 30})";
+
+mutDoc / "age" = 18;
+mutDoc / "name" = "Bob";
+std::cout << mutDoc << std::endl;  // 输出：{"name":"Bob","age":18}
+```
+
+- **性能提示**：使用 `<<` 给对象添加新字段比 `[]` 更有效率。
+- **错误警示**：使用 `<<` 前判断 Json 类型结点。
+
+#### 从头构建复杂 Json
+
+有了 `<<` 操作符，就可以动态构建具有复杂层次结构的 Json 了。例如：
+
+```cpp
+MutableDocument mutDoc;
+
+// 链式添加数组元素
+mutDoc["numbers"] = "[]"; // mutDoc.root() << "numbers" << kArray;
 mutDoc / "numbers" << 1 << 2 << 3 << 4 << 5;
 
-// 批量设置对象属性，键、值需成对出现
-mutDoc["config"] = "{}";
+// 链式设置对象属性，键、值需成对出现
+mutDoc["config"] = "{}"; // mutDoc.root() << "config" << kObject;
 mutDoc / "config" << "timeout" << 30 << "retries" << 3 << "debug" << true;
 
-// 混合类型添加
-mutDoc["mixed"] = "[]";
+// 混合类型数组
+mutDoc["mixed"] = "[]"; // mutDoc.root() << "mixed" << kArray;
 mutDoc / "mixed" << 42 << "text" << 3.14 << false;
 
 // 向标量结点输入，相当于赋值 `=`
@@ -866,101 +1112,136 @@ mutDoc << R"({
 ```
 
 初看这示例，似乎下面的写法更直观，但它实质上只是解析静态的字符串字面量，上面的
-写法支持动态从各种（基本类型的）变量构造 Json 。
+写法支持动态从各种（基本类型的）变量构造 Json 。这个示例也反映了 `<<` 操作符在
+几个类上的语义相关性，对于 Document 是整体的输入，对于 `MutableValue` 是局部的
+修改输入。
 
-Json 数组的元素允许任意其他 Json 类型，不要求同质，所以混合输入各种基本类型该
-没有疑义。但是链式连续的 `<<` 如何输入对象的呢？MutableValue 类为支持这种写法
-作了一定牺牲，额外加了一个成员表示尚未成对的临时悬空键，当再次用 `<<` 输入一个
-值时，才一起将该键值对插入底层的 Json 对象中。所以输入对象时，要求 `<<` 成对出
-现（且奇数位只能是能作为键的字符串类型），避免永久悬空键或键值错位。
+### 预建结点与键值对绑定 `*`
 
-相对于 Json 数组与对象这种可自动扩容的容器，如果把标量也视为固定容量为 1 的容
-器，那么用 `<<` 输入就不是添加元素，而是改变容器中那个唯一的元素，也就是赋值。
-
-### 构建多级嵌套结构
-
-对于复杂的数据建模需求，可写模型也支持构建深层次的嵌套结构：
-
-```cpp
-MutableDocument mutDoc;
-
-// 构建用户列表结构
-mutDoc["users"] = "[]";
-
-// 添加第一个用户
-mutDoc / "users" << "{}";
-mutDoc / "users" / 0 << "name" << "Alice" << "age" << 25;
-
-// 为用户添加详细信息
-mutDoc["users"][0]["profile"] = "{}";
-mutDoc / "users" / 0 / "profile" / "department" = "Engineering";
-mutDoc / "users" / 0 / "profile" / "level" = "Senior";
-
-// 添加技能数组
-mutDoc["users"][0]["skills"] = "[]";
-mutDoc / "users" / 0 / "skills" << "C++" << "Python" << "JavaScript";
-
-// 添加第二个用户
-mutDoc / "users" << "{}";
-mutDoc / "users" / 1 << "name" << "Bob" << "age" << 30;
-```
-
-### 预创建可写结点
-
-以上用 `<<` 往 Json 容器添加新结点时，其实分两步：
-1. 用 MutableDocument 在它所管理的内存池中创建结点，
+以上用 `<<` 往 Json 数组添加新结点时，其实分两步：
+1. 在 `MutableDocument` 所管理的内存池中创建结点，
 2. 将新结点真正添加到已有的容器结点中。
 
-插入操作符 `<<` 直接期望的参数是 MutableValue ，在上文示例中传入基本类型的情况
-下，它会自动先调用 MutableDocument 的 create 方法创建一个 MutableValue ，也可
-以用 `*` 操作符（二元乘法）。
+在插入对象时，第 2 步又需额外做个状态检查，如果没有悬挂键，就先创建键结点，否
+则创建值结点，将键值对一起插入底层对象，然后清空悬挂键。
+
+为了避免 `<<` 操作对象时插入键值对非原子性与悬挂键的问题，也提供了另一种操作方案。
+分 3 步：
+1. 先分别创建键结点与值结点，方法名 `MutableDocument::create`
+2. 将键结点与值结点绑定为一个中间类型，方法名 `MuatbleValue::tag`
+3. 将中间类型表示的键值对一次调用插入到对象中，方法名 `MuatbleValue::add`
+
+这个中间类型名不关键，就叫 `KeyValue` ，只包含两个指针的轻量值类型。前两步方法
+可用二元操作符 `*` 代表，第三步就是上节已介绍过的 `<<` 。由于 `*` 操作符优先级
+比 `<<` 高，可以方便地写在一个表达式中。
+
+这三步法也可稍作简化：
+1. 只从基本类型创建值结点；
+2. 将值结点与字符串类型表示的键名绑定；
+3. 将键值对一次性插入对象中。
+
+按此思路插入对象的示例如下：
 
 ```cpp
 MutableDocument mutDoc;
 
 MutableValue name = mutDoc * "Alice"; // mutDoc.create("Alice")
 MutableValue age = mutDoc * 25;       // mutDoc.create(25)
+auto kv = name * age;                 // age.tag(name)
 
-mutDoc["akey"] = "[]";
-mutDoc / "akey" << name << age;
-mutDoc["okey"] = "{}";
-mutDoc / "okey" << name << age;
+auto root = *mutDoc;
+root << kv;
+std::cout << mutDoc << std::endl; // 输出：{"Alice":25}
 
-std::cout << mutDoc;
-// 输出：{"akey":["Alice",25],"okey":{"Alice":25}}
+// 这些操作可写成一行表达式，以下每一行都是等效的
+root << (mutDoc * "Alice") * (mutDoc * 25); // 键结点 * 值结点
+root << "Alice" * (mutDoc * 25); // 键名 * 值结点，括号是必须的
+root << (mutDoc * 25) * "Alice"; // 值结点 * 键名
+root << mutDoc * 25 * "Alice";   // 值结点 * 键名，省去括号
+root << mutDoc.create(25).tag("Alice"); // root.add("Alice", 25)
 ```
 
-如果觉得 `<<` 链式输入 Json 对象与数组写法一样容易混淆，那么还可以用 `*` 将键
-值对的两个 MutableValue 先绑定起来再插入对象：
+看到最后，可能会觉得采用具名方法 `add` 更简洁，不过具名方法也有其他注意事项，
+后文再讨论。
+
+至于为什么选用乘号 `*` 来表达结点创建与绑定的操作，因为它与路径查找的除号 `/`
+原是互逆关系，一个结点要在 Json 树中通过 `/` 找到，那么它在创建时就该用 `*` 了。
+既然二元乘 `*` 是创建结点，那么一元 `*` 作用于 Document 取其根结点也相似了。
+
+使用两个 `*` 连乘创建的键值对不能用 `<<` 添加到数组中，用一个 `*` 创建的结点可
+以添加到数组中。但是要注意如果直接使用会重复拷贝结点，使用移动语义才是将结点转
+移添加到数组中。
 
 ```cpp
-MutableDocument mutDoc;
+MutableDocument mutDoc("[]");
 
 MutableValue name = mutDoc * "Alice"; // mutDoc.create("Alice")
 MutableValue age = mutDoc * 25;       // mutDoc.create(25)
 
-mutDoc["okey"] = "{}";
-mutDoc / "okey" << (name * age);
-mutDoc / "okey" << name * age; // * 优化级比 << 高，括号是可选的
+auto root = *mutDoc;
+root << name << age; // 两个结点仍有效，被复制
+std::cout << mutDoc; // 输出：["Alice",25]
 
-std::cout << mutDoc;
-// 输出：{"okey":{"Alice":25},"okey":{"Alice":25}}
+if(name && age)
+{
+    root << std::move(name) << std::move(age);
+}
+std::cout << mutDoc; // 输出：["Alice",25,"Alice",25]
+if(name); // false
+if(age);  // false
 ```
 
-注意以上示例还说明 `<<` 插入对象也与插入数组一样，不负责检测重复键的。
-
-如果再把 MutableValue 的创建与键值对绑定同时写在一个表达式上，就形如：
+默认使用拷贝语义主要是为了安全，有的情况下它真的需要拷贝，比如确实因信息缺失但
+为了保存结构相同就拷贝原有的一个字段结点再插入。
 
 ```cpp
-mutDoc / "okey" << (mutDoc * "Alice") * (mutDoc * 25);
-mutDoc / "okey" << "Alice" * (mutDoc * 25);
-mutDoc / "okey" << (mutDoc * 25) * "Alice";
-mutDoc / "okey" << mutDoc * 25 * "Alice";
-mutDoc / "okey" << mutDoc.create(25).tag("Alice");
+MutableDocument mutDoc("["Alice",25]");
+
+auto age = mutDoc / 1;
+mutDoc.root << "Bob" << age; // 拷贝原结点
+std::cout << mutDoc << std::endl; // 输出：["Alice",25,"Bob",25]
 ```
 
-以上几行都是等效的写法，最后一行表明操作符本质上所调用的方法。tag 方法创建一个
-类型为 KeyValue 的值，打包提供给 `<<` 操作符。
+另一个更常见的情景是需要将另一个 Document 的 Json 树（或其某个子树）插入到到另
+个文档中，一般也应该用拷贝，尤其是两个文档的内存池不同，移动不安全。
+
+```cpp
+yyjson::Document doc;
+doc << R"({"name": "Alice", "age": 30})";
+
+auto doc2 = ~doc;
+doc2 / "name" = "Bob";
+doc2 / "age" = 25;
+
+yyjson::MutableDocument mutDoc("[]");
+mutDoc.root() << doc << doc2; // 或 << doc.root() << doc2.root()
+std::cout << mutDoc << std::endl;
+// 输出：[{"name":"Alice","age":30},{"name":"Bob","age":25}]
+```
+
+所以，对于操作 `MutableValue` 的同类型参数，要区分移动语义与拷贝语义。至于为辅
+助插入对象的中间类型 `KeyValue` ，自动做了移动优化，一般用新创建的结点绑定键值
+对。不要为已有结点（用 `/` 能找到的结点）绑定键，但可以先依据原结点拷贝创建新
+结点再绑定键为插入对象作准备。
+
+例如，将上个示例的两个源文档改为插入目标文档的对象中：
+
+
+```cpp
+yyjson::Document doc;
+doc << R"({"name": "Alice", "age": 30})";
+
+auto doc2 = ~doc;
+doc2 / "name" = "Bob";
+doc2 / "age" = 25;
+
+yyjson::MutableDocument mutDoc("{}");
+// 将 doc 与 doc2 复制到 mutDoc 的内存池中
+mutDoc.root() << "first" * (mutDoc * doc);
+mutDoc.root() << "second" * (mutDoc * doc2);
+std::cout << mutDoc << std::endl;
+// 输出：{"first":{"name":"Alice","age":30},"second":{"name":"Bob","age":25}}
+```
 
 ### 字符串引用
 
@@ -1014,24 +1295,6 @@ mutDoc / "config" << kvPair;
 // 验证结果
 std::cout << mutDoc.toString(true) << std::endl;
 ```
-
-### 数据持久化
-
-修改完成后，可以将可写文档保存到文件或转换为字符串：
-
-```cpp
-// 保存到文件
-mutDoc.writeFile("user_data.json");
-
-// 转换为字符串
-std::string jsonString = mutDoc.toString();
-
-// 带格式化的输出
-std::string prettyJson = mutDoc.toString(true);
-std::cout << "生成的 JSON: " << std::endl << prettyJson << std::endl;
-```
-
-这与只读的 Document 持久化是一样的用法。
 
 ## 迭代器使用
 

@@ -634,6 +634,9 @@ yyjson 本地安装于： /usr/local/include/yyjson.h
 
 ### DONE: 20251020-000000
 
+后来还是觉得取消 ~json 操作调用，与 ~doc 语义完全不相关，
+且 `| kNumber` 可实现 toNumber 的功能。
+
 ## TODO:2025-10-20/1 扩展与基本类型直接作相等性比较
 
 支持 json 与基本类型直接 == 比较：
@@ -667,6 +670,7 @@ int int64_t uint64_t double `const char * ` std::string bool
 增补：%
 修改：== ，删除 Document 的 equal 方法，直接转调 root ，不判断 doc 指针，开销
 影响极小，相同指针的 doc 取的 root 指针也该一样
+决定不重载：| & ，比较琐碎，多个重载转 root 也不简洁
 
 手动完成
 
@@ -680,6 +684,19 @@ int int64_t uint64_t double `const char * ` std::string bool
 放在 Part 5 最后，Part 6 之前。
 
 ### DONE: 20251020-155345
+
+## TODO:2025-10-21/1 MutableValue << MutableValue 需要区分移动语义
+
+现状：MutableValue << MutableValue 是复制右参数，插入左参数
+要求：
+- 增加 MutableValue << MutableValue&& 移动重载
+- 优化 MutableValue << KeyValue 自动使用移动语义，操作后 KeyVale 无效化
+
+请尽量修改具名方法 create append add input 等实现，少改或不改操作符实现修改。
+在 `utest/t_mutable.cpp` 增加单元测试
+
+## TODO: 分析迭代器优化方案
+## TODO: 考虑实现 MutableValue 删除功能
 
 ## TODO: 优化文档示例代码管理同步单元测试
 

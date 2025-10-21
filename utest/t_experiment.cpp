@@ -131,7 +131,7 @@ DEF_TAST(experiment_overload, "test overload rule")
 
 }
 
-DEF_TAST(experiment_index, "test index operator")
+DEF_TAST(experiment_docx, "test operator usage")
 {
     std::string jsonText = R"({"name": "Alice", "age": 30})";
     yyjson::Document doc(jsonText);
@@ -139,6 +139,17 @@ DEF_TAST(experiment_index, "test index operator")
     auto nameNode = doc["name"];
     COUT(nameNode | "", "Alice");
     COUT(doc["age"] | 0, 30);
+
+    auto mutDoc = ~doc;
+    auto age = mutDoc / "age";
+    COUT(age & 0, true);
+    COUT(age & uint64_t(0), true);
+    COUT(age & int64_t(0), false);
+
+    age = int64_t(3000);
+    COUT(age & 0, true);
+    COUT(age & uint64_t(0), false);
+    COUT(age & int64_t(0), true);
 }
 
 DEF_TAST(experiment_large_int, "test yyjson large integer support")
@@ -153,6 +164,17 @@ DEF_TAST(experiment_large_int, "test yyjson large integer support")
 
     yyjson_mut_obj_add_sint(doc, root, "sint", sint_val);
     yyjson_mut_obj_add_uint(doc, root, "uint", uint_val);
+    {
+        yyjson_mut_val* sint_node = yyjson_mut_obj_get(root, "sint");
+        COUT(yyjson_mut_is_sint(sint_node), true);
+        COUT(yyjson_mut_is_uint(sint_node), false);
+        COUT(yyjson_mut_is_int(sint_node), true);
+
+        yyjson_mut_val* uint_node = yyjson_mut_obj_get(root, "uint");
+        COUT(yyjson_mut_is_sint(uint_node), false);
+        COUT(yyjson_mut_is_uint(uint_node), true);
+        COUT(yyjson_mut_is_int(uint_node), true);
+    }
 
     const char* json_str = yyjson_mut_write(doc, 0, NULL);
     yyjson_doc* read_doc = yyjson_read(json_str, strlen(json_str), 0);

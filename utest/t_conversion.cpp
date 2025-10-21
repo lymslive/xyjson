@@ -179,9 +179,6 @@ DEF_TAST(conversion_operators, "test unary operators - and + for conversion")
         COUT(doc.hasError(), false);
 
         // Test operator- (should call toString())
-        // Test operator~ (numeric conversion to double)
-        double n1 = ~(doc / "float");
-        COUT(n1, 7.5);
         std::string strResult = -(doc / "string");
         COUT(strResult, "test");
 

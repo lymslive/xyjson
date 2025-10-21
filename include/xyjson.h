@@ -1069,7 +1069,7 @@ using enable_if_iterator_t = typename std::enable_if<is_iterator<T>::value, T>::
 /* @Part 3: Non-Class Functions */
 /* ======================================================================== */
 
-/* @Section 3.1: Underlying yyjson_mut_val Creation */
+/* @Section 3.1: Underlying mut_val Creation */
 /* ------------------------------------------------------------------------ */
 
 inline yyjson_mut_val* create(yyjson_mut_doc* doc, std::nullptr_t = nullptr)
@@ -1150,18 +1150,19 @@ inline yyjson_mut_val* create(yyjson_mut_doc* doc, EmptyArray)
 {
     return createArray(doc);
 }
+
 inline yyjson_mut_val* create(yyjson_mut_doc* doc, EmptyObject)
 {
     return createObject(doc);
 }
+
 inline yyjson_mut_val* create(yyjson_mut_doc* doc, EmptyString)
 {
-    // Create an empty string node
     return yyjson_mut_strncpy(doc, "", 0);
 }
+
 inline yyjson_mut_val* create(yyjson_mut_doc* doc, ZeroNumber)
 {
-    // Create a zero number (double) node
     return yyjson_mut_real(doc, 0.0);
 }
 
@@ -2786,14 +2787,6 @@ operator&(const jsonT& json, const char* type)
 
 /* @Section 5.2: Conversion Unary Operator */
 /* ------------------------------------------------------------------------ */
-
-// `~json` --> `json.toNumber()` : convert all number to double
-template<typename jsonT>
-inline typename std::enable_if<is_value<jsonT>::value, double>::type
-operator~(const jsonT& json)
-{
-    return json.toNumber();
-}
 
 // `+json` --> `json.toInteger()` : convert any json to int
 template<typename jsonT>
