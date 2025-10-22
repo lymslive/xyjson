@@ -25,49 +25,49 @@
 /* Part 2: Class Definitions                                      Line: 130 */
 /*   Section 2.1: Read-only Json Model                            Line: 133 */
 /*   Section 2.2: Mutable Json Model                              Line: 361 */
-/*   Section 2.3: Helper Class for Mutable Json                   Line: 711 */
-/*   Section 2.4: Iterator Json                                   Line: 759 */
-/*   Section 2.5: Type Traits                                    Line: 1020 */
-/* Part 3: Non-Class Functions                                   Line: 1069 */
-/*   Section 3.1: Underlying yyjson_mut_val Creation             Line: 1072 */
-/*   Section 3.2: Conversion Helper Functions                    Line: 1213 */
-/* Part 4: Class Implementations                                 Line: 1292 */
-/*   Section 4.1: Value Methods                                  Line: 1295 */
-/*     Group 4.1.1: get and getor                                Line: 1298 */
-/*     Group 4.1.2: size and index/path                          Line: 1387 */
-/*     Group 4.1.3: create iterator                              Line: 1434 */
-/*     Group 4.1.4: others                                       Line: 1481 */
-/*   Section 4.2: Document Methods                               Line: 1531 */
-/*     Group 4.2.1: primary manage                               Line: 1534 */
-/*     Group 4.2.2: read and write                               Line: 1566 */
-/*   Section 4.3: MutableValue Methods                           Line: 1651 */
-/*     Group 4.3.1: get and getor                                Line: 1654 */
-/*     Group 4.3.2: size and index/path                          Line: 1749 */
-/*     Group 4.3.3: assignment set                               Line: 1825 */
-/*     Group 4.3.4: array append                                 Line: 1980 */
-/*     Group 4.3.5: object add                                   Line: 2014 */
-/*     Group 4.3.6: tag create KeyValue                          Line: 2061 */
-/*     Group 4.3.7: smart input                                  Line: 2104 */
-/*     Group 4.3.8: create iterator                              Line: 2173 */
-/*     Group 4.3.9: others                                       Line: 2220 */
-/*   Section 4.4: MutableDocument Methods                        Line: 2270 */
-/*     Group 4.4.1: primary manage                               Line: 2273 */
-/*     Group 4.4.2: read and write                               Line: 2320 */
-/*     Group 4.4.3: create mutable value                         Line: 2417 */
-/*   Section 4.5: ArrayIterator Methods                          Line: 2455 */
-/*   Section 4.6: ObjectIterator Methods                         Line: 2502 */
-/*   Section 4.7: MutableArrayIterator Methods                   Line: 2573 */
-/*   Section 4.8: MutableObjectIterator Methods                  Line: 2626 */
-/* Part 5: Operator Interface                                    Line: 2700 */
-/*   Section 5.1: Primary Path Access                            Line: 2703 */
-/*   Section 5.2: Conversion Unary Operator                      Line: 2787 */
-/*   Section 5.3: Comparison Operator                            Line: 2841 */
-/*   Section 5.4: Create and Bind KeyValue                       Line: 2927 */
-/*   Section 5.5: Stream and Input Operator                      Line: 2994 */
-/*   Section 5.6: Iterator Creation and Operation                Line: 3082 */
-/*   Section 5.7: Document Forward Root Operator                 Line: 3157 */
-/*   Section 5.8: User-defined Literal Operator                  Line: 3222 */
-/* Part 6: Last Definitions                                      Line: 3239 */
+/*   Section 2.3: Helper Class for Mutable Json                   Line: 704 */
+/*   Section 2.4: Iterator Json                                   Line: 752 */
+/*   Section 2.5: Type Traits                                    Line: 1013 */
+/* Part 3: Non-Class Functions                                   Line: 1062 */
+/*   Section 3.1: Underlying mut_val Creation                    Line: 1065 */
+/*   Section 3.2: Conversion Helper Functions                    Line: 1224 */
+/* Part 4: Class Implementations                                 Line: 1303 */
+/*   Section 4.1: Value Methods                                  Line: 1306 */
+/*     Group 4.1.1: get and getor                                Line: 1309 */
+/*     Group 4.1.2: size and index/path                          Line: 1398 */
+/*     Group 4.1.3: create iterator                              Line: 1445 */
+/*     Group 4.1.4: others                                       Line: 1492 */
+/*   Section 4.2: Document Methods                               Line: 1542 */
+/*     Group 4.2.1: primary manage                               Line: 1545 */
+/*     Group 4.2.2: read and write                               Line: 1577 */
+/*   Section 4.3: MutableValue Methods                           Line: 1662 */
+/*     Group 4.3.1: get and getor                                Line: 1665 */
+/*     Group 4.3.2: size and index/path                          Line: 1760 */
+/*     Group 4.3.3: assignment set                               Line: 1836 */
+/*     Group 4.3.4: array append                                 Line: 1991 */
+/*     Group 4.3.5: object add                                   Line: 2009 */
+/*     Group 4.3.6: tag create KeyValue                          Line: 2041 */
+/*     Group 4.3.7: smart input                                  Line: 2061 */
+/*     Group 4.3.8: create iterator                              Line: 2124 */
+/*     Group 4.3.9: others                                       Line: 2171 */
+/*   Section 4.4: MutableDocument Methods                        Line: 2221 */
+/*     Group 4.4.1: primary manage                               Line: 2224 */
+/*     Group 4.4.2: read and write                               Line: 2271 */
+/*     Group 4.4.3: create mutable value                         Line: 2368 */
+/*   Section 4.5: ArrayIterator Methods                          Line: 2406 */
+/*   Section 4.6: ObjectIterator Methods                         Line: 2453 */
+/*   Section 4.7: MutableArrayIterator Methods                   Line: 2524 */
+/*   Section 4.8: MutableObjectIterator Methods                  Line: 2577 */
+/* Part 5: Operator Interface                                    Line: 2651 */
+/*   Section 5.1: Primary Path Access                            Line: 2654 */
+/*   Section 5.2: Conversion Unary Operator                      Line: 2738 */
+/*   Section 5.3: Comparison Operator                            Line: 2784 */
+/*   Section 5.4: Create and Bind KeyValue                       Line: 2870 */
+/*   Section 5.5: Stream and Input Operator                      Line: 2911 */
+/*   Section 5.6: Iterator Creation and Operation                Line: 2953 */
+/*   Section 5.7: Document Forward Root Operator                 Line: 3028 */
+/*   Section 5.8: User-defined Literal Operator                  Line: 3093 */
+/* Part 6: Last Definitions                                      Line: 3110 */
 /* ======================================================================== */
 
 namespace yyjson
@@ -539,48 +539,39 @@ public:
     MutableValue& operator=(char(&value)[N]);
 
     // Append methods for array.
-    // String default copy but can also be referenced only.
     MutableValue& append(yyjson_mut_val* value);
-    MutableValue& appendArray();
-    MutableValue& appendObject();
-    MutableValue& appendRef(const char* value);
     // T as create: bool | int | string | (Mutable)Document | (Mutable)Value
     template <typename T>
-    MutableValue& append(const T& value);
+    MutableValue& append(T&& value);
     
     // Insert methods for object.
     MutableValue& add(yyjson_mut_val* name, yyjson_mut_val* value);
-    MutableValue& add(const char* name, yyjson_mut_val* value);
-    MutableValue& addArray(const char* name);
-    MutableValue& addObject(const char* name);
-    MutableValue& addRef(const char* name, const char* value);
-    MutableValue& add(const KeyValue& kv);
-    // T as create: bool | int | string | (Mutable)Document | (Mutable)Value
-    template <typename T>
-    MutableValue& add(const char* name, const T& value);
+    MutableValue& add(KeyValue&& kv);
+    // valT as create: bool | int | string | (Mutable)Document | (Mutable)Value
+    template<typename keyT, typename valT>
+    MutableValue& add(keyT&& key, valT&& value);
     
     // KeyValue creation methods for optimized object insertion
-    KeyValue tag(const char* key) const;
-    KeyValue tag(const std::string& key) const;
-    KeyValue tagRef(const char* key) const;
-    KeyValue tagCopy(const char* key, size_t len) const;
     KeyValue tag(const MutableValue& key) const;
+    template <typename T>
+    KeyValue tag(T&& key) const;
+
+    MutableValue& input(KeyValue&& kv);
+
+    template<typename keyT, typename valT>
+    MutableValue& input(std::pair<keyT, valT>&& kv);
 
     // Smart input method, append for array, add for object, assign for scalar
-    MutableValue& input(StringRef value);
     template <typename T>
-    MutableValue& input(const T& value);
+    MutableValue& input(T&& value);
 
     // Input pending key, only support string type.
-    bool inputKey(const char* key);
-    bool inputKey(StringRef key);
-    bool inputKey(const std::string& key);
     template <typename T>
-    bool inputKey(const T&) { return false; }
+    bool inputKey(T&& key);
 
     // Input value after pending key.
     template <typename T>
-    bool inputValue(const T& value);
+    bool inputValue(T&& value);
 
     // Conversion methods
     std::string toString(bool pretty = false) const;
@@ -1149,8 +1140,8 @@ inline yyjson_mut_val* create(yyjson_mut_doc* doc, const char(&value)[N])
 template <size_t N>
 inline yyjson_mut_val* create(yyjson_mut_doc* doc, char(&value)[N])
 {
-    // Always copy mutable arrays, don't do special handling
-    return yyjson_mut_strncpy(doc, value, N-1);
+    // Always copy mutable arrays, may have '\0' in middle
+    return yyjson_mut_strcpy(doc, value);
 }
 
 inline yyjson_mut_val* create(yyjson_mut_doc* doc, StringRef value)
@@ -2009,26 +2000,10 @@ inline MutableValue& MutableValue::append(yyjson_mut_val* value)
     return *this;
 }
 
-// Extended append methods for string
-inline MutableValue& MutableValue::appendRef(const char* value)
-{
-    return append(StringRef(value));
-}
-
-inline MutableValue& MutableValue::appendArray()
-{
-    return append(yyjson_mut_arr(m_doc));
-}
-
-inline MutableValue& MutableValue::appendObject()
-{
-    return append(yyjson_mut_obj(m_doc));
-}
-
 template <typename T>
-inline MutableValue& MutableValue::append(const T& value)
+inline MutableValue& MutableValue::append(T&& value)
 {
-    return append(create(m_doc, value));
+    return append(create(m_doc, std::forward<T>(value)));
 }
 
 /* @Group 4.3.5: object add */
@@ -2043,27 +2018,7 @@ inline MutableValue& MutableValue::add(yyjson_mut_val* name, yyjson_mut_val* val
     return *this;
 }
 
-inline MutableValue& MutableValue::add(const char* name, yyjson_mut_val* value)
-{
-    return add(yyjson_mut_strcpy(m_doc, name), value);
-}
-
-inline MutableValue& MutableValue::addRef(const char* name, const char* value)
-{
-    return add(name, StringRef(value));
-}
-
-inline MutableValue& MutableValue::addArray(const char* name)
-{
-    return add(name, yyjson_mut_arr(m_doc));
-}
-
-inline MutableValue& MutableValue::addObject(const char* name)
-{
-    return add(name, yyjson_mut_obj(m_doc));
-}
-
-inline MutableValue& MutableValue::add(const KeyValue& kv)
+inline MutableValue& MutableValue::add(KeyValue&& kv)
 {
     if (isObject() && kv.isValid())
     {
@@ -2072,44 +2027,19 @@ inline MutableValue& MutableValue::add(const KeyValue& kv)
     return *this;
 }
 
-template <typename T>
-inline MutableValue& MutableValue::add(const char* name, const T& value)
+template<typename keyT, typename valT>
+inline MutableValue& MutableValue::add(keyT&& key, valT&& value)
 {
-    return add(name, create(m_doc, value));
+    if (isObject()) {
+        yyjson_mut_val* keyNode = create(m_doc, key);
+        yyjson_mut_val* valNode = create(m_doc, value);
+        yyjson_mut_obj_add(m_val, keyNode, valNode);
+    }
+    return *this;
 }
 
 /* @Group 4.3.6: tag create KeyValue */
 /* ************************************************************************ */
-
-inline KeyValue MutableValue::tag(const char* key) const
-{
-    return tagCopy(key, key ? ::strlen(key) : 0);
-}
-
-inline KeyValue MutableValue::tag(const std::string& key) const
-{
-    return tagCopy(key.c_str(), key.size());
-}
-
-inline KeyValue MutableValue::tagRef(const char* key) const
-{
-    if (m_doc && key)
-    {
-        yyjson_mut_val* keyVal = yyjson_mut_str(m_doc, key);
-        return KeyValue(keyVal, m_val);
-    }
-    return KeyValue(nullptr, nullptr);
-}
-
-inline KeyValue MutableValue::tagCopy(const char* key, size_t len) const
-{
-    if (m_doc && key)
-    {
-        yyjson_mut_val* keyVal = yyjson_mut_strncpy(m_doc, key, len);
-        return KeyValue(keyVal, m_val);
-    }
-    return KeyValue(nullptr, nullptr);
-}
 
 inline KeyValue MutableValue::tag(const MutableValue& key) const
 {
@@ -2121,71 +2051,72 @@ inline KeyValue MutableValue::tag(const MutableValue& key) const
     return KeyValue(nullptr, nullptr);
 }
 
+template <typename T>
+inline KeyValue MutableValue::tag(T&& key) const
+{
+    yyjson_mut_val* keyNode = create(m_doc, std::forward<T>(key));
+    return KeyValue(keyNode, m_val);
+}
+
 /* @Group 4.3.7: smart input */
 /* ************************************************************************ */
 
-inline MutableValue& MutableValue::input(StringRef value)
+// todo: is_key concept
+template <typename T>
+inline bool MutableValue::inputKey(T&& key)
 {
-    if (isArray())
-    {
-        return append(value);
-    }
-    else if (isObject())
-    {
-        bool ok = inputValue(value) || inputKey(value);
-    }
-    else
-    {
-        return set(value);
-    }
-    return *this;
-}
-
-inline bool MutableValue::inputKey(const char* key)
-{
-    m_pendingKey = create(m_doc, key);
-    return true;
-}
-
-inline bool MutableValue::inputKey(StringRef key)
-{
-    m_pendingKey = create(m_doc, key);
-    return true;
-}
-
-inline bool MutableValue::inputKey(const std::string& key)
-{
-    m_pendingKey = create(m_doc, key);
+    m_pendingKey = create(m_doc, std::forward<T>(key));
     return true;
 }
 
 template <typename T>
-inline bool MutableValue::inputValue(const T& value)
+inline bool MutableValue::inputValue(T&& value)
 {
     if (m_pendingKey == nullptr)
     {
         return false;
     }
-    yyjson_mut_val* succeedVal = create(m_doc, value);
+    yyjson_mut_val* succeedVal = create(m_doc, std::forward<T>(value));
     add(m_pendingKey, succeedVal);
     m_pendingKey = nullptr;
     return true;
 }
 
+// Specialization for KeyValue - can only be added to object
+inline MutableValue& MutableValue::input(KeyValue&& kv)
+{
+    if (isObject())
+    {
+        return add(std::forward<KeyValue>(kv));
+    }
+    return *this;
+}
+
+template<typename keyT, typename valT>
+inline MutableValue& MutableValue::input(std::pair<keyT, valT>&& kv)
+{
+    if (isObject())
+    {
+        return add(std::forward<keyT>(kv.first), std::forward<valT>(kv.second));
+    }
+    return *this;
+}
+
+// General template for other types
 template <typename T>
-inline MutableValue& MutableValue::input(const T& value)
+inline MutableValue& MutableValue::input(T&& value)
 {
     if (isArray())
     {
-        return append(value);
+        return append(std::forward<T>(value));
     }
     else if (isObject())
     {
-        bool ok = inputValue(value) || inputKey(value);
+        bool ok = inputValue(std::forward<T>(value)) || inputKey(std::forward<T>(value));
     }
     else
     {
-        return set(value);
+        return set(std::forward<T>(value));
     }
     return *this;
 }
@@ -2958,44 +2889,18 @@ inline MutableValue operator*(const MutableDocument& doc, char(&value)[N])
     return doc.create(value);
 }
 
-// `value * key` --> `value.tag(key)` --> "key": value
-// Accept key as string-like or MutableValue (same doc, string type)
 template <typename T>
-inline KeyValue operator*(const MutableValue& value, const T& key)
+inline typename std::enable_if<!std::is_same<typename std::remove_reference<T>::type, MutableValue>::value, KeyValue>::type
+operator*(const MutableValue& json, T&& key)
 {
-    return value.tag(key);
+    return json.tag(std::forward<T>(key));
 }
 
-template <size_t N>
-inline KeyValue operator*(const MutableValue& value, const char(&key)[N])
-{
-    return value.tagRef(key);
-}
-
-template <size_t N>
-inline KeyValue operator*(const MutableValue& value, char(&key)[N])
-{
-    return value.tag(key);
-}
-
-// Exchange for operator* bind KeyValue
-// `key * value` --> `value * key`
 template <typename T>
-inline KeyValue operator*(const T& key, const MutableValue& value)
+inline typename std::enable_if<!std::is_same<typename std::remove_reference<T>::type, MutableValue>::value, KeyValue>::type
+operator*(T&& key, const MutableValue& json)
 {
-    return value.tag(key);
-}
-
-template <size_t N>
-inline KeyValue operator*(const char(&key)[N], const MutableValue& value)
-{
-    return value.tagRef(key);
-}
-
-template <size_t N>
-inline KeyValue operator*(char(&key)[N], const MutableValue& value)
-{
-    return value.tag(key);
+    return json.tag(std::forward<T>(key));
 }
 
 inline KeyValue operator*(const MutableValue& key, const MutableValue& value)
@@ -3033,62 +2938,16 @@ operator<<(std::ostream& os, const jsonT& json)
 // MutableValue array/object input operators
 // `json << value` --> `json.input(value)`
 template <typename T>
-inline MutableValue& operator<<(MutableValue& json, const T& value)
+inline MutableValue& operator<<(MutableValue& json, T&& value)
 {
-    return json.input(value);
+    return json.input(std::forward<T>(value));
 }
 
-// rvalue version for MutableValue
+// Rvalue version for MutableValue, delegates to lvalue version
 template <typename T>
-inline MutableValue& operator<<(MutableValue&& json, const T& value)
+inline MutableValue& operator<<(MutableValue&& json, T&& value)
 {
-    return json.input(value);
-}
-
-template <size_t N>
-inline MutableValue& operator<<(MutableValue& json, const char(&value)[N])
-{
-    return json.input(StringRef(value, N-1));
-}
-
-template <size_t N>
-inline MutableValue& operator<<(MutableValue&& json, const char(&value)[N])
-{
-    return json.input(StringRef(value, N-1));
-}
-
-template <size_t N>
-inline MutableValue& operator<<(MutableValue& json, char(&value)[N])
-{
-    return json.input(const_cast<const char*>(value));
-}
-
-template <size_t N>
-inline MutableValue& operator<<(MutableValue&& json, char(&value)[N])
-{
-    return json.input(const_cast<const char*>(value));
-}
-
-template <typename T>
-inline MutableValue& operator<<(MutableValue& json, const std::pair<const char*, T>& kv)
-{
-    return json.add(kv.first, kv.second);
-}
-
-template <typename T>
-inline MutableValue& operator<<(MutableValue&& json, const std::pair<const char*, T>& kv)
-{
-    return json.add(kv.first, kv.second);
-}
-
-inline MutableValue& operator<<(MutableValue& json, const KeyValue& kv)
-{
-    return json.add(kv);
-}
-
-inline MutableValue& operator<<(MutableValue&& json, const KeyValue& kv)
-{
-    return json.add(kv);
+    return json.input(std::forward<T>(value));
 }
 
 /* @Section 5.6: Iterator Creation and Operation */

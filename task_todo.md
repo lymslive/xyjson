@@ -751,6 +751,43 @@ json 结点，yyjson 有不同的 api 支持引用或拷贝。
 
 ### DONE: 20251022-143132
 
+## TODO:2025-10-22/2 字符串字面量优化之二：转发函数优化
+
+xyjson 中创建 json 结点的最底层函数 `yyjson::create` 已经通过模板技术支持字符
+串字面量优化，并能区分 `const char*` C 字符串。
+
+现需要分析从操作符层 `MutableValue <<` 到 `create` 的调用链，简化模板重载的不
+必要冗余，考虑使用万能引用 `&&` 与完美转发。中间涉及的函数大致包括 input
+(inputKey inputValue) append add tag 等。
+
+增加 MutableValue::input 方法对 KeyValue 与 std::pair 的特化，它只能用于 json
+Object ，调用 add 方法
+
+赋值操作 `=` 及其方法 `set` 暂时不改，本需求先专注重构 `<<` 操作符相关。
+
+### DONE:20251022/210318
+
+## TODO:2025-10-22/3 KeyValue 相关操作限定为右值
+
+移动更符合其语义用途，不建议保存中间值，否则要显式 std::move 转右值。
+
+## TODO: 为各种增加 key 结点的方法增加字符串类型限定
+
+增加一个 is_key 类型限定，只能匹配几种字符串。
+尽量编译期判断有效 key 类型，避免运行期再判断创建的结点是否
+string/key 类型。
+
+## TODO: 字符串字面量优化之三：赋值操作符与 set 方法
+
+参考 `yyjson::create` 重载函数对字面量与 C 字符串 `const char*` 的区分方案，重
+构 `MutableValue::set` 方法。在 `set` 方法层支持字面量，简化 `=` 转发模板。
+
+实现目标：`json.set("literal")` 与 `json="literal"` 都自动优化为按引用字符串，
+不再需要显式调用 `setRef` ，或传参 `StringRef` 。
+
+可采用 TDD 开发流程。分析现有测试用例，如果有涉及字面量赋值的情况先改为期望目
+标，也可补充用例。
+
 ## TODO: 显式 move 方案
 
 增加 MutableValue::move 方法，生成 MoveValue ，将底层指针 `yyjson_mut_val*`

@@ -291,10 +291,10 @@ DEF_TAST(mutable_assign_string_ref, "test string node reference in yyjson")
 
     // Use append_ref for string literals
     doc.root() << 1;
-    doc.root().appendRef("two");
+    doc.root().append("two");
     doc.root() << 3.14 << false;
-    doc.root().appendRef("five");
-    doc.root().appendRef("six");
+    doc.root().append("five");
+    doc.root().append("six");
 
     const char* getcstr = nullptr;
     getcstr = doc / 1 | "";
@@ -363,7 +363,7 @@ DEF_TAST(mutable_object_insertion, "test object insertion with KV macro and oper
         COUT(doc / "number_value" | 0.0, 42.5);
         
         // Test complex nested object creation using "{}" special handling
-        doc.root().addRef("nested", "{}");
+        doc.root().add("nested", "{}");
         doc / "nested" << KV("level1", 1) << KV("level2", "deep");
         
         COUT(doc / "nested" / "level1" | 0, 1);
@@ -384,7 +384,7 @@ DEF_TAST(mutable_object_insertion, "test object insertion with KV macro and oper
         COUT(doc / "direct_bool" | false, true);
         
         // Test insertRef for string literals
-        doc.root().addRef("literal_key", "literal_value");
+        doc.root().add("literal_key", "literal_value");
         COUT_PTR(doc / "literal_key" | "", "literal_value");
         
         // Test insertCopy for safety
@@ -402,7 +402,7 @@ DEF_TAST(mutable_object_insertion, "test object insertion with KV macro and oper
         yyjson::MutableDocument doc("{}");
         
         // Create an array using "[]" special handling and add objects to it
-        doc.root().addRef("items", "[]");
+        doc.root().add("items", "[]");
         
         // Array fail to add key-val
         doc / "items" << KV("name", "item1") << KV("id", 1);
@@ -674,7 +674,8 @@ DEF_TAST(mutable_keyvalue_add, "test KeyValue optimization for object insertion"
         auto kv = value.tag("number_key");
         
         // Insert the KeyValue into the object
-        doc.root().add(kv);
+        //! doc.root().add(kv);
+        doc.root().add(std::move(kv));
         
         // Verify the insertion worked
         COUT(doc.root().size(), 1);
@@ -702,13 +703,13 @@ DEF_TAST(mutable_keyvalue_add, "test KeyValue optimization for object insertion"
         yyjson::MutableDocument doc("{}");
         
         // For testing reference optimization, use actual string literals
-        auto refKV = doc.create("test_value").tagRef("literal_key");
-        doc.root().add(refKV);
+        auto refKV = doc.create("test_value").tag("literal_key");
+        doc.root().add(std::move(refKV));
         
         // For testing copy safety, use a variable
         char copyBuffer[20] = "copy_key";
         auto copyKV = doc.create("copy_value").tag(copyBuffer);
-        doc.root().add(copyKV);
+        doc.root().add(std::move(copyKV));
         
         // Modify the variable - the key should NOT change due to copying
         const char* modifiedCopy = "modified_key";
@@ -719,6 +720,7 @@ DEF_TAST(mutable_keyvalue_add, "test KeyValue optimization for object insertion"
         COUT(doc.root().size(), 2);
         COUT(doc.root()["literal_key"] | std::string(), "test_value");
         COUT(doc.root()["copy_key"] | std::string(), "copy_value"); // Should remain original
+        COUT(doc);
     }
     
     DESC("Test string literal KeyValue with operator*");
@@ -738,6 +740,7 @@ DEF_TAST(mutable_keyvalue_add, "test KeyValue optimization for object insertion"
         COUT(doc.root().size(), 2);
         COUT_PTR(doc / "literal_key" | "", "test_value");
         COUT_PTR(doc / "copy_key" | "", "copy_value");
+        COUT(doc);
     }
 
     DESC("Test << operator with KeyValue");
@@ -777,7 +780,7 @@ DEF_TAST(mutable_keyvalue_add, "test KeyValue optimization for object insertion"
         yyjson::MutableDocument doc("{}");
         
         // First ensure the object exists
-        doc.root().addRef("nested", "{}");
+        doc.root().add("nested", "{}");
         
         // Now use KeyValue optimization on the nested object
         doc / "nested" << (doc.create("nested_value") * "nested_key");
@@ -823,20 +826,22 @@ DEF_TAST(mutable_keyvalue_mutablekey, "test KeyValue with MutableValue key")
     COUT(root["mkey"] | 0, 777);
 
     // Also test value.tag(MutableValue key)
+    auto keyNode2 = doc * "nkey";
     auto valNode2 = doc * true;
-    root << (valNode2.tag(keyNode));
+    root << (valNode2.tag(keyNode2));
     COUT(root.size(), 2);
-    COUT(root["mkey"] | false, true);
+    COUT(root["nkey"] | false, true);
+    COUT(root);
 
     // Negative cases: different doc or non-string key should be ignored (invalid KeyValue)
     yyjson::MutableDocument other("{}");
     auto otherKey = other * "ok";
     auto kv_invalid = otherKey * valNode; // different doc, should be invalid
-    root << kv_invalid; // should have no effect
+    root << std::move(kv_invalid); // should have no effect
     COUT(root.size(), 2);
 
     auto nonStrKey = doc * 123;
     auto kv_nonstr = nonStrKey * valNode; // non-string key, invalid
-    root << kv_nonstr;
+    root << std::move(kv_nonstr);
     COUT(root.size(), 2);
 }
