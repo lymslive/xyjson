@@ -1168,31 +1168,13 @@ root << mutDoc.create(25).tag("Alice"); // root.add("Alice", 25)
 原是互逆关系，一个结点要在 Json 树中通过 `/` 找到，那么它在创建时就该用 `*` 了。
 既然二元乘 `*` 是创建结点，那么一元 `*` 作用于 Document 取其根结点也相似了。
 
-使用两个 `*` 连乘创建的键值对不能用 `<<` 添加到数组中，用一个 `*` 创建的结点可
-以添加到数组中。但是要注意如果直接使用会重复拷贝结点，使用移动语义才是将结点转
-移添加到数组中。
+使用两个 `*` 连乘创建的键值对不能用 `<<` 添加到数组中，用一个 `*` 创建的结点理
+论上可以添加到数组中，但是会重复拷贝结点，添加到数组不必舍近求远做这额外工作。
+因此，也不建议将 `*` 产生的临时结果保存，更不要将绑定的键值对重复添加。
 
-```cpp
-MutableDocument mutDoc("[]");
+### 拷贝已有结点
 
-MutableValue name = mutDoc * "Alice"; // mutDoc.create("Alice")
-MutableValue age = mutDoc * 25;       // mutDoc.create(25)
-
-auto root = *mutDoc;
-root << name << age; // 两个结点仍有效，被复制
-std::cout << mutDoc; // 输出：["Alice",25]
-
-if(name && age)
-{
-    root << std::move(name) << std::move(age);
-}
-std::cout << mutDoc; // 输出：["Alice",25,"Alice",25]
-if(name); // false
-if(age);  // false
-```
-
-默认使用拷贝语义主要是为了安全，有的情况下它真的需要拷贝，比如确实因信息缺失但
-为了保存结构相同就拷贝原有的一个字段结点再插入。
+操作符 `<<` 右侧参数可以也是 `Value` 或 `MutableValue`，表示从已有结点拷贝插入。
 
 ```cpp
 MutableDocument mutDoc("["Alice",25]");
@@ -1203,7 +1185,7 @@ std::cout << mutDoc << std::endl; // 输出：["Alice",25,"Bob",25]
 ```
 
 另一个更常见的情景是需要将另一个 Document 的 Json 树（或其某个子树）插入到到另
-个文档中，一般也应该用拷贝，尤其是两个文档的内存池不同，移动不安全。
+个文档中，因两个文档的内存池不同，也需要拷贝。
 
 ```cpp
 yyjson::Document doc;
@@ -1219,13 +1201,7 @@ std::cout << mutDoc << std::endl;
 // 输出：[{"name":"Alice","age":30},{"name":"Bob","age":25}]
 ```
 
-所以，对于操作 `MutableValue` 的同类型参数，要区分移动语义与拷贝语义。至于为辅
-助插入对象的中间类型 `KeyValue` ，自动做了移动优化，一般用新创建的结点绑定键值
-对。不要为已有结点（用 `/` 能找到的结点）绑定键，但可以先依据原结点拷贝创建新
-结点再绑定键为插入对象作准备。
-
-例如，将上个示例的两个源文档改为插入目标文档的对象中：
-
+将上个示例的两个源文档改为插入目标文档的对象中：
 
 ```cpp
 yyjson::Document doc;

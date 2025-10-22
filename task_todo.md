@@ -695,6 +695,68 @@ int int64_t uint64_t double `const char * ` std::string bool
 请尽量修改具名方法 create append add input 等实现，少改或不改操作符实现修改。
 在 `utest/t_mutable.cpp` 增加单元测试
 
+补充分析，发现不能重载 << MutableValue&& ，因为 `/` 操作符查找已有结点产生
+MutableValue 临时值，是纯右值，如果移动了反而不对。还是应该保持现状复制安全。
+MutableValue 是值封装，右值区分意义不大。
+
+<< KeyValue 也一般用于临时值，没必要费事添加后再去修改 KeyValue ，还是文档中说
+明清楚得好。
+
+### UNDO: 20251021-210930
+
+## TODO:2025-10-21/2 分析字符串字面量优化方案
+
+MutableValue 在修改或添加 json 结点时，希望能做字符串字面量优化。请仔细思考、
+分析现有的实现，指出哪里有缺陷或实现不够优雅简洁，给出修改建议。
+
+目前涉及的字符串参数类型有以下几种：
+- 字符中字面量
+- const char* 指针，C 风格
+- std::string
+- std::string_view （暂未使用）后面可能考虑支持
+
+只有字面量是可以安全优化，以引用方式创建 json 结点。其他字符串以拷贝方式创建
+json 结点，yyjson 有不同的 api 支持引用或拷贝。
+
+现有一些实现手段：
+- 添加了 StringRef 包装类，保存字面量引用信息
+- 一些方法(set create append add 等)增加含 Ref 后缀的版本，显式使用引用字符串
+- 模板参数用 `const char(&)[N]` 参数匹配字面量
+
+但我对当前并不太满意：
+- MutableValue << 操作符重载的模板有很多份冗余
+- MutableValue << std::pair 支持不完备
+- 具名方法 append add 等不能自动识别字面量，只能用 Ref 后缀版本的方法名
+
+以上是我个人的一些初步分析，请帮忙再给一份深入、全面的分析与修改建议报告。先不
+修改代码，将报告写入 `doing_plan.tmp/` 子目录。但可以在 `utest/t_experiment.cpp`
+中写一些实验或研究性测试代码，展示关键技术要点。
+
+## TODO:2025-10-22/1 字符串字面量优化之一：底层 create 支持
+
+在 @Section 3.1 增加 create ，支持字字符串字面 `const char[N]` ，关键是要与现在
+支持的 `const char*` 区分开，可能要为这两种字符串参数作特殊处理。
+
+要求通过单元测试用例 `experiment_create_optimization` （已添加），
+也不破坏其他用例。
+
+核心解决技术：
+`std::is_same<T, const char*>::value || std::is_same<T, char*>::value`
+降低 `const char*` 重载版本的优化级，字面量 `const char[N]` 就能匹配。
+
+`const char[N]` 重载版本要处理特殊情况 "{}" 与 "[]" 。
+遗留问题：比较字面量能否在编译期完成
+
+### REF: 2025-10-21/2
+
+### DONE: 20251022-143132
+
+## TODO: 显式 move 方案
+
+增加 MutableValue::move 方法，生成 MoveValue ，将底层指针 `yyjson_mut_val*`
+转移给后者。MoveValue 在添加到其他 MutableValue 的对象或数组时不再拷贝。
+
+
 ## TODO: 分析迭代器优化方案
 ## TODO: 考虑实现 MutableValue 删除功能
 

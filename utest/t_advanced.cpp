@@ -482,3 +482,136 @@ DEF_TAST(advanced_sort_mixed_array, "sort a mixed array of json values")
     
     COUT(actual_str, expected_str);
 }
+
+DEF_TAST(advanced_string_optimization, "test string creation optimization strategies")
+{
+    using namespace yyjson;
+    
+    DESC("Test automatic string literal optimization in create function");
+    
+    MutableDocument doc;
+    
+    // Test 1: String literal should be optimized (reference)
+    {
+        auto literal_node = yyjson::create(doc.get(), "string_literal");
+        MutableValue literal_val(literal_node, doc.get());
+        
+        const char* result = literal_val | "";
+        COUT(result == "string_literal", true); // Should be same pointer
+        COUT(result, "string_literal"); // Value check
+    }
+    
+    // Test 2: const char* should be copied
+    {
+        const char* ptr = "pointer_string";
+        auto ptr_node = yyjson::create(doc.get(), ptr);
+        MutableValue ptr_val(ptr_node, doc.get());
+        
+        const char* result = ptr_val | "";
+        COUT(result == ptr, false); // Should be different pointer (copied)
+        COUT(result, "pointer_string"); // Value check
+    }
+    
+    // Test 3: char* should be copied
+    {
+        char buffer[] = "char_star_buffer";
+        char* ptr = buffer;
+        auto ptr_node = yyjson::create(doc.get(), ptr);
+        MutableValue ptr_val(ptr_node, doc.get());
+        
+        const char* result = ptr_val | "";
+        COUT(result == ptr, false); // Should be different pointer (copied)
+        COUT(::strcmp(result, ptr), 0); // Value check
+        COUT(ptr_val.typeName(), "string"); // Type check
+    }
+    
+    // Test 4: char[N] array should be copied, not special
+    {
+        char buffer[] = "char_array_buffer";
+        // Directly pass the array (not pointer) - should be copied
+        auto arr_node = yyjson::create(doc.get(), buffer);
+        MutableValue arr_val(arr_node, doc.get());
+        
+        const char* result = arr_val | "";
+        COUT(result == buffer, false); // Should be different pointer (copied)
+        COUT(::strcmp(result, buffer), 0); // Value check
+        COUT(arr_val.typeName(), "string"); // Type check
+    }
+    
+    // Test 5: char[N] with special content should be string, not special container
+    {
+        char obj_buffer[] = "{}";
+        auto obj_node = yyjson::create(doc.get(), obj_buffer);
+        MutableValue obj_val(obj_node, doc.get());
+        
+        COUT(obj_val.typeName(), "string"); // Should be string, not object
+        COUT(obj_val.isString(), true); // Should be string
+        COUT(obj_val.isObject(), false); // Should not be object
+        
+        char arr_buffer[] = "[]";
+        auto arr_node = yyjson::create(doc.get(), arr_buffer);
+        MutableValue arr_val(arr_node, doc.get());
+        
+        COUT(arr_val.typeName(), "string"); // Should be string, not array
+        COUT(arr_val.isString(), true); // Should be string
+        COUT(arr_val.isArray(), false); // Should not be array
+    }
+    
+    // Test 6: std::string should be copied
+    {
+        std::string str = "std_string";
+        auto str_node = yyjson::create(doc.get(), str);
+        MutableValue str_val(str_node, doc.get());
+        
+        const char* result = str_val | "";
+        COUT(result == str.c_str(), false); // Should be different pointer (copied)
+        COUT(result, "std_string"); // Value check
+    }
+    
+    // Test 7: StringRef should be optimized
+    {
+        StringRef ref("ref_string");
+        auto ref_node = yyjson::create(doc.get(), ref);
+        MutableValue ref_val(ref_node, doc.get());
+        
+        const char* result = ref_val | "";
+        COUT(result == "ref_string", true); // Should be same pointer
+        COUT(result, "ref_string"); // Value check
+    }
+    
+    // Test 8: Special literal "{}" should create empty object
+    {
+        auto obj_node = yyjson::create(doc.get(), "{}");
+        MutableValue obj_val(obj_node, doc.get());
+        
+        COUT(obj_val.typeName(), "object"); // Should be object type
+        COUT(obj_val.size(), 0); // Empty object should have size 0
+        COUT(obj_val.isObject(), true); // Should be object
+        COUT(obj_val.isArray(), false); // Should not be array
+    }
+    
+    // Test 9: Special literal "[]" should create empty array
+    {
+        auto arr_node = yyjson::create(doc.get(), "[]");
+        MutableValue arr_val(arr_node, doc.get());
+        
+        COUT(arr_val.typeName(), "array"); // Should be array type
+        COUT(arr_val.size(), 0); // Empty array should have size 0
+        COUT(arr_val.isArray(), true); // Should be array
+        COUT(arr_val.isObject(), false); // Should not be object
+    }
+    
+    // Test 10: Regular string literals should not be treated as special
+    {
+        auto reg_node = yyjson::create(doc.get(), "{not_special}");
+        MutableValue reg_val(reg_node, doc.get());
+        
+        COUT(reg_val.typeName(), "string"); // Should be string type
+        COUT(reg_val.isString(), true); // Should be string
+        COUT(reg_val.isObject(), false); // Should not be object
+        COUT(reg_val.isArray(), false); // Should not be array
+        
+        const char* result = reg_val | "";
+        COUT(result, "{not_special}"); // Should preserve content
+    }
+}

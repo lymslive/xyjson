@@ -3,7 +3,7 @@
  * @author lymslive
  * @date 2025-10-12
  * @brief experimental test code for xyjson
- * */
+ */
 #include "couttast/couttast.h"
 #include "xyjson.h"
 
@@ -82,6 +82,7 @@ struct Overload
 
 } /* test:: */
 
+//! this experiment almost fail: first match const char* then const char&[N]
 DEF_TAST(experiment_overload, "test overload rule")
 {
     test::Overload overload;
@@ -116,7 +117,7 @@ DEF_TAST(experiment_overload, "test overload rule")
 
     COUT(overload.baz(i), 0);
     COUT(overload.baz(psz), 1);
-//  COUT(overload.baz(buffer), 2); // ambiguous
+//  COUT(overload.baz(buffer), 2); //! ambiguous to construct StringRef or StringCopy
 //  COUT(overload.baz(cbuf), 1);
 //  COUT(overload.baz("string literal"), 1);
     COUT(overload.baz(test::StringCopy("string literal")), 1);

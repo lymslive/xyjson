@@ -659,6 +659,8 @@ public:
     bool operator!() const { return hasError(); }
     explicit operator bool() const { return isValid(); }
 
+    yyjson_mut_doc* get() const { return m_doc; }
+
     // Access root value
     MutableValue root() const { return MutableValue(yyjson_mut_doc_get_root(m_doc), m_doc); }
 
@@ -1102,21 +1104,6 @@ inline yyjson_mut_val* create(yyjson_mut_doc* doc, double value)
     return yyjson_mut_real(doc, value);
 }
 
-inline yyjson_mut_val* create(yyjson_mut_doc* doc, const char* value, size_t len)
-{
-    return yyjson_mut_strncpy(doc, value, len);
-}
-
-inline yyjson_mut_val* create(yyjson_mut_doc* doc, const char* value)
-{
-    return create(doc, value, ::strlen(value));
-}
-
-inline yyjson_mut_val* create(yyjson_mut_doc* doc, const std::string& value)
-{
-    return create(doc, value.c_str(), value.size());
-}
-
 inline yyjson_mut_val* createObject(yyjson_mut_doc* doc)
 {
     return yyjson_mut_obj(doc);
@@ -1127,19 +1114,51 @@ inline yyjson_mut_val* createArray(yyjson_mut_doc* doc)
     return yyjson_mut_arr(doc);
 }
 
+inline yyjson_mut_val* create(yyjson_mut_doc* doc, const char* value, size_t len)
+{
+    return yyjson_mut_strncpy(doc, value, len);
+}
+
+template<typename T>
+inline typename std::enable_if<std::is_same<T, const char*>::value || std::is_same<T, char*>::value, yyjson_mut_val*>::type
+create(yyjson_mut_doc* doc, T value)
+{
+    return create(doc, value, ::strlen(value));
+}
+
+inline yyjson_mut_val* create(yyjson_mut_doc* doc, const std::string& value)
+{
+    return create(doc, value.c_str(), value.size());
+}
+
+// For string literals, use reference optimization (yyjson_mut_strn)
+// since literals have static lifetime and don't need copying.
+// Special handling for empty object and array literals
+template <size_t N>
+inline yyjson_mut_val* create(yyjson_mut_doc* doc, const char(&value)[N])
+{
+    if (N == 3)
+    {
+        if (::strcmp(value, "{}") == 0) { return createObject(doc); }
+        if (::strcmp(value, "[]") == 0) { return createArray(doc); }
+    }
+    return yyjson_mut_strn(doc, value, N-1);
+}
+
+// For char arrays (mutable), use copy instead of reference optimization
+template <size_t N>
+inline yyjson_mut_val* create(yyjson_mut_doc* doc, char(&value)[N])
+{
+    // Always copy mutable arrays, don't do special handling
+    return yyjson_mut_strncpy(doc, value, N-1);
+}
+
 inline yyjson_mut_val* create(yyjson_mut_doc* doc, StringRef value)
 {
     if (value.len == 2)
     {
-        // Special handling for empty object and array literals
-        if (::strcmp(value, "{}") == 0)
-        {
-            return createObject(doc);
-        }
-        else if (::strcmp(value, "[]") == 0)
-        {
-            return createArray(doc);
-        }
+        if (::strcmp(value, "{}") == 0) { return createObject(doc); }
+        if (::strcmp(value, "[]") == 0) { return createArray(doc); }
     }
 
     return yyjson_mut_str(doc, value);
