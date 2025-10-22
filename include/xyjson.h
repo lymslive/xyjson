@@ -545,16 +545,16 @@ public:
     MutableValue& append(T&& value);
     
     // Insert methods for object.
-    MutableValue& add(yyjson_mut_val* name, yyjson_mut_val* value);
+    MutableValue& add(yyjson_mut_val* key, yyjson_mut_val* value);
     MutableValue& add(KeyValue&& kv);
     // valT as create: bool | int | string | (Mutable)Document | (Mutable)Value
     template<typename keyT, typename valT>
     MutableValue& add(keyT&& key, valT&& value);
     
     // KeyValue creation methods for optimized object insertion
-    KeyValue tag(const MutableValue& key) const;
+    KeyValue tag(MutableValue&& key) &&;
     template <typename T>
-    KeyValue tag(T&& key) const;
+    KeyValue tag(T&& key) &&;
 
     MutableValue& input(KeyValue&& kv);
 
@@ -2009,11 +2009,11 @@ inline MutableValue& MutableValue::append(T&& value)
 /* @Group 4.3.5: object add */
 /* ************************************************************************ */
 
-inline MutableValue& MutableValue::add(yyjson_mut_val* name, yyjson_mut_val* value)
+inline MutableValue& MutableValue::add(yyjson_mut_val* key, yyjson_mut_val* value)
 {
-    if (isObject() && name && value)
+    if (isObject() && key && value)
     {
-        yyjson_mut_obj_add(m_val, name, value);
+        yyjson_mut_obj_add(m_val, key, value);
     }
     return *this;
 }
@@ -2022,7 +2022,9 @@ inline MutableValue& MutableValue::add(KeyValue&& kv)
 {
     if (isObject() && kv.isValid())
     {
-        return add(kv.key, kv.value);
+        add(kv.key, kv.value);
+        kv.key = nullptr;
+        kv.value = nullptr;
     }
     return *this;
 }
@@ -2041,21 +2043,27 @@ inline MutableValue& MutableValue::add(keyT&& key, valT&& value)
 /* @Group 4.3.6: tag create KeyValue */
 /* ************************************************************************ */
 
-inline KeyValue MutableValue::tag(const MutableValue& key) const
+inline KeyValue MutableValue::tag(MutableValue&& key) &&
 {
     // Require same document pool and string type; do not copy
-    if (m_doc && key.m_doc == m_doc && key.isString())
+    yyjson_mut_val* keyNode = nullptr;
+    if (key.m_doc == m_doc && key.isString())
     {
-        return KeyValue(key.get(), m_val);
+        keyNode = key.m_val;
     }
-    return KeyValue(nullptr, nullptr);
+    auto ret = KeyValue(keyNode, m_val);
+    m_val = nullptr;
+    key.m_val = nullptr;
+    return ret;
 }
 
 template <typename T>
-inline KeyValue MutableValue::tag(T&& key) const
+inline KeyValue MutableValue::tag(T&& key) &&
 {
     yyjson_mut_val* keyNode = create(m_doc, std::forward<T>(key));
-    return KeyValue(keyNode, m_val);
+    auto ret = KeyValue(keyNode, m_val);
+    m_val = nullptr;
+    return ret;
 }
 
 /* @Group 4.3.7: smart input */
@@ -2891,21 +2899,21 @@ inline MutableValue operator*(const MutableDocument& doc, char(&value)[N])
 
 template <typename T>
 inline typename std::enable_if<!std::is_same<typename std::remove_reference<T>::type, MutableValue>::value, KeyValue>::type
-operator*(const MutableValue& json, T&& key)
+operator*(MutableValue&& json, T&& key)
 {
-    return json.tag(std::forward<T>(key));
+    return std::move(json).tag(std::forward<T>(key));
 }
 
 template <typename T>
 inline typename std::enable_if<!std::is_same<typename std::remove_reference<T>::type, MutableValue>::value, KeyValue>::type
-operator*(T&& key, const MutableValue& json)
+operator*(T&& key, MutableValue&& json)
 {
-    return json.tag(std::forward<T>(key));
+    return std::move(json).tag(std::forward<T>(key));
 }
 
-inline KeyValue operator*(const MutableValue& key, const MutableValue& value)
+inline KeyValue operator*(MutableValue&& key, MutableValue&& value)
 {
-    return value.tag(key);
+    return std::move(value).tag(std::move(key));
 }
 
 /* @Section 5.5: Stream and Input Operator */

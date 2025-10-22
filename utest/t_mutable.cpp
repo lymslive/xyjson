@@ -338,7 +338,7 @@ DEF_TAST(mutable_assign_string_ref, "test string node reference in yyjson")
     COUT(strcmp(node | "", "variable"), 0); // Copy does not reflect the change
 }
 
-DEF_TAST(mutable_object_insertion, "test object insertion with KV macro and operator+")
+DEF_TAST(mutable_kvpair_objadd, "test object insertion with KV macro")
 {
     // temp str for operator|
     std::string str;
@@ -348,13 +348,22 @@ DEF_TAST(mutable_object_insertion, "test object insertion with KV macro and oper
         yyjson::MutableDocument doc("{}");
         COUT(doc.hasError(), false);
         
-        // Use KV macro with operator+ to insert key-value pairs
+        // Use KV macro with operator<< to insert key-value pairs
         doc.root() << KV("name", "test") << KV("value", 123) << KV("enabled", true);
         
         // Verify inserted values
         COUT(doc / "name" | str, "test");
         COUT(doc / "value" | 0, 123);
         COUT(doc / "enabled" | false, true);
+
+        // to fix: verify key and string value is reference
+        {
+            //! COUT_PTR(doc / "name" | "", "test");
+            auto it = *doc %  "name";
+            //! COUT_PTR(it->key, "name");
+            ++it;
+            //! COUT_PTR(it->key, "value");
+        }
         
         // Test string values with KV
         *doc << KV("string_value", "hello") << KV("number_value", 42.5);
@@ -671,11 +680,13 @@ DEF_TAST(mutable_keyvalue_add, "test KeyValue optimization for object insertion"
         
         // Create a value and tag it with a key
         auto value = doc.create(42);
-        auto kv = value.tag("number_key");
+        auto kv = std::move(value).tag("number_key");
+        COUT(!value, true); // moved
         
         // Insert the KeyValue into the object
         //! doc.root().add(kv);
         doc.root().add(std::move(kv));
+        COUT(!kv, true);
         
         // Verify the insertion worked
         COUT(doc.root().size(), 1);
@@ -705,11 +716,13 @@ DEF_TAST(mutable_keyvalue_add, "test KeyValue optimization for object insertion"
         // For testing reference optimization, use actual string literals
         auto refKV = doc.create("test_value").tag("literal_key");
         doc.root().add(std::move(refKV));
+        COUT(!refKV, true);
         
         // For testing copy safety, use a variable
         char copyBuffer[20] = "copy_key";
         auto copyKV = doc.create("copy_value").tag(copyBuffer);
         doc.root().add(std::move(copyKV));
+        COUT(!copyKV, true);
         
         // Modify the variable - the key should NOT change due to copying
         const char* modifiedCopy = "modified_key";
@@ -820,7 +833,9 @@ DEF_TAST(mutable_keyvalue_mutablekey, "test KeyValue with MutableValue key")
     auto valNode = doc * 777;
 
     // Use new syntax: (MutableValue key) * (MutableValue value)
-    root << (keyNode * valNode);
+    root << (std::move(keyNode) * std::move(valNode));
+    COUT(!keyNode, true);
+    COUT(!valNode, true);
 
     COUT(root.size(), 1);
     COUT(root["mkey"] | 0, 777);
@@ -828,20 +843,32 @@ DEF_TAST(mutable_keyvalue_mutablekey, "test KeyValue with MutableValue key")
     // Also test value.tag(MutableValue key)
     auto keyNode2 = doc * "nkey";
     auto valNode2 = doc * true;
-    root << (valNode2.tag(keyNode2));
+    root << (std::move(valNode2).tag(std::move(keyNode2)));
     COUT(root.size(), 2);
     COUT(root["nkey"] | false, true);
     COUT(root);
+    COUT(!keyNode2, true);
+    COUT(!valNode2, true);
 
     // Negative cases: different doc or non-string key should be ignored (invalid KeyValue)
     yyjson::MutableDocument other("{}");
     auto otherKey = other * "ok";
-    auto kv_invalid = otherKey * valNode; // different doc, should be invalid
+    valNode = doc * 777; // re-create value node
+    auto kv_invalid = std::move(otherKey) * std::move(valNode); // different doc, should be invalid
+    COUT(!kv_invalid, true);
+    COUT(!otherKey, true);
+    COUT(!valNode, true);
     root << std::move(kv_invalid); // should have no effect
+    COUT(!kv_invalid, true);
     COUT(root.size(), 2);
 
     auto nonStrKey = doc * 123;
-    auto kv_nonstr = nonStrKey * valNode; // non-string key, invalid
+    valNode = doc * 777;
+    auto kv_nonstr = std::move(nonStrKey) * std::move(valNode); // non-string key, invalid
+    COUT(!kv_nonstr, true);
+    COUT(!nonStrKey, true);
+    COUT(!valNode, true);
     root << std::move(kv_nonstr);
+    COUT(!kv_nonstr, true);
     COUT(root.size(), 2);
 }

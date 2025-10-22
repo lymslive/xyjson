@@ -1147,10 +1147,11 @@ MutableDocument mutDoc;
 
 MutableValue name = mutDoc * "Alice"; // mutDoc.create("Alice")
 MutableValue age = mutDoc * 25;       // mutDoc.create(25)
-auto kv = name * age;                 // age.tag(name)
+auto kv = std::move(name) * std::move(age);
+//^ 等效: std::move(age).tag(std::move(name));
 
 auto root = *mutDoc;
-root << kv;
+root << std::move(kv);
 std::cout << mutDoc << std::endl; // 输出：{"Alice":25}
 
 // 这些操作可写成一行表达式，以下每一行都是等效的
@@ -1161,8 +1162,9 @@ root << mutDoc * 25 * "Alice";   // 值结点 * 键名，省去括号
 root << mutDoc.create(25).tag("Alice"); // root.add("Alice", 25)
 ```
 
-看到最后，可能会觉得采用具名方法 `add` 更简洁，不过具名方法也有其他注意事项，
-后文再讨论。
+注意键值对绑定是移动语义，表示将要打包插入目标对象中。如果不是移动语义，就表示
+允许将这个键值对重复插入，那就有问题。因此一般用在 `*` 表达式中，不要保存中间
+变量成为左值，保存左值后要再利用还得显式用 `std::move` 转右值。
 
 至于为什么选用乘号 `*` 来表达结点创建与绑定的操作，因为它与路径查找的除号 `/`
 原是互逆关系，一个结点要在 Json 树中通过 `/` 找到，那么它在创建时就该用 `*` 了。
@@ -1170,7 +1172,6 @@ root << mutDoc.create(25).tag("Alice"); // root.add("Alice", 25)
 
 使用两个 `*` 连乘创建的键值对不能用 `<<` 添加到数组中，用一个 `*` 创建的结点理
 论上可以添加到数组中，但是会重复拷贝结点，添加到数组不必舍近求远做这额外工作。
-因此，也不建议将 `*` 产生的临时结果保存，更不要将绑定的键值对重复添加。
 
 ### 拷贝已有结点
 
