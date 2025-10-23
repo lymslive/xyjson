@@ -222,26 +222,6 @@ DEF_TAST(advanced_trait, "test type traits for yyjson wrapper classes")
     COUT(is_iterator<Value>::value, false);
     COUT(is_iterator<Document>::value, false);
 
-#ifdef __cpp_variable_templates
-    // Test C++17 variable templates
-    COUT(is_value_v<Value>, true);
-    COUT(is_document_v<Document>, true);
-    COUT(is_iterator_v<ArrayIterator>, true);
-#endif
-
-    // Test enable_if helper aliases (compile-time only)
-    {
-        // These should compile - testing that the alias types are valid
-        using value_type = enable_if_value_t<Value>;
-        using doc_type = enable_if_document_t<Document>; 
-        using iter_type = enable_if_iterator_t<ArrayIterator>;
-        
-        // Just verify the types are what we expect
-        static_assert(std::is_same<value_type, Value>::value, "enable_if_value_t should yield Value");
-        static_assert(std::is_same<doc_type, Document>::value, "enable_if_document_t should yield Document");
-        static_assert(std::is_same<iter_type, ArrayIterator>::value, "enable_if_iterator_t should yield ArrayIterator");
-    }
-
     // Example usage with function templates
     {
         auto check_value_type = [](const auto& obj) {
@@ -264,6 +244,49 @@ DEF_TAST(advanced_trait, "test type traits for yyjson wrapper classes")
         } else {
             COUT(false, true); // This branch should not be taken
         }
+    }
+
+    // Test is_key_type function
+    {
+        // Test supported key types (should return true)
+        COUT(is_key_type<const char*>(), true);
+        COUT(is_key_type<char*>(), true);
+        COUT(is_key_type<std::string>(), true);
+        
+        // Test string literals (array types)
+        COUT(is_key_type<const char[5]>(), true);  // e.g., "test"
+        COUT(is_key_type<char[5]>(), true);        // e.g., char arr[5] = "test"
+        
+        // Test unsupported types (should return false)
+        COUT(is_key_type<int>(), false);
+        COUT(is_key_type<double>(), false);
+        COUT(is_key_type<bool>(), false);
+        COUT(is_key_type<Value>(), false);
+        COUT(is_key_type<MutableValue>(), false);
+        COUT(is_key_type<Document>(), false);
+        COUT(is_key_type<void*>(), false);
+        
+        // Test with decayed types (should handle array-to-pointer decay correctly)
+        const char* ptr = "test";
+        COUT(is_key_type<decltype(ptr)>(), true);
+        
+        std::string str = "test";
+        COUT(is_key_type<decltype(str)>(), true);
+        
+        // Test with function that uses is_key_type
+        auto test_key_function = [](const auto& key) {
+            if constexpr (is_key_type<decltype(key)>()) {
+                return std::string("valid_key");
+            } else {
+                return std::string("invalid_key");
+            }
+        };
+        
+        COUT(test_key_function("literal"), "valid_key");
+        COUT(test_key_function(std::string("string")), "valid_key");
+        COUT(test_key_function(ptr), "valid_key");
+        COUT(test_key_function(42), "invalid_key");
+        COUT(test_key_function(true), "invalid_key");
     }
 }
 

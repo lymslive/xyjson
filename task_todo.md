@@ -779,11 +779,42 @@ Object ，调用 add 方法
 
 ### DONE:20251023/001149
 
-## TODO: 为各种增加 key 结点的方法增加字符串类型限定
+## TODO:2025-10-23/1 为各种增加 key 结点的方法增加字符串类型限定
 
-增加一个 `is_key` 类型限定，只能匹配几种字符串。
-尽量编译期判断有效 key 类型，避免运行期再判断创建的结点是否
-string/key 类型。
+目前 MutableValue 有几个方法涉及增加 json key 结点：
+- add 插入键值对
+- tag 将一个值绑定键
+- inputKey 分步输入悬挂键
+
+增加一个 `is_key` 类型限定，匹配几种支持的字符串：
+- const char*
+- const char[N] 字面量
+- char[N] 可写内存 buffer
+- std::string
+
+其中 const char[N] 与 char[N] 能退化的 `const char*` ，考虑是否能简化。
+也可以写个辅助 constexpr 函数来判断某类型是否能当键的字符串。
+
+希望尽量编译期判断有效 key 类型，避免运行期再判断创建的结点是否
+string/key 类型。在方法实现中采用 if constexpr 可能更简洁些。
+
+与 tag 相关的操作符 `*` 也分析一下能否用 `is_key` 限定化简。
+与 add inputKey 相关的操作符 `<<` 是通用的输入，不能限定字符串。
+
+### DONE: 20251023/141414
+
+## TODO: 再优化增加 key 结点的方法
+
+提炼新增函数，下沉到 createKey ，在原来 `yyjson::create` 后面定义。
+- 模板函数，参数限定 is_key_type()
+- 普通重载，参数 MutableValue ，先判断是否字符串
+
+上层方法(MutableValue 类)改为先调用 createKey，包括：
+- add
+- tag
+- inputKey
+
+### REF: 2025-10-23/1
 
 ## TODO: 字符串字面量优化之三：赋值操作符与 set 方法
 

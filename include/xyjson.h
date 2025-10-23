@@ -1037,27 +1037,19 @@ template<> struct is_iterator<ObjectIterator> : std::true_type {};
 template<> struct is_iterator<MutableArrayIterator> : std::true_type {};
 template<> struct is_iterator<MutableObjectIterator> : std::true_type {};
 
-// Convenience variable templates (C++17)
-#ifdef __cpp_variable_templates
-template<typename T>
-constexpr bool is_value_v = is_value<T>::value;
+// is_key<T> Type trait for supported key string types
+template<typename T> struct is_key : std::false_type {};
+template<> struct is_key<const char*> : std::true_type {}; // and const char[N]
+template<> struct is_key<char*> : std::true_type {};       // and char[N]
+template<> struct is_key<std::string> : std::true_type {};
 
+// Helper constexpr function to check if a type can be used as key
+// Handles array-to-pointer decay and string literals
 template<typename T>
-constexpr bool is_document_v = is_document<T>::value;
-
-template<typename T>
-constexpr bool is_iterator_v = is_iterator<T>::value;
-#endif // XYJSON_H__
-
-// Helper aliases for std::enable_if (C++14)
-template<typename T>
-using enable_if_value_t = typename std::enable_if<is_value<T>::value, T>::type;
-
-template<typename T>
-using enable_if_document_t = typename std::enable_if<is_document<T>::value, T>::type;
-
-template<typename T>
-using enable_if_iterator_t = typename std::enable_if<is_iterator<T>::value, T>::type;
+constexpr bool is_key_type() {
+    using decayed_t = std::decay_t<T>;
+    return is_key<decayed_t>::value;
+}
 
 /* @Part 3: Non-Class Functions */
 /* ======================================================================== */
@@ -2033,8 +2025,19 @@ template<typename keyT, typename valT>
 inline MutableValue& MutableValue::add(keyT&& key, valT&& value)
 {
     if (isObject()) {
-        yyjson_mut_val* keyNode = create(m_doc, key);
-        yyjson_mut_val* valNode = create(m_doc, value);
+        yyjson_mut_val* keyNode = nullptr;
+        
+        if constexpr (is_key_type<keyT>()) {
+            keyNode = create(m_doc, std::forward<keyT>(key));
+        }
+        else {
+            keyNode = create(m_doc, std::forward<keyT>(key));
+            if (!yyjson_mut_is_str(keyNode)) {
+                return *this;
+            }
+        }
+        
+        yyjson_mut_val* valNode = create(m_doc, std::forward<valT>(value));
         yyjson_mut_obj_add(m_val, keyNode, valNode);
     }
     return *this;
@@ -2060,7 +2063,18 @@ inline KeyValue MutableValue::tag(MutableValue&& key) &&
 template <typename T>
 inline KeyValue MutableValue::tag(T&& key) &&
 {
-    yyjson_mut_val* keyNode = create(m_doc, std::forward<T>(key));
+    yyjson_mut_val* keyNode = nullptr;
+    
+    if constexpr (is_key_type<T>()) {
+        keyNode = create(m_doc, std::forward<T>(key));
+    }
+    else {
+        keyNode = create(m_doc, std::forward<T>(key));
+        if (!yyjson_mut_is_str(keyNode)) {
+            keyNode = nullptr;
+        }
+    }
+    
     auto ret = KeyValue(keyNode, m_val);
     m_val = nullptr;
     return ret;
@@ -2073,8 +2087,20 @@ inline KeyValue MutableValue::tag(T&& key) &&
 template <typename T>
 inline bool MutableValue::inputKey(T&& key)
 {
-    m_pendingKey = create(m_doc, std::forward<T>(key));
-    return true;
+    yyjson_mut_val* keyNode = nullptr;
+    
+    if constexpr (is_key_type<T>()) {
+        keyNode = create(m_doc, std::forward<T>(key));
+    }
+    else {
+        keyNode = create(m_doc, std::forward<T>(key));
+        if (!yyjson_mut_is_str(keyNode)) {
+            keyNode = nullptr;
+        }
+    }
+    
+    m_pendingKey = keyNode;
+    return m_pendingKey != nullptr;
 }
 
 template <typename T>
@@ -2898,14 +2924,14 @@ inline MutableValue operator*(const MutableDocument& doc, char(&value)[N])
 }
 
 template <typename T>
-inline typename std::enable_if<!std::is_same<typename std::remove_reference<T>::type, MutableValue>::value, KeyValue>::type
+inline typename std::enable_if<is_key_type<T>(), KeyValue>::type
 operator*(MutableValue&& json, T&& key)
 {
     return std::move(json).tag(std::forward<T>(key));
 }
 
 template <typename T>
-inline typename std::enable_if<!std::is_same<typename std::remove_reference<T>::type, MutableValue>::value, KeyValue>::type
+inline typename std::enable_if<is_key_type<T>(), KeyValue>::type
 operator*(T&& key, MutableValue&& json)
 {
     return std::move(json).tag(std::forward<T>(key));
