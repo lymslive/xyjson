@@ -1076,8 +1076,7 @@ mutDoc / "config" << "timeout" << 30 << "retries" << 3 << "debug" << true;
 mutDoc["mixed"] = "[]"; // mutDoc.root() << "mixed" << kArray;
 mutDoc / "mixed" << 42 << "text" << 3.14 << false;
 
-// 向标量结点输入，相当于赋值 `=`
-mutDoc / "config" / "timeout" << 40;
+mutDoc / "config" / "timeout" = 40;
 ```
 
 以上代码构建的 Json 等效于：

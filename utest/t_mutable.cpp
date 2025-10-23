@@ -293,8 +293,7 @@ DEF_TAST(mutable_assign_string_literal, "test string literal optimization in set
     {
         doc.root().append(1);
         doc.root()[0].set("literal_value");
-        // to fix:
-        //! COUT_PTR(doc / 0 | "", "literal_value");
+        COUT_PTR(doc / 0 | "", "literal_value");
         
         // Test special literals
         doc.root().append("{}");
@@ -322,6 +321,10 @@ DEF_TAST(mutable_assign_string_literal, "test string literal optimization in set
         // Modify variable, json should remain unchanged
         var_str = "modified";
         COUT(doc / 4 | "", "variable_string");
+
+        doc.root()[4].set(var_str.c_str());
+        COUT(doc / 4 | "", var_str);
+        COUT(doc / 4 | "" == var_str.c_str(), false); // Should not be same pointer
     }
     
     DESC("Test create method with string literals");
@@ -355,29 +358,30 @@ DEF_TAST(mutable_assign_string_ref, "test string node reference in yyjson")
     getcstr = doc / 5 | "";
     COUT_PTR(getcstr, "six");
 
-    // Test that modifying literal strings would cause undefined behavior
-    // (This is just for demonstration, in practice you should not do this)
-    // For safety, we'll just verify the values are as expected
     COUT(strcmp(doc / 1 | "", "two"), 0);
     COUT(strcmp(doc / 4 | "", "five"), 0);
     COUT(strcmp(doc / 5 | "", "six"), 0);
     
     // Test setRef and setCopy methods
     yyjson::MutableValue node = doc / 0;
-    node.setRef("ref_literal");
+    node.set("ref_literal");
     COUT(strcmp(node | "", "ref_literal"), 0);
+    COUT_PTR(node | "", "ref_literal");
     
     node = doc / 1;
     node.setCopy("copy_string", strlen("copy_string"));
     COUT(strcmp(node | "", "copy_string"), 0);
+    COUT(node | "" == "copy_string", false);
     
     // Test that modifying source string affects ref but not copy
-    char literal[] = "literal";
+    const char literal[] = "literal";
     node = doc / 2;
-    node.setRef(literal);
+    node.set(literal);
     COUT(strcmp(node | "", "literal"), 0);
     
-    strcpy(literal, "changed");
+    // Test that modifying literal strings would cause undefined behavior
+    // (This is just for demonstration, in practice you should not do this)
+    ::strcpy((char*)literal, "changed");
     COUT(strcmp(node | "", "changed"), 0); // Ref reflects the change
     
     std::string variable = "variable";

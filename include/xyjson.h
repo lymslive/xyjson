@@ -389,12 +389,6 @@ public:
     MutableValue() : m_val(nullptr), m_doc(nullptr) {}
     MutableValue(yyjson_mut_val* val, yyjson_mut_doc* doc) : m_val(val), m_doc(doc) {}
     
-    // Access underlying yyjson value. yyjson api use non-const pointer.
-    yyjson_mut_val* get() const { return m_val; }
-    
-    // Set underlying yyjson value pointer directly
-    void set(yyjson_mut_val* val) { m_val = val; }
-    
     // Error checking
     bool isValid() const { return m_val != nullptr && m_doc != nullptr; }
     bool hasError() const { return !isValid(); }
@@ -439,6 +433,9 @@ public:
     bool isType(yyjson_mut_val*) const { return isValid(); }
     bool isType(yyjson_mut_doc*) const { return m_doc != nullptr; }
     
+    // Access underlying yyjson value. yyjson api use non-const pointer.
+    yyjson_mut_val* get() const { return m_val; }
+
     // Value extraction with result reference
     bool get(bool& result) const;
     bool get(int& result) const;
@@ -484,23 +481,19 @@ public:
         return this->index(index);
     }
 
-    // Iterator creation methods
-    MutableArrayIterator arrayIter(size_t startIndex = 0) const;
-    MutableObjectIterator objectIter(const char* startKey = nullptr) const;
-    
-    // Standard iterator pattern methods
-    MutableArrayIterator beginArray() const;
-    MutableArrayIterator endArray() const;
-    MutableObjectIterator beginObject() const;
-    MutableObjectIterator endObject() const;
-    
     // Path operations
     MutableValue pathto(const char* path) const;
     MutableValue pathto(const std::string& path) const { return pathto(path.c_str()); }
     MutableValue pathto(int idx) const { return index(idx); }
     MutableValue pathto(size_t idx) const { return index(idx); }
     
-    // Set(Assignment) methods.
+    // Set underlying yyjson value pointer directly
+    void set(yyjson_mut_val* val) { m_val = val; }
+
+    // Copy assignment
+    MutableValue& set(const MutableValue& other);
+
+    // Assignment methods to native scalar types.
     // Should not be used on an existing object or array.
     MutableValue& set(std::nullptr_t value);
     MutableValue& set(bool value);
@@ -508,10 +501,8 @@ public:
     MutableValue& set(int64_t value);
     MutableValue& set(uint64_t value);
     MutableValue& set(double value);
-    MutableValue& set(const char* value);
     MutableValue& set(const std::string& value);
     MutableValue& set(StringRef value);
-    MutableValue& setRef(const char* value);
     MutableValue& setCopy(const char* value, size_t len);
     MutableValue& setArray();
     MutableValue& setObject();
@@ -529,33 +520,18 @@ public:
     template <size_t N>
     MutableValue& set(char(&value)[N]);
     
-    // Assignment operators
-    // Copy assignment (explicitly defined to avoid template matching)
-    MutableValue& set(const MutableValue& other)
-    {
-        if (this != &other) {
-            m_val = other.m_val;
-            m_doc = other.m_doc;
-        }
-        return *this;
-    }
-    
-    // No effect set to other types.
-    template <typename T>
-    MutableValue& set(const T&) { return *this; }
-    
+    // C-Style string
+//  MutableValue& set(const char* value);
+    template<typename T>
+    inline typename std::enable_if<std::is_same<T, const char*>::value || std::is_same<T, char*>::value, MutableValue&>::type
+    set(T value);
+
     // Assignment operators
     template <typename T>
     MutableValue& operator=(T&& value)
     {
         return set(std::forward<T>(value));
     }
-
-    // specified set to literal string.
-    template <size_t N> 
-    MutableValue& operator=(const char(&value)[N]);
-    template <size_t N> 
-    MutableValue& operator=(char(&value)[N]);
 
     // Append methods for array.
     MutableValue& append(yyjson_mut_val* value);
@@ -587,6 +563,16 @@ public:
     template <typename T>
     bool inputValue(T&& value);
 
+    // Iterator creation methods
+    MutableArrayIterator arrayIter(size_t startIndex = 0) const;
+    MutableObjectIterator objectIter(const char* startKey = nullptr) const;
+    
+    // Standard iterator pattern methods
+    MutableArrayIterator beginArray() const;
+    MutableArrayIterator endArray() const;
+    MutableObjectIterator beginObject() const;
+    MutableObjectIterator endObject() const;
+    
     // Conversion methods
     std::string toString(bool pretty = false) const;
     int toInteger() const;
@@ -596,7 +582,6 @@ public:
     bool equal(const MutableValue& other) const;
     bool less(const MutableValue& other) const;
     
-
     // Pipe function for custom transformations
     template<typename Func>
     auto pipe(Func&& func) const -> decltype(func(*this))
@@ -722,17 +707,14 @@ struct StringRef
     size_t len = 0;
 
     template <size_t N> 
-    StringRef(const char(&value)[N]) : str(value), len(N-1)
-    {
-    }
+    StringRef(const char(&value)[N]) : StringRef(value, N-1) { }
 
-    explicit StringRef(const char* value) : str(value), len(::strlen(value))
-    {
-    }
-
-    explicit StringRef(const char* value, size_t n) : str(value), len(n)
-    {
-    }
+    explicit
+    StringRef(const char* value, size_t n) : str(value), len(n) { }
+    explicit
+    StringRef(const char* value) : StringRef(value, ::strlen(value)) { }
+    explicit
+    StringRef(const std::string& value) : StringRef(value.c_str(), value.size()) { }
 
     operator const char *() const { return str; }
 
@@ -1177,11 +1159,6 @@ inline yyjson_mut_val* create(yyjson_mut_doc* doc, EmptyString)
 inline yyjson_mut_val* create(yyjson_mut_doc* doc, ZeroNumber)
 {
     return yyjson_mut_real(doc, 0.0);
-}
-
-inline yyjson_mut_val* createRef(yyjson_mut_doc* doc, const char* value)
-{
-    return create(doc, StringRef(value));
 }
 
 inline yyjson_mut_val* create(yyjson_mut_doc* doc, yyjson_val* src)
@@ -1856,63 +1833,49 @@ inline MutableValue MutableValue::pathto(const char* path) const
 /* @Group 4.3.3: assignment set */
 /* ************************************************************************ */
 
+inline MutableValue& MutableValue::set(const MutableValue& other)
+{
+    if (this != &other) {
+        m_val = other.m_val;
+        m_doc = other.m_doc;
+    }
+    return *this;
+}
+
 inline MutableValue& MutableValue::set(std::nullptr_t value)
 {
-    if (isValid())
-    {
-        yyjson_mut_set_null(m_val);
-    }
+    yyjson_mut_set_null(m_val);
     return *this;
 }
 
 inline MutableValue& MutableValue::set(bool value)
 {
-    if (isValid())
-    {
-        yyjson_mut_set_bool(m_val, value);
-    }
+    yyjson_mut_set_bool(m_val, value);
     return *this;
 }
 
 inline MutableValue& MutableValue::set(int value)
 {
-    if (isValid())
-    {
-        yyjson_mut_set_int(m_val, value);
-    }
+    yyjson_mut_set_int(m_val, value);
     return *this;
 }
 
 inline MutableValue& MutableValue::set(int64_t value)
 {
-    if (isValid())
-    {
-        yyjson_mut_set_sint(m_val, value);
-    }
+    yyjson_mut_set_sint(m_val, value);
     return *this;
 }
 
 inline MutableValue& MutableValue::set(uint64_t value)
 {
-    if (isValid())
-    {
-        yyjson_mut_set_uint(m_val, value);
-    }
+    yyjson_mut_set_uint(m_val, value);
     return *this;
 }
 
 inline MutableValue& MutableValue::set(double value)
 {
-    if (isValid())
-    {
-        yyjson_mut_set_real(m_val, value);
-    }
+    yyjson_mut_set_real(m_val, value);
     return *this;
-}
-
-inline MutableValue& MutableValue::set(const char* value)
-{
-    return setCopy(value, ::strlen(value));
 }
 
 inline MutableValue& MutableValue::set(const std::string& value)
@@ -1924,26 +1887,11 @@ inline MutableValue& MutableValue::set(StringRef value)
 {
     if (value.len == 2)
     {
-        // Special handling for empty object and array literals
-        if (::strcmp(value, "{}") == 0)
-        {
-            return setObject();
-        }
-        else if (::strcmp(value, "[]") == 0)
-        {
-            return setArray();
-        }
+        if (::strcmp(value, "{}") == 0) { return setObject(); }
+        if (::strcmp(value, "[]") == 0) { return setArray(); }
     }
-    if (isValid())
-    {
-        yyjson_mut_set_strn(m_val, value.str, value.len);
-    }
+    yyjson_mut_set_strn(m_val, value.str, value.len);
     return *this;
-}
-
-inline MutableValue& MutableValue::setRef(const char* value)
-{
-    return set(StringRef(value));
 }
 
 inline MutableValue& MutableValue::setCopy(const char* value, size_t len)
@@ -1969,15 +1917,19 @@ inline MutableValue& MutableValue::set(const char(&value)[N])
         if (::strcmp(value, "{}") == 0) { return setObject(); }
         if (::strcmp(value, "[]") == 0) { return setArray(); }
     }
-    if (isValid())
-    {
-        yyjson_mut_set_strn(m_val, value, N-1);
-    }
+    yyjson_mut_set_strn(m_val, value, N-1);
     return *this;
 }
 
 template <size_t N>
 inline MutableValue& MutableValue::set(char(&value)[N])
+{
+    return setCopy(value, ::strlen(value));
+}
+
+template<typename T>
+inline typename std::enable_if<std::is_same<T, const char*>::value || std::is_same<T, char*>::value, MutableValue&>::type
+MutableValue::set(T value)
 {
     return setCopy(value, ::strlen(value));
 }
@@ -2015,18 +1967,6 @@ inline MutableValue& MutableValue::set(EmptyString)
 inline MutableValue& MutableValue::set(ZeroNumber)
 {
     return set(0.0);
-}
-
-template <size_t N> 
-MutableValue& MutableValue::operator=(const char(&value)[N])
-{
-    return set(StringRef(value));
-}
-
-template <size_t N> 
-MutableValue& MutableValue::operator=(char(&value)[N])
-{
-    return setCopy(value, ::strlen(value));
 }
 
 /* @Group 4.3.4: array append */
@@ -2162,10 +2102,6 @@ inline MutableValue& MutableValue::input(T&& value)
     else if (isObject())
     {
         bool ok = inputValue(std::forward<T>(value)) || inputKey(std::forward<T>(value));
-    }
-    else
-    {
-        return set(std::forward<T>(value));
     }
     return *this;
 }
