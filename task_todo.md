@@ -803,6 +803,20 @@ string/key 类型。在方法实现中采用 if constexpr 可能更简洁些。
 
 ### DONE: 20251023/141414
 
+## TODO:2025-10-23/2 字符串字面量优化之三：赋值操作符 set 方法与上层 create 方法
+
+参考 `yyjson::create` 重载函数对字面量与 C 字符串 `const char*` 的区分方案，重
+构 `MutableValue::set` 方法。在 `set` 方法层支持字面量，简化 `=` 转发模板。
+
+实现目标：`json.set("literal")` 与 `json="literal"` 都自动优化为按引用字符串，
+不再需要显式调用 `setRef` ，或传参 `StringRef` 。
+
+再简化 `MutableDocuemnt::create` 方法，尽量使用统一模板转发底层 `yyjson::create` ，
+可参考 append 方法的实现。删除不必要的重载版本，尤其可删除 createRef , 应该直接用
+create 方法就能自动识别字面量优化了。
+
+注意 set 方法的实现不能改为调用 create 。
+
 ## TODO: 再优化增加 key 结点的方法
 
 提炼新增函数，下沉到 createKey ，在原来 `yyjson::create` 后面定义。
@@ -815,17 +829,6 @@ string/key 类型。在方法实现中采用 if constexpr 可能更简洁些。
 - inputKey
 
 ### REF: 2025-10-23/1
-
-## TODO: 字符串字面量优化之三：赋值操作符与 set 方法
-
-参考 `yyjson::create` 重载函数对字面量与 C 字符串 `const char*` 的区分方案，重
-构 `MutableValue::set` 方法。在 `set` 方法层支持字面量，简化 `=` 转发模板。
-
-实现目标：`json.set("literal")` 与 `json="literal"` 都自动优化为按引用字符串，
-不再需要显式调用 `setRef` ，或传参 `StringRef` 。
-
-可采用 TDD 开发流程。分析现有测试用例，如果有涉及字面量赋值的情况先改为期望目
-标，也可补充用例。
 
 ## TODO: 字符串字面量优化之四：KV 宏 pair 插入保持引用
 

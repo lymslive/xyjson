@@ -485,7 +485,7 @@ DEF_TAST(advanced_sort_mixed_array, "sort a mixed array of json values")
     std::sort(values.begin(), values.end());
 
     MutableDocument sorted_doc;
-    auto sorted_arr = sorted_doc.createArray();
+    auto sorted_arr = sorted_doc.create(yyjson::kArray);
     for (const auto& val : values)
     {
         sorted_arr.append(val);

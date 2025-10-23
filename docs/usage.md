@@ -1222,55 +1222,71 @@ std::cout << mutDoc << std::endl;
 
 ### 字符串引用
 
-上节最后提到的 `mutDoc.create(25).tag("Alice")` 与 `mutDoc * 25 * "Alice"` 其
-实只是结果一样，但实现不完全一样，改用 `tagRef("Alice")` 才完全一样。
-
-这其中的区别在于从字符串创建 Json 结点（对象的键也是一个结点）是否需要拷贝。
-`tag` 方法为安全起见，默认拷贝，`tagRef` 显式表明可安全引用。而操作符 `*` 通过
-模板匹配，能自动识别字符串字面量使用引用，如果是 `std::string` 类型的变量，就
-会采用拷贝。但 `tagRef` 方法的灵活性在于，如果你确认 `std::string` 的生命周期
-足够长，也可以(取其 `c_str`)传给 `tagRef` 按引用方式创建结点。
-
-用 `MutableDocument` 的 `create` 方法创建字符串类型的结点时，也遵循同样的原则，
-默认拷贝，但可用 `createRef` 显式引用，而 `*` 能自动引用字符串字面量。在很多实
-践项目中，Json 对象的键可能是固定，那就推荐用字符串字面量引用（`tagRef`），而
-值多半是动态的，更常用拷贝（`create`）。只是在本文的示例中，为简洁起见，很多出
-字符串值也使用字面量了。
+yyjson 为每个 Json 文档树管理的内存池分为两部分，一是大小一致的 Json 结点，二
+是不定长的字符串。当创建字符串结点时，一般需要将字符串拷进内存池，但是也可以在
+引用安全的时候不拷贝。基于此，xyjson 的一些操作能自动识别字符串字面量，进行字
+面量引用优化，因为那是有静态生命周期的字符串，引用肯定安全。
 
 ```cpp
-// 字符串引用示例
-MutableDocument mutDoc;
+yyjson::Document mutDoc;
+mutDoc << R"({"name": "Alice", "age": 30})";
+auto root = *mutDoc;
 
-// 字面量自动引用（零拷贝，推荐用于固定键名）
-mutDoc["app_name"] = "MyApp";  // 自动使用引用
-mutDoc["version"] = "1.0.0";    // 字面量自动引用
+root / "age" = "25";     // 改结点类型为字符串，但引用字面量
+std::string strName = "Alice.Green";
+root / "name" = strName; // 或 strName.c_str()，都会拷贝
 
-// 动态字符串处理
-std::string dynamicKey = "dynamic_key";
-std::string dynamicValue = "This is a dynamic value";
+// 自动插入的键名，不能获得字面量优化
+root["friend"] = "[]"; // 特殊字面量，空数组
+// 添加数组元素，可以引用字面量
+root / "friend" << "Bob" << "Candy"; 
 
-// 推荐方式：拷贝字符串（安全，适用于动态数据）
-mutDoc[dynamicKey] = dynamicValue;  // 自动拷贝字符串内容
+// 插入对象的键名与字符串值，都能获得字面量优化
+root << "telephone" << "{}";
+root / "telephone" << "Home" << "1234567" << "Office" << "7654321";
 
-// 高级用法：显式引用（确认生命周期足够长）
-std::string longLivedValue = "Long-lived value";
-//! mutDoc["long_lived"] = longLivedValue.c_str();  // 显式引用
-mutDoc["long_lived"].setRef(longLivedValue.c_str());  // 显式引用
+std::cout << mutDoc << std::endl;
+```
 
-// 使用 create 和 createRef 方法
-MutableValue keyNode = mutDoc.createRef("fixed_key");     // 引用字面量
-MutableValue valueNode = mutDoc.create(dynamicValue);     // 拷贝动态值
+在实际项目中，固定的 json 键名往往可以用字面量，一些约定的简短标志内容如
+`"OK"` 、`"Fail"` 也有时用字面量。当然有些项目规范不建议直接在代码中写字面量，
+而是用宏或常量间接表示，当定义常量时要注意类型如果是 `const char*` 类型就无法
+获得自动优化，应该定义为 `const char[]` ，宏替换与手写字面量却是完全一样的。
 
-// 使用 * 操作符（自动识别字面量引用）
-mutDoc["config"] = "{}";
-mutDoc / "config" << (mutDoc * "timeout") * (mutDoc * 30);  // 自动引用
+```cpp
+#define OK "OK"
+constexpr const char* kSucc = "Succ";
+constexpr const char[] kFail = "Fail";
 
-// 使用 tagRef 方法
-MutableValue kvPair = mutDoc.create("25").tagRef("age");    // 键引用，值拷贝
-mutDoc / "config" << kvPair;
+yyjson::Document mutDoc("[]");
+mutDoc << OK << kSucc << kFail;
+std::cout << mutDoc << std::endl; // 输出：["OK","Succ","Fail"]
 
-// 验证结果
-std::cout << mutDoc.toString(true) << std::endl;
+if (mutDoc[0] | "" == OK) {
+    std::cout << "ref" << std::endl;
+}
+if (mutDoc[1] | "" != kSucc) {
+    std::cout << "copy" << std::endl;
+}
+if (mutDoc[2] | "" == kFail) {
+    std::cout << "ref" << std::endl;
+}
+```
+
+对于非字符串字面量，如果用户能负责保证来源字符串生命周期足够长，提供了一个封装
+类 `yyjson::StringRef` 显式转为可引用字符串，然后由此创建的 Json 结点就像字符
+串字面量优化一样不会发生拷贝。
+
+```cpp
+yyjson::Document mutDoc;
+mutDoc << R"({"name": "Alice", "age": 30})";
+std::string strName = "Alice.Green";
+autu refName = yyjson::StringRef(strName.c_str(), strName.size());
+root / "name" = refName;
+
+if (root / "name" | "" == strName.c_str()) {
+    std::cout << "ref" << std::endl;
+}
 ```
 
 ## 迭代器使用

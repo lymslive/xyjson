@@ -521,15 +521,34 @@ public:
     MutableValue& set(EmptyString);
     MutableValue& set(ZeroNumber);
 
+    // String literal optimization
+    template <size_t N>
+    MutableValue& set(const char(&value)[N]);
+    
+    // Non-const char array (mutable buffer) - use copy semantics
+    template <size_t N>
+    MutableValue& set(char(&value)[N]);
+    
+    // Assignment operators
+    // Copy assignment (explicitly defined to avoid template matching)
+    MutableValue& set(const MutableValue& other)
+    {
+        if (this != &other) {
+            m_val = other.m_val;
+            m_doc = other.m_doc;
+        }
+        return *this;
+    }
+    
     // No effect set to other types.
     template <typename T>
     MutableValue& set(const T&) { return *this; }
     
     // Assignment operators
     template <typename T>
-    MutableValue& operator=(const T& value)
+    MutableValue& operator=(T&& value)
     {
-        return set(value);
+        return set(std::forward<T>(value));
     }
 
     // specified set to literal string.
@@ -540,14 +559,12 @@ public:
 
     // Append methods for array.
     MutableValue& append(yyjson_mut_val* value);
-    // T as create: bool | int | string | (Mutable)Document | (Mutable)Value
     template <typename T>
     MutableValue& append(T&& value);
     
     // Insert methods for object.
     MutableValue& add(yyjson_mut_val* key, yyjson_mut_val* value);
     MutableValue& add(KeyValue&& kv);
-    // valT as create: bool | int | string | (Mutable)Document | (Mutable)Value
     template<typename keyT, typename valT>
     MutableValue& add(keyT&& key, valT&& value);
     
@@ -674,11 +691,8 @@ public:
     // Create methods for various types to create JSON nodes
     MutableValue create(yyjson_mut_val* value) const;
     MutableValue create() const;       // null
-    MutableValue createArray() const;  // []
-    MutableValue createObject() const; // {}
-    MutableValue createRef(const char* value) const; // string without copy
     // T: bool | int | string | (Mutable)Document | (Mutable)Value
-    template <typename T> MutableValue create(const T& value) const;
+    template <typename T> MutableValue create(T&& value) const;
 
     // Index access - const version for read-only access
     template <typename T>
@@ -1211,6 +1225,23 @@ inline yyjson_mut_val* create(yyjson_mut_doc* doc, const MutableValue& src)
 inline yyjson_mut_val* create(yyjson_mut_doc* doc, const MutableDocument& src)
 {
     return create(doc, src.root());
+}
+
+// Create key node for object insertion, with string literal optimization
+template<typename T>
+inline typename std::enable_if<is_key_type<T>(), yyjson_mut_val*>::type
+createKey(yyjson_mut_doc* doc, T&& key)
+{
+    return create(doc, std::forward<T>(key));
+}
+
+// Specialization for MutableValue key
+inline yyjson_mut_val* createKey(yyjson_mut_doc* doc, const MutableValue& key)
+{
+    if (key.isString()) {
+        return create(doc, key);
+    }
+    return nullptr;
 }
 
 /* @Section 3.2: Conversion Helper Functions */
@@ -1933,6 +1964,27 @@ inline MutableValue& MutableValue::setCopy(const char* value, size_t len)
     return *this;
 }
 
+template <size_t N>
+inline MutableValue& MutableValue::set(const char(&value)[N])
+{
+    if (N == 3)
+    {
+        if (::strcmp(value, "{}") == 0) { return setObject(); }
+        if (::strcmp(value, "[]") == 0) { return setArray(); }
+    }
+    if (isValid())
+    {
+        yyjson_mut_set_strn(m_val, value, N-1);
+    }
+    return *this;
+}
+
+template <size_t N>
+inline MutableValue& MutableValue::set(char(&value)[N])
+{
+    return setCopy(value, ::strlen(value));
+}
+
 inline MutableValue& MutableValue::setArray()
 {
     if (isValid())
@@ -1977,7 +2029,7 @@ MutableValue& MutableValue::operator=(const char(&value)[N])
 template <size_t N> 
 MutableValue& MutableValue::operator=(char(&value)[N])
 {
-    return set(const_cast<const char*>(value));
+    return setCopy(value, ::strlen(value));
 }
 
 /* @Group 4.3.4: array append */
@@ -2025,16 +2077,9 @@ template<typename keyT, typename valT>
 inline MutableValue& MutableValue::add(keyT&& key, valT&& value)
 {
     if (isObject()) {
-        yyjson_mut_val* keyNode = nullptr;
-        
-        if constexpr (is_key_type<keyT>()) {
-            keyNode = create(m_doc, std::forward<keyT>(key));
-        }
-        else {
-            keyNode = create(m_doc, std::forward<keyT>(key));
-            if (!yyjson_mut_is_str(keyNode)) {
-                return *this;
-            }
+        yyjson_mut_val* keyNode = createKey(m_doc, std::forward<keyT>(key));
+        if (!keyNode) {
+            return *this;
         }
         
         yyjson_mut_val* valNode = create(m_doc, std::forward<valT>(value));
@@ -2063,17 +2108,7 @@ inline KeyValue MutableValue::tag(MutableValue&& key) &&
 template <typename T>
 inline KeyValue MutableValue::tag(T&& key) &&
 {
-    yyjson_mut_val* keyNode = nullptr;
-    
-    if constexpr (is_key_type<T>()) {
-        keyNode = create(m_doc, std::forward<T>(key));
-    }
-    else {
-        keyNode = create(m_doc, std::forward<T>(key));
-        if (!yyjson_mut_is_str(keyNode)) {
-            keyNode = nullptr;
-        }
-    }
+    yyjson_mut_val* keyNode = createKey(m_doc, std::forward<T>(key));
     
     auto ret = KeyValue(keyNode, m_val);
     m_val = nullptr;
@@ -2083,13 +2118,12 @@ inline KeyValue MutableValue::tag(T&& key) &&
 /* @Group 4.3.7: smart input */
 /* ************************************************************************ */
 
-// todo: is_key concept
 template <typename T>
 inline bool MutableValue::inputKey(T&& key)
 {
     yyjson_mut_val* keyNode = nullptr;
     
-    if constexpr (is_key_type<T>()) {
+    if (is_key_type<T>()) {
         keyNode = create(m_doc, std::forward<T>(key));
     }
     else {
@@ -2416,25 +2450,10 @@ inline MutableValue MutableDocument::create() const
     return create(yyjson_mut_null(m_doc)); 
 }
 
-inline MutableValue MutableDocument::createRef(const char* value) const
-{ 
-    return create(StringRef(value));
-}
-
-inline MutableValue MutableDocument::createArray() const
-{ 
-    return create(yyjson_mut_arr(m_doc)); 
-}
-
-inline MutableValue MutableDocument::createObject() const
-{ 
-    return create(yyjson_mut_obj(m_doc)); 
-}
-
 template <typename T>
-inline MutableValue MutableDocument::create(const T& value) const
+inline MutableValue MutableDocument::create(T&& value) const
 {
-    return create(yyjson::create(m_doc, value));
+    return create(yyjson::create(m_doc, std::forward<T>(value)));
 }
 
 /* @Section 4.5: ArrayIterator Methods */
@@ -2906,21 +2925,9 @@ operator>=(const jsonT& lhs, const jsonT& rhs)
 
 // `doc * value` --> `doc.create(value)`
 template <typename T>
-inline MutableValue operator*(const MutableDocument& doc, const T& value)
+inline MutableValue operator*(const MutableDocument& doc, T&& value)
 {
-    return doc.create(value);
-}
-
-template <size_t N>
-inline MutableValue operator*(const MutableDocument& doc, const char(&value)[N])
-{
-    return doc.create(StringRef(value, N-1));
-}
-
-template <size_t N>
-inline MutableValue operator*(const MutableDocument& doc, char(&value)[N])
-{
-    return doc.create(value);
+    return doc.create(std::forward<T>(value));
 }
 
 template <typename T>

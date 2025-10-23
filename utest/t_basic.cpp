@@ -346,7 +346,7 @@ DEF_TAST(basic_index_operator, "test index method and operator[]")
 
     // Test with MutableValue (automatic insertion)
     yyjson::MutableDocument mutDoc;
-    auto mutObj = mutDoc.createObject();
+    auto mutObj = mutDoc.create(yyjson::kObject);
     
     // Add some values to test indexing
     mutObj["test_key"] = "test_value";
@@ -369,7 +369,7 @@ DEF_TAST(basic_index_operator, "test index method and operator[]")
     COUT(mutObj.index("auto_inserted_key").isNull(), true);
     
     // Test array operations with mutable values
-    auto mutArray = mutDoc.createArray();
+    auto mutArray = mutDoc.create(yyjson::kArray);
     mutArray.append(1).append(2).append(3);
     
     COUT(mutArray.index(0).getor(0), 1);

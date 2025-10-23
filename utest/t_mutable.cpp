@@ -285,6 +285,57 @@ DEF_TAST(mutable_assign_string, "test string node in yyjson")
     COUT(item5.isString(), true);
 }
 
+DEF_TAST(mutable_assign_string_literal, "test string literal optimization in set and assignment")
+{
+    yyjson::MutableDocument doc("[]");
+    
+    DESC("Test set method with string literals");
+    {
+        doc.root().append(1);
+        doc.root()[0].set("literal_value");
+        // to fix:
+        //! COUT_PTR(doc / 0 | "", "literal_value");
+        
+        // Test special literals
+        doc.root().append("{}");
+        COUT((doc / 1).isObject(), true);
+        COUT((doc / 1).size(), 0);
+        
+        doc.root().append("[]");
+        COUT((doc / 2).isArray(), true);
+        COUT((doc / 2).size(), 0);
+    }
+    
+    DESC("Test assignment operator with string literals");
+    {
+        doc.root().append(4);
+        doc.root()[3] = "assigned_literal";
+        COUT_PTR(doc / 3 | "", "assigned_literal");
+        
+        // Test with variables (should copy, not reference)
+        std::string var_str = "variable_string";
+        doc.root().append(5);
+        doc.root()[4] = var_str;
+        COUT(doc / 4 | "", "variable_string");
+        COUT(doc / 4 | "" == var_str.c_str(), false); // Should not be same pointer
+        
+        // Modify variable, json should remain unchanged
+        var_str = "modified";
+        COUT(doc / 4 | "", "variable_string");
+    }
+    
+    DESC("Test create method with string literals");
+    {
+        auto literal_node = doc.create("create_literal");
+        COUT_PTR(literal_node | "", "create_literal");
+        
+        std::string var_str = "create_variable";
+        auto variable_node = doc.create(var_str);
+        COUT(variable_node | "", "create_variable");
+        COUT(variable_node | "" == var_str.c_str(), false); // Should not be same pointer
+    }
+}
+
 DEF_TAST(mutable_assign_string_ref, "test string node reference in yyjson")
 {
     yyjson::MutableDocument doc("[]");
@@ -535,7 +586,7 @@ DEF_TAST(mutable_create_methods, "test MutableDocument create methods and * oper
         COUT(doubleNode.isNumber(), true);
         COUT(doubleNode | 0.0, 3.14);
         
-        auto stringNode = doc.createRef("hello");
+        auto stringNode = doc.create("hello");
         COUT(stringNode.isString(), true);
         COUT(stringNode | std::string(), "hello");
         // also compare pointer, the node refers literal string.
