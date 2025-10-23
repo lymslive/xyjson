@@ -570,21 +570,18 @@ public:
     
     // KeyValue creation methods for optimized object insertion
     KeyValue tag(MutableValue&& key) &&;
-    template <typename T>
-    KeyValue tag(T&& key) &&;
+    template <typename keyT>
+    KeyValue tag(keyT&& key) &&;
 
     MutableValue& input(KeyValue&& kv);
-
-    template<typename keyT, typename valT>
-    MutableValue& input(std::pair<keyT, valT>&& kv);
 
     // Smart input method, append for array, add for object, assign for scalar
     template <typename T>
     MutableValue& input(T&& value);
 
     // Input pending key, only support string type.
-    template <typename T>
-    bool inputKey(T&& key);
+    template <typename keyT>
+    bool inputKey(keyT&& key);
 
     // Input value after pending key.
     template <typename T>
@@ -2105,10 +2102,10 @@ inline KeyValue MutableValue::tag(MutableValue&& key) &&
     return ret;
 }
 
-template <typename T>
-inline KeyValue MutableValue::tag(T&& key) &&
+template <typename keyT>
+inline KeyValue MutableValue::tag(keyT&& key) &&
 {
-    yyjson_mut_val* keyNode = createKey(m_doc, std::forward<T>(key));
+    yyjson_mut_val* keyNode = createKey(m_doc, std::forward<keyT>(key));
     
     auto ret = KeyValue(keyNode, m_val);
     m_val = nullptr;
@@ -2118,23 +2115,27 @@ inline KeyValue MutableValue::tag(T&& key) &&
 /* @Group 4.3.7: smart input */
 /* ************************************************************************ */
 
-template <typename T>
-inline bool MutableValue::inputKey(T&& key)
+// Specialization for KeyValue - can only be added to object
+inline MutableValue& MutableValue::input(KeyValue&& kv)
 {
-    yyjson_mut_val* keyNode = nullptr;
-    
-    if (is_key_type<T>()) {
-        keyNode = create(m_doc, std::forward<T>(key));
+    if (isObject())
+    {
+        return add(std::forward<KeyValue>(kv));
     }
-    else {
-        keyNode = create(m_doc, std::forward<T>(key));
-        if (!yyjson_mut_is_str(keyNode)) {
-            keyNode = nullptr;
-        }
+    return *this;
+}
+
+template <typename keyT>
+inline bool MutableValue::inputKey(keyT&& key)
+{
+    yyjson_mut_val* keyNode = create(m_doc, std::forward<keyT>(key));
+    if (!yyjson_mut_is_str(keyNode)) {
+        keyNode = nullptr;
+        return false;
     }
     
     m_pendingKey = keyNode;
-    return m_pendingKey != nullptr;
+    return true;
 }
 
 template <typename T>
@@ -2148,26 +2149,6 @@ inline bool MutableValue::inputValue(T&& value)
     add(m_pendingKey, succeedVal);
     m_pendingKey = nullptr;
     return true;
-}
-
-// Specialization for KeyValue - can only be added to object
-inline MutableValue& MutableValue::input(KeyValue&& kv)
-{
-    if (isObject())
-    {
-        return add(std::forward<KeyValue>(kv));
-    }
-    return *this;
-}
-
-template<typename keyT, typename valT>
-inline MutableValue& MutableValue::input(std::pair<keyT, valT>&& kv)
-{
-    if (isObject())
-    {
-        return add(std::forward<keyT>(kv.first), std::forward<valT>(kv.second));
-    }
-    return *this;
 }
 
 // General template for other types
@@ -3150,9 +3131,6 @@ inline yyjson::Document operator""_xyjson(const char* jsonStr, std::size_t len)
 
 /* @Part 6: Last Definitions */
 /* ======================================================================== */
-
-// Convenience macro for key-value pair construction
-#define KV(key, value) std::make_pair(key, value)
 
 } /* end of namespace yyjson:: */
 

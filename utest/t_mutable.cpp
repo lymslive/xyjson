@@ -389,42 +389,39 @@ DEF_TAST(mutable_assign_string_ref, "test string node reference in yyjson")
     COUT(strcmp(node | "", "variable"), 0); // Copy does not reflect the change
 }
 
-DEF_TAST(mutable_kvpair_objadd, "test object insertion with KV macro")
+DEF_TAST(mutable_kvpair_objadd, "test object add method")
 {
     // temp str for operator|
     std::string str;
 
-    DESC("Test KV macro and operator+ for object insertion");
     {
         yyjson::MutableDocument doc("{}");
         COUT(doc.hasError(), false);
         
-        // Use KV macro with operator<< to insert key-value pairs
-        doc.root() << KV("name", "test") << KV("value", 123) << KV("enabled", true);
+        doc.root().add("name", "test").add("value", 123).add("enabled", true);
         
         // Verify inserted values
         COUT(doc / "name" | str, "test");
         COUT(doc / "value" | 0, 123);
         COUT(doc / "enabled" | false, true);
 
-        // to fix: verify key and string value is reference
+        // verify key and string value is reference
         {
-            //! COUT_PTR(doc / "name" | "", "test");
+            COUT_PTR(doc / "name" | "", "test");
             auto it = *doc %  "name";
-            //! COUT_PTR(it->key, "name");
+            COUT_PTR(it->key, "name");
             ++it;
-            //! COUT_PTR(it->key, "value");
+            COUT_PTR(it->key, "value");
         }
         
-        // Test string values with KV
-        *doc << KV("string_value", "hello") << KV("number_value", 42.5);
+        (*doc).add("string_value", "hello").add("number_value", 42.5);
         
         COUT(doc / "string_value" | str, "hello");
         COUT(doc / "number_value" | 0.0, 42.5);
         
         // Test complex nested object creation using "{}" special handling
         doc.root().add("nested", "{}");
-        doc / "nested" << KV("level1", 1) << KV("level2", "deep");
+        (doc / "nested").add("level1", 1).add("level2", "deep");
         
         COUT(doc / "nested" / "level1" | 0, 1);
         COUT(doc / "nested" / "level2" | str, "deep");
@@ -465,8 +462,8 @@ DEF_TAST(mutable_kvpair_objadd, "test object insertion with KV macro")
         doc.root().add("items", "[]");
         
         // Array fail to add key-val
-        doc / "items" << KV("name", "item1") << KV("id", 1);
-        doc / "items" << KV("name", "item2") << KV("id", 2);
+        (doc / "items").add("name", "item1").add("id", 1);
+        (doc / "items").add("name", "item2").add("id", 2);
         COUT((doc / "items").size(), 0);
 
         doc / "items" << "item1" << 1 << "item2" << 2;
@@ -530,7 +527,7 @@ DEF_TAST(mutable_array_append, "test append to MutableValue array")
     {
         // Create an object and append to array
         yyjson::MutableDocument objDoc("{}");
-        objDoc.root() << KV("name", "object") << KV("value", 999);
+        objDoc.root().add("name", "object").add("value", 999);
         
         doc.root() << objDoc.root();
         COUT(doc.root().size(), 10);
