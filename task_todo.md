@@ -915,6 +915,16 @@ AI 写了行测试调用 add(k, v) 其中 k 是原始指针 `yyjson_mut_val*` �
 `MutableValue` ，现不支持。有必要支持原始指针吗？先不管吧。用户要么全用 C API,
 不要与 xyjson 类 API 混用。
 
+## TODO:2025-10-24/3 为辅助功能增加子命名空间
+
+- Section 1.3: Type Traits 放在 trait:: 子空间
+- Part 3 的两节都放在 util:: 子空间
+
+- 命名空间不增加缩进
+- 调整调用处引用名字
+
+### DONE: 20251024-143000
+
 ## TODO: 分析迭代器优化方案
 ## TODO: 考虑实现 MutableValue 删除功能
 

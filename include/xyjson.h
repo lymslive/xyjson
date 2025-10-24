@@ -136,6 +136,9 @@ constexpr const char* okIncreace = "++";
 /* @Section 1.3: Type Traits */
 /* ------------------------------------------------------------------------ */
 
+namespace trait
+{
+
 /**
  * @brief Type traits for yyjson wrapper classes
  * 
@@ -181,6 +184,8 @@ constexpr bool is_cstr_type() {
     using decayed_t = std::decay_t<T>;
     return std::is_same<decayed_t, const char*>::value || std::is_same<decayed_t, char*>::value;
 }
+
+} /* end of namespace yyjson::trait */
 
 /* @Part 2: Class Definitions */
 /* ======================================================================== */
@@ -584,7 +589,7 @@ public:
     // C-Style string
 //  MutableValue& set(const char* value);
     template<typename T>
-    inline typename std::enable_if<is_cstr_type<T>(), MutableValue&>::type
+    inline typename std::enable_if<trait::is_cstr_type<T>(), MutableValue&>::type
     set(T value);
 
     // Assignment operators
@@ -1067,6 +1072,9 @@ private:
 /* @Part 3: Non-Class Functions */
 /* ======================================================================== */
 
+namespace util
+{
+
 /* @Section 3.1: Underlying mut_val Creation */
 /* ------------------------------------------------------------------------ */
 
@@ -1116,7 +1124,7 @@ inline yyjson_mut_val* create(yyjson_mut_doc* doc, const char* value, size_t len
 }
 
 template<typename T>
-inline typename std::enable_if<is_cstr_type<T>(), yyjson_mut_val*>::type
+inline typename std::enable_if<trait::is_cstr_type<T>(), yyjson_mut_val*>::type
 create(yyjson_mut_doc* doc, T value)
 {
     return create(doc, value, ::strlen(value));
@@ -1235,7 +1243,7 @@ inline yyjson_mut_val* create(yyjson_mut_doc* doc, const MutableDocument& src)
 
 // Create key node for object insertion, with string literal optimization
 template<typename T>
-inline typename std::enable_if<is_key_type<T>(), yyjson_mut_val*>::type
+inline typename std::enable_if<trait::is_key_type<T>(), yyjson_mut_val*>::type
 createKey(yyjson_mut_doc* doc, T&& key)
 {
     return create(doc, std::forward<T>(key));
@@ -1266,7 +1274,7 @@ inline yyjson_mut_val* createKey(yyjson_mut_doc* doc, MutableValue&& key)
 
 /// Compare two JSON values (Value or MutableValue) using hybrid logic.
 template<typename T>
-inline typename std::enable_if<is_value<T>::value, bool>::type
+inline typename std::enable_if<trait::is_value<T>::value, bool>::type
 lessCompare(const T& lhs, const T& rhs)
 {
     if (!lhs.isValid()) {
@@ -1315,7 +1323,7 @@ lessCompare(const T& lhs, const T& rhs)
 
 /// Convert JSON(Value or MutableValue) values to integers
 template<typename jsonT>
-inline typename std::enable_if<is_value<jsonT>::value, int>::type
+inline typename std::enable_if<trait::is_value<jsonT>::value, int>::type
 toIntegerCast(const jsonT& val)
 {
     if (!val.isValid()) return 0;
@@ -1337,6 +1345,8 @@ toIntegerCast(const jsonT& val)
     
     return 0;
 }
+
+} /* end of namespace yyjson::util */
 
 /* @Part 4: Class Implementations */
 /* ======================================================================== */
@@ -1559,7 +1569,7 @@ inline int Value::toInteger() const
     {
         return static_cast<int>(size());
     }
-    return yyjson::toIntegerCast(*this);
+    return util::toIntegerCast(*this);
 }
 
 inline double Value::toNumber() const
@@ -1574,7 +1584,7 @@ inline bool Value::equal(const Value& other) const
 
 inline bool Value::less(const Value& other) const
 {
-    return lessCompare(*this, other);
+    return util::lessCompare(*this, other);
 }
 
 /* @Section 4.2: Document Methods */
@@ -1969,7 +1979,7 @@ inline MutableValue& MutableValue::set(char(&value)[N])
 }
 
 template<typename T>
-inline typename std::enable_if<is_cstr_type<T>(), MutableValue&>::type
+inline typename std::enable_if<trait::is_cstr_type<T>(), MutableValue&>::type
 MutableValue::set(T value)
 {
     return setCopy(value, ::strlen(value));
@@ -2025,7 +2035,7 @@ inline MutableValue& MutableValue::append(yyjson_mut_val* value)
 template <typename T>
 inline MutableValue& MutableValue::append(T&& value)
 {
-    return append(create(m_doc, std::forward<T>(value)));
+    return append(util::create(m_doc, std::forward<T>(value)));
 }
 
 inline MutableValue& MutableValue::add(yyjson_mut_val* key, yyjson_mut_val* value)
@@ -2052,12 +2062,12 @@ template<typename keyT, typename valT>
 inline MutableValue& MutableValue::add(keyT&& key, valT&& value)
 {
     if (isObject()) {
-        yyjson_mut_val* keyNode = createKey(m_doc, std::forward<keyT>(key));
+        yyjson_mut_val* keyNode = util::createKey(m_doc, std::forward<keyT>(key));
         if (!keyNode) {
             return *this;
         }
         
-        yyjson_mut_val* valNode = create(m_doc, std::forward<valT>(value));
+        yyjson_mut_val* valNode = util::create(m_doc, std::forward<valT>(value));
         yyjson_mut_obj_add(m_val, keyNode, valNode);
     }
     return *this;
@@ -2083,7 +2093,7 @@ inline KeyValue MutableValue::tag(MutableValue&& key) &&
 template <typename keyT>
 inline KeyValue MutableValue::tag(keyT&& key) &&
 {
-    yyjson_mut_val* keyNode = createKey(m_doc, std::forward<keyT>(key));
+    yyjson_mut_val* keyNode = util::createKey(m_doc, std::forward<keyT>(key));
     
     auto ret = KeyValue(keyNode, m_val);
     m_val = nullptr;
@@ -2103,7 +2113,7 @@ inline MutableValue& MutableValue::input(KeyValue&& kv)
 template <typename keyT>
 inline bool MutableValue::inputKey(keyT&& key)
 {
-    yyjson_mut_val* keyNode = create(m_doc, std::forward<keyT>(key));
+    yyjson_mut_val* keyNode = util::create(m_doc, std::forward<keyT>(key));
     if (!yyjson_mut_is_str(keyNode)) {
         keyNode = nullptr;
         return false;
@@ -2120,7 +2130,7 @@ inline bool MutableValue::inputValue(T&& value)
     {
         return false;
     }
-    yyjson_mut_val* succeedVal = create(m_doc, std::forward<T>(value));
+    yyjson_mut_val* succeedVal = util::create(m_doc, std::forward<T>(value));
     add(m_pendingKey, succeedVal);
     m_pendingKey = nullptr;
     return true;
@@ -2220,7 +2230,7 @@ inline int MutableValue::toInteger() const
     {
         return static_cast<int>(size());
     }
-    return yyjson::toIntegerCast(*this);
+    return util::toIntegerCast(*this);
 }
 
 inline double MutableValue::toNumber() const
@@ -2235,7 +2245,7 @@ inline bool MutableValue::equal(const MutableValue& other) const
 
 inline bool MutableValue::less(const MutableValue& other) const
 {
-    return lessCompare(*this, other);
+    return util::lessCompare(*this, other);
 }
 
 /* @Section 4.4: MutableDocument Methods */
@@ -2405,7 +2415,7 @@ inline MutableValue MutableDocument::create() const
 template <typename T>
 inline MutableValue MutableDocument::create(T&& value) const
 {
-    return create(yyjson::create(m_doc, std::forward<T>(value)));
+    return create(util::create(m_doc, std::forward<T>(value)));
 }
 
 /* @Section 4.5: ArrayIterator Methods */
@@ -2662,7 +2672,7 @@ inline MutableObjectIterator& MutableObjectIterator::rewind()
 // Value and MutableValue path operators
 // `json / path` --> `json.pathto(path)`
 template <typename jsonT, typename T>
-inline typename std::enable_if<is_value<jsonT>::value, jsonT>::type
+inline typename std::enable_if<trait::is_value<jsonT>::value, jsonT>::type
 operator/(const jsonT& json, const T& path)
 {
     return json.pathto(path);
@@ -2671,7 +2681,7 @@ operator/(const jsonT& json, const T& path)
 // Value and MutableValue extraction operators
 // `json | def` --> `json.getor(def)` : return json or default value
 template<typename jsonT, typename T>
-inline typename std::enable_if<is_value<jsonT>::value, T>::type
+inline typename std::enable_if<trait::is_value<jsonT>::value, T>::type
 operator|(const jsonT& json, const T& defaultValue)
 {
     return json.getor(defaultValue);
@@ -2679,21 +2689,21 @@ operator|(const jsonT& json, const T& defaultValue)
 
 // Specialization for const char* to avoid template deduction issues
 template<typename jsonT>
-inline typename std::enable_if<is_value<jsonT>::value, const char*>::type
+inline typename std::enable_if<trait::is_value<jsonT>::value, const char*>::type
 operator|(const jsonT& json, const char* defaultValue)
 {
     return json.getor(defaultValue);
 }
 // Overloads for sentinels kString and kNumber
 template<typename jsonT>
-inline typename std::enable_if<is_value<jsonT>::value, const char*>::type
+inline typename std::enable_if<trait::is_value<jsonT>::value, const char*>::type
 operator|(const jsonT& json, EmptyString)
 {
     return json.getor(kString);
 }
 
 template<typename jsonT>
-inline typename std::enable_if<is_value<jsonT>::value, double>::type
+inline typename std::enable_if<trait::is_value<jsonT>::value, double>::type
 operator|(const jsonT& json, ZeroNumber)
 {
     return json.getor(kNumber);
@@ -2701,7 +2711,7 @@ operator|(const jsonT& json, ZeroNumber)
 
 // `dest |= json` --> `dest = json | dest`;
 template <typename valueT, typename jsonT>
-inline typename std::enable_if<is_value<jsonT>::value, valueT&>::type
+inline typename std::enable_if<trait::is_value<jsonT>::value, valueT&>::type
 operator|=(valueT& dest, const jsonT& json)
 {
     json.get(dest);
@@ -2710,7 +2720,7 @@ operator|=(valueT& dest, const jsonT& json)
 
 // `json >> dest` --> `json.get(dest)` : return if get successfully
 template <typename valueT, typename jsonT>
-inline typename std::enable_if<is_value<jsonT>::value, bool>::type
+inline typename std::enable_if<trait::is_value<jsonT>::value, bool>::type
 operator>>(const jsonT& json, valueT& dest)
 {
     return json.get(dest);
@@ -2726,7 +2736,7 @@ inline auto operator|(const jsonT& json, Func&& func) -> decltype(func(json))
 // Value and MutableValue type checking operators
 // `json & type` --> `json.isType(type)` : return bool for type checking
 template<typename jsonT, typename T>
-inline typename std::enable_if<is_value<jsonT>::value, bool>::type
+inline typename std::enable_if<trait::is_value<jsonT>::value, bool>::type
 operator&(const jsonT& json, const T& type)
 {
     return json.isType(type);
@@ -2734,7 +2744,7 @@ operator&(const jsonT& json, const T& type)
 
 // Specialization for const char* to avoid template deduction issues
 template<typename jsonT>
-inline typename std::enable_if<is_value<jsonT>::value, bool>::type
+inline typename std::enable_if<trait::is_value<jsonT>::value, bool>::type
 operator&(const jsonT& json, const char* type)
 {
     return json.isType(type);
@@ -2745,7 +2755,7 @@ operator&(const jsonT& json, const char* type)
 
 // `+json` --> `json.toInteger()` : convert any json to int
 template<typename jsonT>
-inline typename std::enable_if<is_value<jsonT>::value, int>::type
+inline typename std::enable_if<trait::is_value<jsonT>::value, int>::type
 operator+(const jsonT& json)
 {
     return json.toInteger();
@@ -2753,7 +2763,7 @@ operator+(const jsonT& json)
 
 // `-json` --> `json.toString()`
 template<typename jsonT>
-inline typename std::enable_if<is_value<jsonT>::value, std::string>::type
+inline typename std::enable_if<trait::is_value<jsonT>::value, std::string>::type
 operator-(const jsonT& json)
 {
     return json.toString();
@@ -2761,14 +2771,14 @@ operator-(const jsonT& json)
 
 // `*doc` --> `doc.root()` : returns root value
 template<typename docT>
-inline typename std::enable_if<is_document<docT>::value, typename docT::value_type>::type
+inline typename std::enable_if<trait::is_document<docT>::value, typename docT::value_type>::type
 operator*(docT& doc)
 {
     return doc.root();
 }
 
 template<typename docT>
-inline typename std::enable_if<is_document<docT>::value, typename docT::value_type>::type
+inline typename std::enable_if<trait::is_document<docT>::value, typename docT::value_type>::type
 operator*(const docT& doc)
 {
     return doc.root();
@@ -2791,7 +2801,7 @@ inline Document operator~(const MutableDocument& doc)
 
 // Value and MutableValue comparison operators
 template<typename jsonT>
-inline typename std::enable_if<is_value<jsonT>::value, bool>::type
+inline typename std::enable_if<trait::is_value<jsonT>::value, bool>::type
 operator==(const jsonT& lhs, const jsonT& rhs)
 {
     return lhs.equal(rhs);
@@ -2799,14 +2809,14 @@ operator==(const jsonT& lhs, const jsonT& rhs)
 
 // Specialization for const char* to avoid pointer comparison issues
 template<typename jsonT>
-inline typename std::enable_if<is_value<jsonT>::value, bool>::type
+inline typename std::enable_if<trait::is_value<jsonT>::value, bool>::type
 operator==(const jsonT& json, const char* scalar)
 {
     return (json & scalar) && (::strcmp(json | "", scalar) == 0);
 }
 
 template<typename jsonT>
-inline typename std::enable_if<is_value<jsonT>::value, bool>::type
+inline typename std::enable_if<trait::is_value<jsonT>::value, bool>::type
 operator==(const char* scalar, const jsonT& json)
 {
     return json == scalar; // Use the reverse implementation
@@ -2814,7 +2824,7 @@ operator==(const char* scalar, const jsonT& json)
 
 // JSON value and scalar type comparison operators
 template<typename jsonT, typename scalarT>
-inline typename std::enable_if<is_value<jsonT>::value && !is_value<scalarT>::value, bool>::type
+inline typename std::enable_if<trait::is_value<jsonT>::value && !trait::is_value<scalarT>::value, bool>::type
 operator==(const jsonT& json, const scalarT& scalar)
 {
     return (json & scalar) && ((json | scalar) == scalar);
@@ -2822,7 +2832,7 @@ operator==(const jsonT& json, const scalarT& scalar)
 
 // Scalar type and JSON value comparison operators
 template<typename scalarT, typename jsonT>
-inline typename std::enable_if<is_value<jsonT>::value && !is_value<scalarT>::value, bool>::type
+inline typename std::enable_if<trait::is_value<jsonT>::value && !trait::is_value<scalarT>::value, bool>::type
 operator==(const scalarT& scalar, const jsonT& json)
 {
     return json == scalar; // Use the reverse implementation
@@ -2830,7 +2840,7 @@ operator==(const scalarT& scalar, const jsonT& json)
 
 // Iterator comparison operators
 template<typename iteratorT>
-inline typename std::enable_if<is_iterator<iteratorT>::value, bool>::type
+inline typename std::enable_if<trait::is_iterator<iteratorT>::value, bool>::type
 operator==(const iteratorT& lhs, const iteratorT& rhs)
 {
     return lhs.equal(rhs);
@@ -2844,7 +2854,7 @@ inline bool operator!=(const leftT& lhs, const rightT& rhs)
 
 // Less-than comparison operator for Value and MutableValue
 template<typename jsonT>
-inline typename std::enable_if<is_value<jsonT>::value, bool>::type
+inline typename std::enable_if<trait::is_value<jsonT>::value, bool>::type
 operator<(const jsonT& lhs, const jsonT& rhs)
 {
     return lhs.less(rhs);
@@ -2852,21 +2862,21 @@ operator<(const jsonT& lhs, const jsonT& rhs)
 
 // Other comparison operators
 template<typename jsonT>
-inline typename std::enable_if<is_value<jsonT>::value, bool>::type
+inline typename std::enable_if<trait::is_value<jsonT>::value, bool>::type
 operator>(const jsonT& lhs, const jsonT& rhs)
 {
     return rhs < lhs;
 }
 
 template<typename jsonT>
-inline typename std::enable_if<is_value<jsonT>::value, bool>::type
+inline typename std::enable_if<trait::is_value<jsonT>::value, bool>::type
 operator<=(const jsonT& lhs, const jsonT& rhs)
 {
     return !(rhs < lhs);
 }
 
 template<typename jsonT>
-inline typename std::enable_if<is_value<jsonT>::value, bool>::type
+inline typename std::enable_if<trait::is_value<jsonT>::value, bool>::type
 operator>=(const jsonT& lhs, const jsonT& rhs)
 {
     return !(lhs < rhs);
@@ -2883,14 +2893,14 @@ inline MutableValue operator*(const MutableDocument& doc, T&& value)
 }
 
 template <typename T>
-inline typename std::enable_if<is_key_type<T>(), KeyValue>::type
+inline typename std::enable_if<trait::is_key_type<T>(), KeyValue>::type
 operator*(MutableValue&& json, T&& key)
 {
     return std::move(json).tag(std::forward<T>(key));
 }
 
 template <typename T>
-inline typename std::enable_if<is_key_type<T>(), KeyValue>::type
+inline typename std::enable_if<trait::is_key_type<T>(), KeyValue>::type
 operator*(T&& key, MutableValue&& json)
 {
     return std::move(json).tag(std::forward<T>(key));
@@ -2906,7 +2916,7 @@ inline KeyValue operator*(MutableValue&& key, MutableValue&& value)
 
 // `doc << input` --> `doc.read(input)`
 template<typename docT, typename T>
-inline typename std::enable_if<is_document<docT>::value, bool>::type
+inline typename std::enable_if<trait::is_document<docT>::value, bool>::type
 operator<<(docT& doc, T& input)
 {
     return doc.read(input);
@@ -2914,7 +2924,7 @@ operator<<(docT& doc, T& input)
 
 // `doc >> output` --> `doc.write(output)`
 template<typename docT, typename T>
-inline typename std::enable_if<is_document<docT>::value, bool>::type
+inline typename std::enable_if<trait::is_document<docT>::value, bool>::type
 operator>>(const docT& doc, T& output)
 {
     return doc.write(output);
@@ -2922,7 +2932,7 @@ operator>>(const docT& doc, T& output)
 
 // `std::ostream << json` --> output value as JSON string
 template<typename jsonT>
-inline typename std::enable_if<is_value<jsonT>::value, std::ostream&>::type
+inline typename std::enable_if<trait::is_value<jsonT>::value, std::ostream&>::type
 operator<<(std::ostream& os, const jsonT& json)
 {
     return os << json.toString();
@@ -2949,7 +2959,7 @@ inline MutableValue& operator<<(MutableValue&& json, T&& value)
 // Array iterator creation (json % int)
 // `json % index` --> `json.arrayIter(index)`
 template<typename jsonT>
-inline typename std::enable_if<is_value<jsonT>::value, typename jsonT::array_iterator>::type
+inline typename std::enable_if<trait::is_value<jsonT>::value, typename jsonT::array_iterator>::type
 operator%(const jsonT& json, int offset)
 {
     return json.arrayIter(offset);
@@ -2958,7 +2968,7 @@ operator%(const jsonT& json, int offset)
 // Object iterator creation (json % const char*)
 // `json % key` --> `json.objectIter(key)`
 template<typename jsonT>
-inline typename std::enable_if<is_value<jsonT>::value, typename jsonT::object_iterator>::type
+inline typename std::enable_if<trait::is_value<jsonT>::value, typename jsonT::object_iterator>::type
 operator%(const jsonT& json, const char* key)
 {
     return json.objectIter(key);
@@ -2967,7 +2977,7 @@ operator%(const jsonT& json, const char* key)
 // Prefix increment operator (++iter)
 // `++iter` --> `iter.next()`
 template<typename iteratorT>
-inline typename std::enable_if<is_iterator<iteratorT>::value, iteratorT&>::type
+inline typename std::enable_if<trait::is_iterator<iteratorT>::value, iteratorT&>::type
 operator++(iteratorT& iter)
 {
     return iter.next();
@@ -2976,7 +2986,7 @@ operator++(iteratorT& iter)
 // Postfix increment operator (iter++)
 // `iter++` --> `iter.Next()`
 template<typename iteratorT>
-inline typename std::enable_if<is_iterator<iteratorT>::value, iteratorT>::type
+inline typename std::enable_if<trait::is_iterator<iteratorT>::value, iteratorT>::type
 operator++(iteratorT& iter, int)
 {
     return iter.Next();
@@ -2985,7 +2995,7 @@ operator++(iteratorT& iter, int)
 // Iterator advance operator (+= +)
 // `iter += step` --> `iter.advance(step)`
 template<typename iteratorT>
-inline typename std::enable_if<is_iterator<iteratorT>::value, iteratorT&>::type
+inline typename std::enable_if<trait::is_iterator<iteratorT>::value, iteratorT&>::type
 operator+=(iteratorT& iter, size_t step)
 {
     return iter.advance(step);
@@ -2993,7 +3003,7 @@ operator+=(iteratorT& iter, size_t step)
 
 // `iter + step` --> `copy iter.advance(step)`
 template<typename iteratorT>
-inline typename std::enable_if<is_iterator<iteratorT>::value, iteratorT>::type
+inline typename std::enable_if<trait::is_iterator<iteratorT>::value, iteratorT>::type
 operator+(iteratorT& iter, size_t step)
 {
     iteratorT copy = iter;
@@ -3003,7 +3013,7 @@ operator+(iteratorT& iter, size_t step)
 // Iterator seek operators (%= %)
 // `iter %= target` --> `iter.seek(target)`
 template<typename iteratorT, typename T>
-inline typename std::enable_if<is_iterator<iteratorT>::value, iteratorT&>::type
+inline typename std::enable_if<trait::is_iterator<iteratorT>::value, iteratorT&>::type
 operator%=(iteratorT& iter, const T& target)
 {
     return iter.seek(target);
@@ -3011,7 +3021,7 @@ operator%=(iteratorT& iter, const T& target)
 
 // `iter % target` --> `copy iter.seek(target)`
 template<typename iteratorT, typename T>
-inline typename std::enable_if<is_iterator<iteratorT>::value, iteratorT>::type
+inline typename std::enable_if<trait::is_iterator<iteratorT>::value, iteratorT>::type
 operator%(iteratorT& iter, const T& target)
 {
     iteratorT copy = iter;
@@ -3023,7 +3033,7 @@ operator%(iteratorT& iter, const T& target)
 
 // `doc / path` : path from root
 template <typename docT, typename T>
-inline typename std::enable_if<is_document<docT>::value, typename docT::value_type>::type
+inline typename std::enable_if<trait::is_document<docT>::value, typename docT::value_type>::type
 operator/(const docT& doc, const T& path)
 {
     return doc.root() / path;
@@ -3031,7 +3041,7 @@ operator/(const docT& doc, const T& path)
 
 // `doc % path` : create iterator for root
 template <typename docT, typename T>
-inline typename std::enable_if<is_document<docT>::value, typename docT::value_type>::type
+inline typename std::enable_if<trait::is_document<docT>::value, typename docT::value_type>::type
 operator%(const docT& doc, const T& path)
 {
     return doc.root() % path;
@@ -3039,14 +3049,14 @@ operator%(const docT& doc, const T& path)
 
 // `+doc` : convert root to integer
 template<typename docT>
-inline typename std::enable_if<is_document<docT>::value, int>::type
+inline typename std::enable_if<trait::is_document<docT>::value, int>::type
 operator+(docT& doc)
 {
     return +doc.root();
 }
 
 template<typename docT>
-inline typename std::enable_if<is_document<docT>::value, int>::type
+inline typename std::enable_if<trait::is_document<docT>::value, int>::type
 operator+(const docT& doc)
 {
     return +doc.root();
@@ -3054,14 +3064,14 @@ operator+(const docT& doc)
 
 // `-doc` : convert root to string
 template<typename docT>
-inline typename std::enable_if<is_document<docT>::value, std::string>::type
+inline typename std::enable_if<trait::is_document<docT>::value, std::string>::type
 operator-(docT& doc)
 {
     return -doc.root();
 }
 
 template<typename docT>
-inline typename std::enable_if<is_document<docT>::value, std::string>::type
+inline typename std::enable_if<trait::is_document<docT>::value, std::string>::type
 operator-(const docT& doc)
 {
     return -doc.root();
@@ -3069,7 +3079,7 @@ operator-(const docT& doc)
 
 // `doc == doc` : compare their root
 template<typename docT>
-inline typename std::enable_if<is_document<docT>::value, bool>::type
+inline typename std::enable_if<trait::is_document<docT>::value, bool>::type
 operator==(const docT& lhs, const docT& rhs)
 {
     return lhs.root() == rhs.root();
@@ -3077,7 +3087,7 @@ operator==(const docT& lhs, const docT& rhs)
 
 // `std::ostream << doc` : output root as JSON string
 template<typename docT>
-inline typename std::enable_if<is_document<docT>::value, std::ostream&>::type
+inline typename std::enable_if<trait::is_document<docT>::value, std::ostream&>::type
 operator<<(std::ostream& os, const docT& doc)
 {
     return os << doc.root();

@@ -200,32 +200,32 @@ DEF_TAST(advanced_trait, "test type traits for yyjson wrapper classes")
     using namespace yyjson;
 
     // Test is_value trait
-    COUT(is_value<Value>::value, true);
-    COUT(is_value<MutableValue>::value, true);
-    COUT(is_value<Document>::value, false);
-    COUT(is_value<MutableDocument>::value, false);
-    COUT(is_value<int>::value, false);
-    COUT(is_value<std::string>::value, false);
+    COUT(trait::is_value<Value>::value, true);
+    COUT(trait::is_value<MutableValue>::value, true);
+    COUT(trait::is_value<Document>::value, false);
+    COUT(trait::is_value<MutableDocument>::value, false);
+    COUT(trait::is_value<int>::value, false);
+    COUT(trait::is_value<std::string>::value, false);
 
     // Test is_document trait
-    COUT(is_document<Document>::value, true);
-    COUT(is_document<MutableDocument>::value, true);
-    COUT(is_document<Value>::value, false);
-    COUT(is_document<MutableValue>::value, false);
-    COUT(is_document<void*>::value, false);
+    COUT(trait::is_document<Document>::value, true);
+    COUT(trait::is_document<MutableDocument>::value, true);
+    COUT(trait::is_document<Value>::value, false);
+    COUT(trait::is_document<MutableValue>::value, false);
+    COUT(trait::is_document<void*>::value, false);
 
     // Test is_iterator trait
-    COUT(is_iterator<ArrayIterator>::value, true);
-    COUT(is_iterator<ObjectIterator>::value, true);
-    COUT(is_iterator<MutableArrayIterator>::value, true);
-    COUT(is_iterator<MutableObjectIterator>::value, true);
-    COUT(is_iterator<Value>::value, false);
-    COUT(is_iterator<Document>::value, false);
+    COUT(trait::is_iterator<ArrayIterator>::value, true);
+    COUT(trait::is_iterator<ObjectIterator>::value, true);
+    COUT(trait::is_iterator<MutableArrayIterator>::value, true);
+    COUT(trait::is_iterator<MutableObjectIterator>::value, true);
+    COUT(trait::is_iterator<Value>::value, false);
+    COUT(trait::is_iterator<Document>::value, false);
 
     // Example usage with function templates
     {
         auto check_value_type = [](const auto& obj) {
-            return is_value<std::decay_t<decltype(obj)>>::value;
+            return trait::is_value<std::decay_t<decltype(obj)>>::value;
         };
 
         Value val;
@@ -239,7 +239,7 @@ DEF_TAST(advanced_trait, "test type traits for yyjson wrapper classes")
     {
         Value val;
         
-        if constexpr (is_value<Value>::value) {
+        if constexpr (trait::is_value<Value>::value) {
             COUT(val.isValid(), false); // null value should be invalid
         } else {
             COUT(false, true); // This branch should not be taken
@@ -249,33 +249,33 @@ DEF_TAST(advanced_trait, "test type traits for yyjson wrapper classes")
     // Test is_key_type function
     {
         // Test supported key types (should return true)
-        COUT(is_key_type<const char*>(), true);
-        COUT(is_key_type<char*>(), true);
-        COUT(is_key_type<std::string>(), true);
+        COUT(trait::is_key_type<const char*>(), true);
+        COUT(trait::is_key_type<char*>(), true);
+        COUT(trait::is_key_type<std::string>(), true);
         
         // Test string literals (array types)
-        COUT(is_key_type<const char[5]>(), true);  // e.g., "test"
-        COUT(is_key_type<char[5]>(), true);        // e.g., char arr[5] = "test"
+        COUT(trait::is_key_type<const char[5]>(), true);  // e.g., "test"
+        COUT(trait::is_key_type<char[5]>(), true);        // e.g., char arr[5] = "test"
         
         // Test unsupported types (should return false)
-        COUT(is_key_type<int>(), false);
-        COUT(is_key_type<double>(), false);
-        COUT(is_key_type<bool>(), false);
-        COUT(is_key_type<Value>(), false);
-        COUT(is_key_type<MutableValue>(), false);
-        COUT(is_key_type<Document>(), false);
-        COUT(is_key_type<void*>(), false);
+        COUT(trait::is_key_type<int>(), false);
+        COUT(trait::is_key_type<double>(), false);
+        COUT(trait::is_key_type<bool>(), false);
+        COUT(trait::is_key_type<Value>(), false);
+        COUT(trait::is_key_type<MutableValue>(), false);
+        COUT(trait::is_key_type<Document>(), false);
+        COUT(trait::is_key_type<void*>(), false);
         
         // Test with decayed types (should handle array-to-pointer decay correctly)
         const char* ptr = "test";
-        COUT(is_key_type<decltype(ptr)>(), true);
+        COUT(trait::is_key_type<decltype(ptr)>(), true);
         
         std::string str = "test";
-        COUT(is_key_type<decltype(str)>(), true);
+        COUT(trait::is_key_type<decltype(str)>(), true);
         
         // Test with function that uses is_key_type
         auto test_key_function = [](const auto& key) {
-            if constexpr (is_key_type<decltype(key)>()) {
+            if constexpr (trait::is_key_type<decltype(key)>()) {
                 return std::string("valid_key");
             } else {
                 return std::string("invalid_key");
@@ -516,7 +516,7 @@ DEF_TAST(advanced_string_optimization, "test string creation optimization strate
     
     // Test 1: String literal should be optimized (reference)
     {
-        auto literal_node = yyjson::create(doc.get(), "string_literal");
+        auto literal_node = yyjson::util::create(doc.get(), "string_literal");
         MutableValue literal_val(literal_node, doc.get());
         
         const char* result = literal_val | "";
@@ -527,7 +527,7 @@ DEF_TAST(advanced_string_optimization, "test string creation optimization strate
     // Test 2: const char* should be copied
     {
         const char* ptr = "pointer_string";
-        auto ptr_node = yyjson::create(doc.get(), ptr);
+        auto ptr_node = yyjson::util::create(doc.get(), ptr);
         MutableValue ptr_val(ptr_node, doc.get());
         
         const char* result = ptr_val | "";
@@ -539,7 +539,7 @@ DEF_TAST(advanced_string_optimization, "test string creation optimization strate
     {
         char buffer[] = "char_star_buffer";
         char* ptr = buffer;
-        auto ptr_node = yyjson::create(doc.get(), ptr);
+        auto ptr_node = yyjson::util::create(doc.get(), ptr);
         MutableValue ptr_val(ptr_node, doc.get());
         
         const char* result = ptr_val | "";
@@ -552,7 +552,7 @@ DEF_TAST(advanced_string_optimization, "test string creation optimization strate
     {
         char buffer[] = "char_array_buffer";
         // Directly pass the array (not pointer) - should be copied
-        auto arr_node = yyjson::create(doc.get(), buffer);
+        auto arr_node = yyjson::util::create(doc.get(), buffer);
         MutableValue arr_val(arr_node, doc.get());
         
         const char* result = arr_val | "";
@@ -564,7 +564,7 @@ DEF_TAST(advanced_string_optimization, "test string creation optimization strate
     // Test 5: char[N] with special content should be string, not special container
     {
         char obj_buffer[] = "{}";
-        auto obj_node = yyjson::create(doc.get(), obj_buffer);
+        auto obj_node = yyjson::util::create(doc.get(), obj_buffer);
         MutableValue obj_val(obj_node, doc.get());
         
         COUT(obj_val.typeName(), "string"); // Should be string, not object
@@ -572,7 +572,7 @@ DEF_TAST(advanced_string_optimization, "test string creation optimization strate
         COUT(obj_val.isObject(), false); // Should not be object
         
         char arr_buffer[] = "[]";
-        auto arr_node = yyjson::create(doc.get(), arr_buffer);
+        auto arr_node = yyjson::util::create(doc.get(), arr_buffer);
         MutableValue arr_val(arr_node, doc.get());
         
         COUT(arr_val.typeName(), "string"); // Should be string, not array
@@ -583,7 +583,7 @@ DEF_TAST(advanced_string_optimization, "test string creation optimization strate
     // Test 6: std::string should be copied
     {
         std::string str = "std_string";
-        auto str_node = yyjson::create(doc.get(), str);
+        auto str_node = yyjson::util::create(doc.get(), str);
         MutableValue str_val(str_node, doc.get());
         
         const char* result = str_val | "";
@@ -594,7 +594,7 @@ DEF_TAST(advanced_string_optimization, "test string creation optimization strate
     // Test 7: StringRef should be optimized
     {
         StringRef ref("ref_string");
-        auto ref_node = yyjson::create(doc.get(), ref);
+        auto ref_node = yyjson::util::create(doc.get(), ref);
         MutableValue ref_val(ref_node, doc.get());
         
         const char* result = ref_val | "";
@@ -604,7 +604,7 @@ DEF_TAST(advanced_string_optimization, "test string creation optimization strate
     
     // Test 8: Special literal "{}" should create empty object
     {
-        auto obj_node = yyjson::create(doc.get(), "{}");
+        auto obj_node = yyjson::util::create(doc.get(), "{}");
         MutableValue obj_val(obj_node, doc.get());
         
         COUT(obj_val.typeName(), "object"); // Should be object type
@@ -615,7 +615,7 @@ DEF_TAST(advanced_string_optimization, "test string creation optimization strate
     
     // Test 9: Special literal "[]" should create empty array
     {
-        auto arr_node = yyjson::create(doc.get(), "[]");
+        auto arr_node = yyjson::util::create(doc.get(), "[]");
         MutableValue arr_val(arr_node, doc.get());
         
         COUT(arr_val.typeName(), "array"); // Should be array type
@@ -626,7 +626,7 @@ DEF_TAST(advanced_string_optimization, "test string creation optimization strate
     
     // Test 10: Regular string literals should not be treated as special
     {
-        auto reg_node = yyjson::create(doc.get(), "{not_special}");
+        auto reg_node = yyjson::util::create(doc.get(), "{not_special}");
         MutableValue reg_val(reg_node, doc.get());
         
         COUT(reg_val.typeName(), "string"); // Should be string type

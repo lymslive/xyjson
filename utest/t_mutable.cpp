@@ -995,7 +995,7 @@ DEF_TAST(mutable_move_semantics, "test move semantics for MutableValue insertion
         auto valueNode = doc.create("value_for_creatKey");
 
         // Test move semantics with createKey
-        auto movedKey = yyjson::createKey(doc.get(), std::move(keyNode));
+        auto movedKey = yyjson::util::createKey(doc.get(), std::move(keyNode));
         COUT(movedKey != nullptr, true);
         COUT(!keyNode, true);
 

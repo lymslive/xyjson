@@ -6,6 +6,7 @@
     "allow": [
       "Bash(ls:*)",
       "Bash(date:*)",
+      "Bash(perl:*)",
       "Bash(git:status,git:diff,git:add,git:log)"
     ]
   }
