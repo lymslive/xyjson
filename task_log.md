@@ -1012,3 +1012,39 @@ cd build && make -j4
 - ✅ 字符串字面量优化功能正常工作
 - ✅ 边界情况正确处理（`char[N]` 数组拷贝，无特殊处理）
 - ✅ 无回归问题
+
+---
+
+## 任务ID: 20251024-112310
+- **任务类型**: 开发
+- **任务状态**: 已完成
+- **执行AI**: DeepSeek-V3.1
+
+### 任务需求
+实现 MutableValue << MutableValue 支持移动语义，现为复制结点添加到目标容器中，要求支持 std::move 后按右值移动到目标容器。
+
+### 执行过程
+**1. 分析当前实现**
+- 分析现有 `<<` 操作符实现，理解复制语义
+- 检查 `input`、`append` 和 `add` 方法调用链
+
+**2. 设计移动语义支持**
+- 添加 `MutableValue::setMoved()` 方法，标记指针为nullptr
+- 添加 `MutableValue::getDoc()` 方法，便于文档一致性检查
+- 为 `yyjson::create()` 函数添加 `MutableValue&&` 参数重载
+- 为 `createKey()` 函数添加 `MutableValue&&` 参数重载
+- 为 `yyjson_mut_val*` 类型添加专门的 `createKey()` 重载
+
+**3. 添加单元测试**
+- 在 `t_mutable.cpp` 中添加 `mutable_move_semantics` 测试用例
+- 测试数组追加和对象插入的移动语义
+- 测试 `createKey` 函数的移动语义支持
+
+**4. 编译验证**
+- 修复编译错误（重复 `set` 方法声明、私有成员访问）
+- 确保所有单元测试通过
+
+### 完成成果
+- 成功实现 MutableValue 移动语义支持
+- 所有44个测试用例全部通过，无回归
+- 移动语义功能正常工作，源对象在移动后被正确标记为无效

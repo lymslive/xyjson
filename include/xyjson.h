@@ -435,6 +435,15 @@ public:
     
     // Access underlying yyjson value. yyjson api use non-const pointer.
     yyjson_mut_val* get() const { return m_val; }
+    
+    // Access the document this value belongs to
+    yyjson_mut_doc* getDoc() const { return m_doc; }
+
+    // Set underlying yyjson value pointer directly
+    void set(yyjson_mut_val* val) { m_val = val; }
+    
+    // Mark as moved, set internal pointers to nullptr
+    void setMoved() { m_val = nullptr; m_doc = nullptr; }
 
     // Value extraction with result reference
     bool get(bool& result) const;
@@ -487,9 +496,6 @@ public:
     MutableValue pathto(int idx) const { return index(idx); }
     MutableValue pathto(size_t idx) const { return index(idx); }
     
-    // Set underlying yyjson value pointer directly
-    void set(yyjson_mut_val* val) { m_val = val; }
-
     // Copy assignment
     MutableValue& set(const MutableValue& other);
 
@@ -1196,6 +1202,18 @@ inline yyjson_mut_val* create(yyjson_mut_doc* doc, const MutableValue& src)
     return create(doc, src.get());
 }
 
+// Move semantics overload for MutableValue&&
+inline yyjson_mut_val* create(yyjson_mut_doc* doc, MutableValue&& src)
+{
+    // Check if this MutableValue can be moved (same document)
+    if (src.getDoc() == doc) {
+        yyjson_mut_val* result = src.get();
+        src.setMoved();
+        return result;
+    }
+    return create(doc, src.get());
+}
+
 inline yyjson_mut_val* create(yyjson_mut_doc* doc, const MutableDocument& src)
 {
     return create(doc, src.root());
@@ -1214,6 +1232,15 @@ inline yyjson_mut_val* createKey(yyjson_mut_doc* doc, const MutableValue& key)
 {
     if (key.isString()) {
         return create(doc, key);
+    }
+    return nullptr;
+}
+
+// Move semantics overload for MutableValue&& key
+inline yyjson_mut_val* createKey(yyjson_mut_doc* doc, MutableValue&& key)
+{
+    if (key.isString()) {
+        return create(doc, std::move(key));
     }
     return nullptr;
 }

@@ -876,10 +876,39 @@ add 与 tag 方法容易改造。但 inputKey 由 input 转发而来，为支持
 
 ### DONE: 20251024/003132
 
-## TODO: 显式 move 方案
+## TODO:2025-10-24/1 显式 move 方案
 
+### 2025-10-21/1
 增加 MutableValue::move 方法，生成 MoveValue ，将底层指针 `yyjson_mut_val*`
 转移给后者。MoveValue 在添加到其他 MutableValue 的对象或数组时不再拷贝。
+为 create 与 createKey 函数增加 MoveValue&& 重载，直接返回指针。
+可考虑操作符 ~MutableValue 调用 .move 方法。
+
+### UNDO:
+
+在标准 std::move 与自定义 .move 方案之间反复横跳纠结。
+各有优缺点。
+
+最后还是决定先与 KeyValue tag * 一样用 std::move && 表明移动意图。
+文档加注不用为已附在 json 树上的结点使用 std::move ，只应移动独立结点：
+- 由 create 创建的新结点 MutableValue
+- 从 json 树上删除摘下的结点
+- 避免 << /path/to/existed/node ，这临时值也匹配 && 右值
+
+## TODO:2025-10-24/2 MutableValue << MutableValue 支持移动语义
+
+现在是复制结点添加到目标容器中，要求支持 std::move 后按右值移动到目标容器。
+
+大致改动点：
+- 增加 MutalbeValue::setMoved 方法，标记 `m_val` 为空 
+- yyjson::create 方法增加 MutableValue&& 参数重载，直接移动返回其指针
+- 增加 createKey 也接收 MutableValue&& 重载，转发 create
+
+然后检查上层方法应该自动支持移动语义了。
+
+可按 TDD 流程开发，先在 `t_mutable.cpp` 测试文件中添加新示例。
+
+### DONE: 20251024-112310
 
 ## TODO: 分析迭代器优化方案
 ## TODO: 考虑实现 MutableValue 删除功能
@@ -897,8 +926,6 @@ add 与 tag 方法容易改造。但 inputKey 由 input 转发而来，为支持
 - 编译检查示例语法正确，运行检验行为正确性，作必要修改调整
 - 在 script/ 目录下添加一个 perl 脚本，支持将 `t_docx.cpp` 中的示例例代码反向
   拷回文档
-
-## TODO: 设计模板类的 KeyValue 优化对象容器的插入
 
 ## TODO: 考虑条件编译宏过滤不用的功能
 

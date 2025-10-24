@@ -924,3 +924,87 @@ DEF_TAST(mutable_keyvalue_mutablekey, "test KeyValue with MutableValue key")
     COUT(!kv_nonstr, true);
     COUT(root.size(), 2);
 }
+
+DEF_TAST(mutable_move_semantics, "test move semantics for MutableValue insertion")
+{
+    DESC("Test MutableValue << MutableValue with move semantics");
+    {
+        yyjson::MutableDocument doc; // ("[]");
+        doc.root().setArray();
+
+        // Create a standalone MutableValue
+        auto standaloneValue = doc.create("move_test");
+        COUT(standaloneValue.isString(), true);
+        COUT(standaloneValue | std::string(), "move_test");
+
+        // Test copy semantics (current behavior)
+        doc.root().append(standaloneValue);
+        COUT(doc.root().size(), 1);
+        COUT(doc / 0 | std::string(), "move_test");
+        // standaloneValue should still be valid after copy
+        COUT(!standaloneValue, false);
+
+        // Test move semantics (new feature)
+        auto anotherValue = doc.create("moved_value");
+        doc.root().append(std::move(anotherValue));
+        COUT(doc.root().size(), 2);
+        COUT(doc / 1 | std::string(), "moved_value");
+        // anotherValue should be invalid after move
+        COUT(!anotherValue, true);
+
+        // Test with << operator
+        auto thirdValue = doc.create("operator_moved");
+        doc.root() << std::move(thirdValue);
+        COUT(doc.root().size(), 3);
+        COUT(doc / 2 | std::string(), "operator_moved");
+        COUT(!thirdValue, true);
+    }
+
+    DESC("Test move semantics for object insertion");
+    {
+        yyjson::MutableDocument doc("{}");
+        doc.root().setObject();
+
+        // Create key and value nodes
+        auto keyNode = doc.create("moved_key");
+        auto valueNode = doc.create("moved_value");
+
+        // Use move semantics with object insertion
+        doc.root().add(std::move(keyNode), std::move(valueNode));
+        COUT(doc.root().size(), 1);
+        COUT(doc / "moved_key" | std::string(), "moved_value");
+        COUT(!keyNode, true);
+        COUT(!valueNode, true);
+
+        // Test with << operator
+        auto keyNode2 = doc.create("operator_key");
+        auto valueNode2 = doc.create("operator_value");
+        doc.root() << std::move(keyNode2) * std::move(valueNode2);
+        COUT(doc.root().size(), 2);
+        COUT(doc / "operator_key" | std::string(), "operator_value");
+        COUT(!keyNode2, true);
+        COUT(!valueNode2, true);
+    }
+
+    DESC("Test move semantics with createKey function");
+    {
+        yyjson::MutableDocument doc("{}");
+        doc.root().setObject();
+
+        auto keyNode = doc.create("moved_key_for_creatKey");
+        auto valueNode = doc.create("value_for_creatKey");
+
+        // Test move semantics with createKey
+        auto movedKey = yyjson::createKey(doc.get(), std::move(keyNode));
+        COUT(movedKey != nullptr, true);
+        COUT(!keyNode, true);
+
+        // Not support use raw yyjson_mut_val* in add() method, just for test.
+        // re-construct a temp MutableValue also rvalue
+//!     doc.root().add(movedKey, std::move(valueNode));
+        doc.root().add(yyjson::MutableValue(movedKey, doc.get()), std::move(valueNode));
+        COUT(doc.root().size(), 1);
+        COUT(doc / "moved_key_for_creatKey" | std::string(), "value_for_creatKey");
+        COUT(!valueNode, true);
+    }
+}
