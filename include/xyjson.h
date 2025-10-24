@@ -22,52 +22,52 @@
 /* Table of Content (TOC) */
 /* ======================================================================== */
 /* Part 1: Front Definitions                                       Line: 76 */
-/* Part 2: Class Definitions                                      Line: 130 */
-/*   Section 2.1: Read-only Json Model                            Line: 133 */
-/*   Section 2.2: Mutable Json Model                              Line: 361 */
-/*   Section 2.3: Helper Class for Mutable Json                   Line: 704 */
-/*   Section 2.4: Iterator Json                                   Line: 752 */
-/*   Section 2.5: Type Traits                                    Line: 1013 */
-/* Part 3: Non-Class Functions                                   Line: 1062 */
-/*   Section 3.1: Underlying mut_val Creation                    Line: 1065 */
-/*   Section 3.2: Conversion Helper Functions                    Line: 1224 */
-/* Part 4: Class Implementations                                 Line: 1303 */
-/*   Section 4.1: Value Methods                                  Line: 1306 */
-/*     Group 4.1.1: get and getor                                Line: 1309 */
-/*     Group 4.1.2: size and index/path                          Line: 1398 */
-/*     Group 4.1.3: create iterator                              Line: 1445 */
-/*     Group 4.1.4: others                                       Line: 1492 */
-/*   Section 4.2: Document Methods                               Line: 1542 */
-/*     Group 4.2.1: primary manage                               Line: 1545 */
-/*     Group 4.2.2: read and write                               Line: 1577 */
-/*   Section 4.3: MutableValue Methods                           Line: 1662 */
-/*     Group 4.3.1: get and getor                                Line: 1665 */
-/*     Group 4.3.2: size and index/path                          Line: 1760 */
-/*     Group 4.3.3: assignment set                               Line: 1836 */
-/*     Group 4.3.4: array append                                 Line: 1991 */
-/*     Group 4.3.5: object add                                   Line: 2009 */
-/*     Group 4.3.6: tag create KeyValue                          Line: 2041 */
-/*     Group 4.3.7: smart input                                  Line: 2061 */
-/*     Group 4.3.8: create iterator                              Line: 2124 */
-/*     Group 4.3.9: others                                       Line: 2171 */
-/*   Section 4.4: MutableDocument Methods                        Line: 2221 */
-/*     Group 4.4.1: primary manage                               Line: 2224 */
-/*     Group 4.4.2: read and write                               Line: 2271 */
-/*     Group 4.4.3: create mutable value                         Line: 2368 */
-/*   Section 4.5: ArrayIterator Methods                          Line: 2406 */
-/*   Section 4.6: ObjectIterator Methods                         Line: 2453 */
-/*   Section 4.7: MutableArrayIterator Methods                   Line: 2524 */
-/*   Section 4.8: MutableObjectIterator Methods                  Line: 2577 */
-/* Part 5: Operator Interface                                    Line: 2651 */
-/*   Section 5.1: Primary Path Access                            Line: 2654 */
-/*   Section 5.2: Conversion Unary Operator                      Line: 2738 */
-/*   Section 5.3: Comparison Operator                            Line: 2784 */
-/*   Section 5.4: Create and Bind KeyValue                       Line: 2870 */
-/*   Section 5.5: Stream and Input Operator                      Line: 2911 */
-/*   Section 5.6: Iterator Creation and Operation                Line: 2953 */
-/*   Section 5.7: Document Forward Root Operator                 Line: 3028 */
-/*   Section 5.8: User-defined Literal Operator                  Line: 3093 */
-/* Part 6: Last Definitions                                      Line: 3110 */
+/*   Section 1.1: Forward Class Declarations                       Line: 79 */
+/*   Section 1.2: Type and Operator Constants                      Line: 93 */
+/*   Section 1.3: Type Traits                                     Line: 136 */
+/* Part 2: Class Definitions                                      Line: 185 */
+/*   Section 2.1: Read-only Json Model                            Line: 188 */
+/*   Section 2.2: Mutable Json Model                              Line: 416 */
+/*   Section 2.3: Helper Class for Mutable Json                   Line: 761 */
+/*   Section 2.4: Iterator Json                                   Line: 806 */
+/* Part 3: Non-Class Functions                                   Line: 1067 */
+/*   Section 3.1: Underlying mut_val Creation                    Line: 1070 */
+/*   Section 3.2: Conversion Helper Functions                    Line: 1262 */
+/* Part 4: Class Implementations                                 Line: 1341 */
+/*   Section 4.1: Value Methods                                  Line: 1344 */
+/*     Group 4.1.1: get and getor                                Line: 1347 */
+/*     Group 4.1.2: size and index/path                          Line: 1436 */
+/*     Group 4.1.3: create iterator                              Line: 1483 */
+/*     Group 4.1.4: others                                       Line: 1530 */
+/*   Section 4.2: Document Methods                               Line: 1580 */
+/*     Group 4.2.1: primary manage                               Line: 1583 */
+/*     Group 4.2.2: read and write                               Line: 1615 */
+/*   Section 4.3: MutableValue Methods                           Line: 1700 */
+/*     Group 4.3.1: get and getor                                Line: 1703 */
+/*     Group 4.3.2: size and index/path                          Line: 1798 */
+/*     Group 4.3.3: assignment set                               Line: 1874 */
+/*     Group 4.3.4: array and object add                         Line: 2013 */
+/*     Group 4.3.5: smart input and tag                          Line: 2066 */
+/*     Group 4.3.6: create iterator                              Line: 2144 */
+/*     Group 4.3.7: others                                       Line: 2191 */
+/*   Section 4.4: MutableDocument Methods                        Line: 2241 */
+/*     Group 4.4.1: primary manage                               Line: 2244 */
+/*     Group 4.4.2: read and write                               Line: 2291 */
+/*     Group 4.4.3: create mutable value                         Line: 2388 */
+/*   Section 4.5: ArrayIterator Methods                          Line: 2411 */
+/*   Section 4.6: ObjectIterator Methods                         Line: 2458 */
+/*   Section 4.7: MutableArrayIterator Methods                   Line: 2529 */
+/*   Section 4.8: MutableObjectIterator Methods                  Line: 2582 */
+/* Part 5: Operator Interface                                    Line: 2656 */
+/*   Section 5.1: Primary Path Access                            Line: 2659 */
+/*   Section 5.2: Conversion Unary Operator                      Line: 2743 */
+/*   Section 5.3: Comparison Operator                            Line: 2789 */
+/*   Section 5.4: Create and Bind KeyValue                       Line: 2875 */
+/*   Section 5.5: Stream and Input Operator                      Line: 2904 */
+/*   Section 5.6: Iterator Creation and Operation                Line: 2946 */
+/*   Section 5.7: Document Forward Root Operator                 Line: 3021 */
+/*   Section 5.8: User-defined Literal Operator                  Line: 3086 */
+/* Part 6: Last Definitions                                      Line: 3103 */
 /* ======================================================================== */
 
 namespace yyjson
@@ -76,32 +76,38 @@ namespace yyjson
 /* @Part 1: Front Definitions */
 /* ======================================================================== */
 
-// Forward declarations for classes
+/* @Section 1.1: Forward Class Declarations */
+/* ------------------------------------------------------------------------ */
+
 class Value;
 class Document;
 class MutableValue;
 class MutableDocument;
-class KeyValue;
-class StringRef;
 class ArrayIterator;
 class ObjectIterator;
 class MutableArrayIterator;
 class MutableObjectIterator;
+class KeyValue;
+class StringRef;
 
-struct EmptyObject {};
-struct EmptyArray {};
-struct EmptyString {};
+/* @Section 1.2: Type and Operator Constants */
+/* ------------------------------------------------------------------------ */
+
+// Special representation type
 struct ZeroNumber {};
+struct EmptyString {};
+struct EmptyArray {};
+struct EmptyObject {};
 
 // Type representative constants for type checking
+constexpr std::nullptr_t kNull = nullptr;
+constexpr bool kBool = false;
 constexpr int kInt = 0;
 constexpr int64_t kSint = 0L;
 constexpr uint64_t kUint = 0uL;
-constexpr EmptyString kString;
-constexpr ZeroNumber kNumber;
 constexpr double kReal = 0.0;
-constexpr bool kBool = false;
-constexpr std::nullptr_t kNull = nullptr;
+constexpr ZeroNumber kNumber;
+constexpr EmptyString kString;
 constexpr EmptyArray kArray;
 constexpr EmptyObject kObject;
 
@@ -126,6 +132,55 @@ constexpr const char* okStringify = "-";
 constexpr const char* okConvert = "~";
 constexpr const char* okIterator = "%";
 constexpr const char* okIncreace = "++";
+
+/* @Section 1.3: Type Traits */
+/* ------------------------------------------------------------------------ */
+
+/**
+ * @brief Type traits for yyjson wrapper classes
+ * 
+ * These traits can be used with std::enable_if, std::conditional, etc.
+ * for template metaprogramming and SFINAE techniques.
+ */
+
+// is_value<T> Specializations for Value and MutableValue
+template<typename T> struct is_value : std::false_type {};
+template<> struct is_value<Value> : std::true_type {};
+template<> struct is_value<MutableValue> : std::true_type {};
+
+// is_document<T> Specializations for Document and MutableDocument
+template<typename T> struct is_document : std::false_type {};
+template<> struct is_document<Document> : std::true_type {};
+template<> struct is_document<MutableDocument> : std::true_type {};
+
+// is_iterator<T> Specializations for all iterator types
+template<typename T> struct is_iterator : std::false_type {};
+template<> struct is_iterator<ArrayIterator> : std::true_type {};
+template<> struct is_iterator<ObjectIterator> : std::true_type {};
+template<> struct is_iterator<MutableArrayIterator> : std::true_type {};
+template<> struct is_iterator<MutableObjectIterator> : std::true_type {};
+
+// is_key<T> Type trait for supported key string types
+template<typename T> struct is_key : std::false_type {};
+template<> struct is_key<const char*> : std::true_type {}; // and const char[N]
+template<> struct is_key<char*> : std::true_type {};       // and char[N]
+template<> struct is_key<std::string> : std::true_type {};
+
+// Helper constexpr function to check if a type can be used as key
+// Handles array-to-pointer decay and string literals
+template<typename T>
+constexpr bool is_key_type() {
+    using decayed_t = std::decay_t<T>;
+    return is_key<decayed_t>::value;
+}
+
+// Helper constexpr function to check if a type is a C-style string
+// Handles both const char* and char* types
+template<typename T>
+constexpr bool is_cstr_type() {
+    using decayed_t = std::decay_t<T>;
+    return std::is_same<decayed_t, const char*>::value || std::is_same<decayed_t, char*>::value;
+}
 
 /* @Part 2: Class Definitions */
 /* ======================================================================== */
@@ -529,7 +584,7 @@ public:
     // C-Style string
 //  MutableValue& set(const char* value);
     template<typename T>
-    inline typename std::enable_if<std::is_same<T, const char*>::value || std::is_same<T, char*>::value, MutableValue&>::type
+    inline typename std::enable_if<is_cstr_type<T>(), MutableValue&>::type
     set(T value);
 
     // Assignment operators
@@ -1009,47 +1064,6 @@ private:
     Item m_current;                    // Current item (key and mutable value)
 };
 
-/* @Section 2.5: Type Traits */
-/* ------------------------------------------------------------------------ */
-
-/**
- * @brief Type traits for yyjson wrapper classes
- * 
- * These traits can be used with std::enable_if, std::conditional, etc.
- * for template metaprogramming and SFINAE techniques.
- */
-
-// is_value<T> Specializations for Value and MutableValue
-template<typename T> struct is_value : std::false_type {};
-template<> struct is_value<Value> : std::true_type {};
-template<> struct is_value<MutableValue> : std::true_type {};
-
-// is_document<T> Specializations for Document and MutableDocument
-template<typename T> struct is_document : std::false_type {};
-template<> struct is_document<Document> : std::true_type {};
-template<> struct is_document<MutableDocument> : std::true_type {};
-
-// is_iterator<T> Specializations for all iterator types
-template<typename T> struct is_iterator : std::false_type {};
-template<> struct is_iterator<ArrayIterator> : std::true_type {};
-template<> struct is_iterator<ObjectIterator> : std::true_type {};
-template<> struct is_iterator<MutableArrayIterator> : std::true_type {};
-template<> struct is_iterator<MutableObjectIterator> : std::true_type {};
-
-// is_key<T> Type trait for supported key string types
-template<typename T> struct is_key : std::false_type {};
-template<> struct is_key<const char*> : std::true_type {}; // and const char[N]
-template<> struct is_key<char*> : std::true_type {};       // and char[N]
-template<> struct is_key<std::string> : std::true_type {};
-
-// Helper constexpr function to check if a type can be used as key
-// Handles array-to-pointer decay and string literals
-template<typename T>
-constexpr bool is_key_type() {
-    using decayed_t = std::decay_t<T>;
-    return is_key<decayed_t>::value;
-}
-
 /* @Part 3: Non-Class Functions */
 /* ======================================================================== */
 
@@ -1102,7 +1116,7 @@ inline yyjson_mut_val* create(yyjson_mut_doc* doc, const char* value, size_t len
 }
 
 template<typename T>
-inline typename std::enable_if<std::is_same<T, const char*>::value || std::is_same<T, char*>::value, yyjson_mut_val*>::type
+inline typename std::enable_if<is_cstr_type<T>(), yyjson_mut_val*>::type
 create(yyjson_mut_doc* doc, T value)
 {
     return create(doc, value, ::strlen(value));
@@ -1955,7 +1969,7 @@ inline MutableValue& MutableValue::set(char(&value)[N])
 }
 
 template<typename T>
-inline typename std::enable_if<std::is_same<T, const char*>::value || std::is_same<T, char*>::value, MutableValue&>::type
+inline typename std::enable_if<is_cstr_type<T>(), MutableValue&>::type
 MutableValue::set(T value)
 {
     return setCopy(value, ::strlen(value));
@@ -1996,7 +2010,7 @@ inline MutableValue& MutableValue::set(ZeroNumber)
     return set(0.0);
 }
 
-/* @Group 4.3.4: array append */
+/* @Group 4.3.4: array and object add */
 /* ************************************************************************ */
 
 inline MutableValue& MutableValue::append(yyjson_mut_val* value)
@@ -2013,9 +2027,6 @@ inline MutableValue& MutableValue::append(T&& value)
 {
     return append(create(m_doc, std::forward<T>(value)));
 }
-
-/* @Group 4.3.5: object add */
-/* ************************************************************************ */
 
 inline MutableValue& MutableValue::add(yyjson_mut_val* key, yyjson_mut_val* value)
 {
@@ -2052,7 +2063,7 @@ inline MutableValue& MutableValue::add(keyT&& key, valT&& value)
     return *this;
 }
 
-/* @Group 4.3.6: tag create KeyValue */
+/* @Group 4.3.5: smart input and tag */
 /* ************************************************************************ */
 
 inline KeyValue MutableValue::tag(MutableValue&& key) &&
@@ -2078,9 +2089,6 @@ inline KeyValue MutableValue::tag(keyT&& key) &&
     m_val = nullptr;
     return ret;
 }
-
-/* @Group 4.3.7: smart input */
-/* ************************************************************************ */
 
 // Specialization for KeyValue - can only be added to object
 inline MutableValue& MutableValue::input(KeyValue&& kv)
@@ -2133,7 +2141,7 @@ inline MutableValue& MutableValue::input(T&& value)
     return *this;
 }
 
-/* @Group 4.3.8: create iterator */
+/* @Group 4.3.6: create iterator */
 /* ************************************************************************ */
 
 inline MutableArrayIterator MutableValue::arrayIter(size_t startIndex) const
@@ -2180,7 +2188,7 @@ inline MutableObjectIterator MutableValue::endObject() const
     return MutableObjectIterator();
 }
 
-/* @Group 4.3.9: others */
+/* @Group 4.3.7: others */
 /* ************************************************************************ */
 
 inline std::string MutableValue::toString(bool pretty) const

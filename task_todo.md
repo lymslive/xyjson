@@ -873,6 +873,7 @@ add 与 tag 方法容易改造。但 inputKey 由 input 转发而来，为支持
 删除 input 转发后，set 方法的模板就能区分字面量与 `const char*` 了。
 
 遗留问题：`is_cstr_type` 简化匹配 C-Style 的写法。
+需要将原来的 2.5 section trait 提到 part 1 前面来先定义。
 
 ### DONE: 20251024/003132
 
@@ -909,6 +910,10 @@ add 与 tag 方法容易改造。但 inputKey 由 input 转发而来，为支持
 可按 TDD 流程开发，先在 `t_mutable.cpp` 测试文件中添加新示例。
 
 ### DONE: 20251024-112310
+
+AI 写了行测试调用 add(k, v) 其中 k 是原始指针 `yyjson_mut_val*` ，v 是
+`MutableValue` ，现不支持。有必要支持原始指针吗？先不管吧。用户要么全用 C API,
+不要与 xyjson 类 API 混用。
 
 ## TODO: 分析迭代器优化方案
 ## TODO: 考虑实现 MutableValue 删除功能

@@ -76,36 +76,40 @@ script/utable.pl # 或 make utable
 | 6    | `basic_index_operator` | `t_basic.cpp` | 272  | test index method and operator[] |
 | 7    | `basic_json_pointer` | `t_basic.cpp` | 384  | test JSON Pointer functionality |
 | 8    | `basic_type_checking` | `t_basic.cpp` | 531  | type checking with isType method and & operator |
-| 9    | `basic_underlying_pointers` | `t_basic.cpp` | 612  | extract underlying yyjson pointers |
+| 9    | `basic_underlying_pointers` | `t_basic.cpp` | 617  | extract underlying yyjson pointers |
 | 10   | `mutable_read_modify` | `t_mutable.cpp` | 26   | test read-modify workflow |
 | 11   | `mutable_value_input` | `t_mutable.cpp` | 66   | test input operator << for mutable value |
 | 12   | `mutable_assign_copy` | `t_mutable.cpp` | 130  | test = and copy behavior of yyjson wrapper classes |
 | 13   | `mutable_assign_string` | `t_mutable.cpp` | 228  | test string node in yyjson |
-| 14   | `mutable_assign_string_ref` | `t_mutable.cpp` | 288  | test string node reference in yyjson |
-| 15   | `mutable_object_insertion` | `t_mutable.cpp` | 341  | test object insertion with KV macro and operator+ |
-| 16   | `mutable_array_append` | `t_mutable.cpp` | 421  | test append to MutableValue array |
-| 17   | `mutable_create_methods` | `t_mutable.cpp` | 500  | test MutableDocument create methods and * operator |
-| 18   | `mutable_append_doc` | `t_mutable.cpp` | 569  | MutableValue array append with Document and MutableDocument |
-| 19   | `mutable_objadd_doc` | `t_mutable.cpp` | 616  | MutableValue object add with Document and MutableDocument |
-| 20   | `mutable_keyvalue_add` | `t_mutable.cpp` | 666  | test KeyValue optimization for object insertion |
-| 21   | `mutable_keyvalue_mutablekey` | `t_mutable.cpp` | 810  | test KeyValue with MutableValue key |
-| 22   | `stream_document_ops` | `t_stream.cpp` | 18   | test Document stream operators << and >> |
-| 23   | `stream_file_ops` | `t_stream.cpp` | 83   | test FILE* and std::fstream stream operations |
-| 24   | `stream_std_output` | `t_stream.cpp` | 233  | test standard output stream operators << |
-| 25   | `stream_file_operations` | `t_stream.cpp` | 315  | test file read/write operations for Document and MutableDocument |
-| 26   | `iterator_functionality` | `t_iterator.cpp` | 19   | test array and object iterator functionality |
-| 27   | `iterator_operators` | `t_iterator.cpp` | 197  | test iterator operators and % operator |
-| 28   | `iterator_begin_end` | `t_iterator.cpp` | 506  | test standard begin/end iterator pattern |
-| 29   | `iterator_mut_begend` | `t_iterator.cpp` | 669  | test mutable standard begin/end iterator pattern |
-| 30   | `conversion_methods` | `t_conversion.cpp` | 17   | test toString() and toNumber() conversion methods |
-| 31   | `conversion_operators` | `t_conversion.cpp` | 151  | test unary operators - and + for conversion |
-| 32   | `conversion_document` | `t_conversion.cpp` | 307  | test Document and MutableDocument conversion methods |
-| 33   | `conversion_doc_unary` | `t_conversion.cpp` | 437  | test Document and MutableDocument unary operators |
-| 34   | `advanced_pipe` | `t_advanced.cpp` | 58   | test pipe() method and | operator with functions |
-| 35   | `advanced_trait` | `t_advanced.cpp` | 198  | test type traits for yyjson wrapper classes |
-| 36   | `advanced_compare_ops` | `t_advanced.cpp` | 270  | test comparison operators |
-| 37   | `advanced_sort_mixed_array` | `t_advanced.cpp` | 378  | sort a mixed array of json values |
-| 38   | `experiment_overload` | `t_experiment.cpp` | 85   | test overload rule |
-| 39   | `experiment_index` | `t_experiment.cpp` | 134  | test index operator |
-| 40   | `experiment_large_int` | `t_experiment.cpp` | 144  | test yyjson large integer support |
+| 14   | `mutable_assign_string_literal` | `t_mutable.cpp` | 288  | test string literal optimization in set and assignment |
+| 15   | `mutable_assign_string_ref` | `t_mutable.cpp` | 342  | test string node reference in yyjson |
+| 16   | `mutable_kvpair_objadd` | `t_mutable.cpp` | 396  | test object add method |
+| 17   | `mutable_array_append` | `t_mutable.cpp` | 482  | test append to MutableValue array |
+| 18   | `mutable_create_methods` | `t_mutable.cpp` | 561  | test MutableDocument create methods and * operator |
+| 19   | `mutable_append_doc` | `t_mutable.cpp` | 630  | MutableValue array append with Document and MutableDocument |
+| 20   | `mutable_objadd_doc` | `t_mutable.cpp` | 677  | MutableValue object add with Document and MutableDocument |
+| 21   | `mutable_keyvalue_add` | `t_mutable.cpp` | 727  | test KeyValue optimization for object insertion |
+| 22   | `mutable_keyvalue_mutablekey` | `t_mutable.cpp` | 878  | test KeyValue with MutableValue key |
+| 23   | `mutable_move_semantics` | `t_mutable.cpp` | 928  | test move semantics for MutableValue insertion |
+| 24   | `stream_document_ops` | `t_stream.cpp` | 18   | test Document stream operators << and >> |
+| 25   | `stream_file_ops` | `t_stream.cpp` | 83   | test FILE* and std::fstream stream operations |
+| 26   | `stream_std_output` | `t_stream.cpp` | 233  | test standard output stream operators << |
+| 27   | `stream_file_operations` | `t_stream.cpp` | 315  | test file read/write operations for Document and MutableDocument |
+| 28   | `iterator_functionality` | `t_iterator.cpp` | 19   | test array and object iterator functionality |
+| 29   | `iterator_operators` | `t_iterator.cpp` | 197  | test iterator operators and % operator |
+| 30   | `iterator_begin_end` | `t_iterator.cpp` | 506  | test standard begin/end iterator pattern |
+| 31   | `iterator_mut_begend` | `t_iterator.cpp` | 669  | test mutable standard begin/end iterator pattern |
+| 32   | `conversion_methods` | `t_conversion.cpp` | 17   | test toString(), toInteger(), and toNumber() conversion methods |
+| 33   | `conversion_operators` | `t_conversion.cpp` | 167  | test unary operators - and + for conversion |
+| 34   | `conversion_document` | `t_conversion.cpp` | 324  | test Document and MutableDocument conversion methods |
+| 35   | `conversion_doc_unary` | `t_conversion.cpp` | 454  | test Document and MutableDocument unary operators |
+| 36   | `conversion_user_literals` | `t_conversion.cpp` | 601  | test user-defined literals for direct Document creation |
+| 37   | `advanced_pipe` | `t_advanced.cpp` | 58   | test pipe() method and | operator with functions |
+| 38   | `advanced_trait` | `t_advanced.cpp` | 198  | test type traits for yyjson wrapper classes |
+| 39   | `advanced_compare_ops` | `t_advanced.cpp` | 293  | test comparison operators |
+| 40   | `advanced_sort_mixed_array` | `t_advanced.cpp` | 468  | sort a mixed array of json values |
+| 41   | `advanced_string_optimization` | `t_advanced.cpp` | 509  | test string creation optimization strategies |
+| 42   | `experiment_overload` | `t_experiment.cpp` | 86   | test overload rule |
+| 43   | `experiment_docx` | `t_experiment.cpp` | 135  | test operator usage |
+| 44   | `experiment_large_int` | `t_experiment.cpp` | 156  | test yyjson large integer support |
 <!-- UTABLE_END -->
