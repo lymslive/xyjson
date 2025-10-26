@@ -159,6 +159,7 @@ DEF_TAST(experiment_debug, "test debug")
     using namespace yyjson;
 //  COUT(std::is_invocable<int, int>::value);
     COUT(trait::is_callable_type<int>::value, false);
+//!  COUT(::strlen(nullptr), 0); // coredump
 }
 #endif
 

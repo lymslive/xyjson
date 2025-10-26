@@ -992,6 +992,32 @@ AI 写了行测试调用 add(k, v) 其中 k 是原始指针 `yyjson_mut_val*` �
 当传入基本类型时仍会先实例化 pipe 函数，然后才判断 `enable_if` 条件失败。还是放在可选模板参数
 的技巧比较好，返回值直接用 auto 。
 
+## TODO:2025-10-26/3 优化 pathto 及 index 方法接收双参数
+
+yyjson 底层库在涉及字符串或键名参数时，一般有单参数 `const char*` 与双参数再加
+`size_t` 长度版本。此前两个 Value 类的 index 与 pathto 封装的方法以单参数
+`const char*` 为主要入口，这在字符串参数传 `std::string` 或字面量时丢失长度信
+息，内部需要额外一次调用 strlen 计算长度。所以要优化这一点。
+
+主要任务：
+- index 与 pathto 增加 `(const char*, size_t)` 参数版本，其他字符串参数的重载
+  都调用该版本。
+- 增加字符串字面量版本 `const char&[N]` 重载
+- 将原来的单参数版本 `const char*` 也改为模板，用 `is_cstr_type` 限定，否则字
+  符串字面量的模板优先级，不生效
+- 将 operator[] 与 operator/ 改为万能引用与完美转发
+
+其中，`const char * ` 版本的模板限定，不要写在返回值中，建议写在匿名的默认参数中
+，形如：
+```
+template<typename T, typename ifT = typename std::enable_if<trait::is_cstr_type<T>()>::type>
+```
+
+另注：Value 类与 MutableValue const 已经添加双参数字符串版本，请再核查并完善其
+他任务。
+
+### DONE: 20251027-000346
+
 ## TODO: 分析迭代器优化方案
 ## TODO: 考虑实现 MutableValue 删除功能
 

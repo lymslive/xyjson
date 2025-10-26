@@ -340,21 +340,30 @@ public:
     size_t size() const;
     Value index(size_t idx) const;
     Value index(int idx) const;
-    Value index(const char* key) const;
+    template<typename T>
+    inline typename std::enable_if<trait::is_cstr_type<T>(), Value>::type
+    index(T key) const;
     Value index(const char* key, size_t len) const;
     Value index(const std::string& key) const;
+    template <size_t N>
+    Value index(const char(&key)[N]) const { return index(key, N-1); }
     
     // Array and object access operator
     template <typename T>
-    Value operator[](const T& index) const
+    Value operator[](T&& index) const
     {
-        return this->index(index);
+        return this->index(std::forward<T>(index));
     }
     
     // Path operations. 
     // Like index in the simplest case, but can resolve deep path.
-    Value pathto(const char* path) const;
-    Value pathto(const std::string& path) const { return pathto(path.c_str()); }
+    template<typename T>
+    inline typename std::enable_if<trait::is_cstr_type<T>(), Value>::type
+    pathto(T path) const;
+    Value pathto(const char* path, size_t len) const;
+    Value pathto(const std::string& path) const { return pathto(path.c_str(), path.size()); }
+    template <size_t N>
+    Value pathto(const char(&path)[N]) const { return pathto(path, N-1); }
     Value pathto(int idx) const { return index(idx); }
     Value pathto(size_t idx) const { return index(idx); }
     
@@ -456,9 +465,9 @@ public:
 
     // Index access
     template <typename T>
-    Value operator[](const T& index) const
+    Value operator[](T&& index) const
     {
-        return root().index(index);
+        return root().index(std::forward<T>(index));
     }
 
     // Convert to mutable document
@@ -578,14 +587,23 @@ public:
     size_t size() const;
     MutableValue index(size_t idx) const;
     MutableValue index(int idx) const;
-    MutableValue index(const char* key) const;
+    template<typename T>
+    inline typename std::enable_if<trait::is_cstr_type<T>(), MutableValue>::type
+    index(T key) const;
     MutableValue index(const char* key, size_t len) const;
     MutableValue index(const std::string& key) const;
+    template <size_t N>
+    MutableValue index(const char(&key)[N]) const { return index(key, N-1); }
     // non-const version for automatic object insertion
     MutableValue index(size_t idx);
     MutableValue index(int idx);
-    MutableValue index(const char* key);
+    template<typename T>
+    inline typename std::enable_if<trait::is_cstr_type<T>(), MutableValue>::type
+    index(T key);
+    MutableValue index(const char* key, size_t len);
     MutableValue index(const std::string& key);
+    template <size_t N>
+    MutableValue index(const char(&key)[N]) { return index(key, N-1); }
 
     // Array and object access operator (const version)
     template <typename T>
@@ -602,8 +620,13 @@ public:
     }
 
     // Path operations
-    MutableValue pathto(const char* path) const;
-    MutableValue pathto(const std::string& path) const { return pathto(path.c_str()); }
+    template<typename T>
+    inline typename std::enable_if<trait::is_cstr_type<T>(), MutableValue>::type
+    pathto(T path) const;
+    MutableValue pathto(const char* path, size_t len) const;
+    MutableValue pathto(const std::string& path) const { return pathto(path.c_str(), path.size()); }
+    template <size_t N>
+    MutableValue pathto(const char(&path)[N]) const { return pathto(path, N-1); }
     MutableValue pathto(int idx) const { return index(idx); }
     MutableValue pathto(size_t idx) const { return index(idx); }
     
@@ -792,16 +815,16 @@ public:
 
     // Index access - const version for read-only access
     template <typename T>
-    MutableValue operator[](const T& index) const
+    MutableValue operator[](T&& index) const
     {
-        return root().index(index);
+        return root().index(std::forward<T>(index));
     }
     
     // Index access - non-const version for automatic insertion
     template <typename T>
-    MutableValue operator[](const T& index)
+    MutableValue operator[](T&& index)
     {
-        return root().index(index);
+        return root().index(std::forward<T>(index));
     }
 
     // Convert to read-only document
@@ -1550,10 +1573,11 @@ inline Value Value::index(int idx) const
     return index(static_cast<size_t>(idx));
 }
 
-inline Value Value::index(const char* key) const
+template<typename T>
+inline typename std::enable_if<trait::is_cstr_type<T>(), Value>::type
+Value::index(T key) const
 {
-    if (!isObject() || !key) return Value(nullptr);
-    return Value(yyjson_obj_get(m_val, key));
+    return index(key, key ? ::strlen(key) : 0);
 }
 
 inline Value Value::index(const char* key, size_t len) const
@@ -1567,18 +1591,21 @@ inline Value Value::index(const std::string& key) const
     return index(key.c_str(), key.size());
 }
 
-inline Value Value::pathto(const char* path) const
+template<typename T>
+inline typename std::enable_if<trait::is_cstr_type<T>(), Value>::type
+Value::pathto(T path) const
 {
-    if (!path || !*path) return *this;
-    
-    if (*path == '/') {
-        // JSON Pointer support
-        yyjson_val* result = yyjson_ptr_get(m_val, path);
+    return pathto(path, path ? ::strlen(path) : 0);
+}
+
+inline Value Value::pathto(const char* path, size_t len) const
+{
+    if (!path || len == 0) return *this;
+    if (path[0] == '/') {
+        yyjson_val* result = yyjson_ptr_getn(m_val, path, len);
         return Value(result);
     }
-    
-    // Single level indexing for backward compatibility
-    return index(path);
+    return index(path, len);
 }
 
 /* @Group 4.1.3: create iterator */
@@ -1925,10 +1952,11 @@ inline MutableValue MutableValue::index(int idx) const
     return index(static_cast<size_t>(idx));
 }
 
-inline MutableValue MutableValue::index(const char* key) const
+template<typename T>
+inline typename std::enable_if<trait::is_cstr_type<T>(), MutableValue>::type
+MutableValue::index(T key) const
 {
-    if (!isObject() || !key) return MutableValue(nullptr, m_doc);
-    return MutableValue(yyjson_mut_obj_get(m_val, key), m_doc);
+    return index(key, key ? ::strlen(key) : 0);
 }
 
 inline MutableValue MutableValue::index(const char* key, size_t len) const
@@ -1953,17 +1981,11 @@ inline MutableValue MutableValue::index(int idx)
     return index(static_cast<size_t>(idx));
 }
 
-inline MutableValue MutableValue::index(const char* key)
+template<typename T>
+inline typename std::enable_if<trait::is_cstr_type<T>(), MutableValue>::type
+MutableValue::index(T key)
 {
-    if (!isObject() || !key) return MutableValue(nullptr, m_doc);
-    yyjson_mut_val* val = yyjson_mut_obj_get(m_val, key);
-    if (!val) {
-        // Key doesn't exist, insert null value
-        val = yyjson_mut_null(m_doc);
-        yyjson_mut_val* key_val = yyjson_mut_strcpy(m_doc, key);
-        yyjson_mut_obj_add(m_val, key_val, val);
-    }
-    return MutableValue(val, m_doc);
+    return index(key, key ? ::strlen(key) : 0);
 }
 
 inline MutableValue MutableValue::index(const std::string& key)
@@ -1971,18 +1993,34 @@ inline MutableValue MutableValue::index(const std::string& key)
     return index(key.c_str());
 }
 
-inline MutableValue MutableValue::pathto(const char* path) const
+inline MutableValue MutableValue::index(const char* key, size_t len)
 {
-    if (!path || !*path) return *this;
-    
-    if (*path == '/') {
-        // JSON Pointer support
-        yyjson_mut_val* result = yyjson_mut_ptr_get(m_val, path);
+    if (!isObject() || !key) return MutableValue(nullptr, m_doc);
+    yyjson_mut_val* val = yyjson_mut_obj_getn(m_val, key, len);
+    if (!val) {
+        // Key doesn't exist, insert null value with explicit length
+        val = yyjson_mut_null(m_doc);
+        yyjson_mut_val* key_val = yyjson_mut_strncpy(m_doc, key, len);
+        yyjson_mut_obj_add(m_val, key_val, val);
+    }
+    return MutableValue(val, m_doc);
+}
+
+template<typename T>
+inline typename std::enable_if<trait::is_cstr_type<T>(), MutableValue>::type
+MutableValue::pathto(T path) const
+{
+    return pathto(path, path ? ::strlen(path) : 0);
+}
+
+inline MutableValue MutableValue::pathto(const char* path, size_t len) const
+{
+    if (!path || len == 0) return *this;
+    if (path[0] == '/') {
+        yyjson_mut_val* result = yyjson_mut_ptr_getn(m_val, path, len);
         return MutableValue(result, m_doc);
     }
-    
-    // Single level indexing for backward compatibility
-    return index(path);
+    return index(path, len);
 }
 
 /* @Group 4.3.3: assignment set */
@@ -2777,9 +2815,9 @@ inline MutableObjectIterator& MutableObjectIterator::rewind()
 // `json / path` --> `json.pathto(path)`
 template <typename jsonT, typename T>
 inline typename std::enable_if<trait::is_value<jsonT>::value, jsonT>::type
-operator/(const jsonT& json, const T& path)
+operator/(const jsonT& json, T&& path)
 {
-    return json.pathto(path);
+    return json.pathto(std::forward<T>(path));
 }
 
 // Value and MutableValue extraction operators

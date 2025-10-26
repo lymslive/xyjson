@@ -55,7 +55,6 @@ std::string formatWithPrefix(const yyjson::Value& value, const std::string& pref
 
 } // anonymous namespace
 
-#if 1
 DEF_TAST(advanced_pipe, "test pipe() method and | operator with functions")
 {
     std::string jsonText = R"json({
@@ -228,7 +227,6 @@ DEF_TAST(advanced_pipe, "test pipe() method and | operator with functions")
         COUT(result, "DEFAULT");
     }
 }
-#endif
 
 DEF_TAST(advanced_trait1, "test base type traits for yyjson wrapper classes")
 {

@@ -1151,3 +1151,34 @@ cd build && make -j4
 - 管道与默认值的分支选择更明确，避免重载歧义。
 - 与 getor 的行为保持一致，降低 API 学习成本。
 - 后续可考虑为 kArray/kObject 引入 getor 特化及对应管道哨兵。
+
+---
+
+## 任务ID: 20251027-000346
+- **任务类型**: 开发/优化
+- **任务状态**: 已完成
+- **执行AI**: Terminal Assistant Agent
+- **对应需求**: TODO:2025-10-26/3
+
+### 任务需求
+优化 pathto 及 index 方法接收双参数，统一字符串字面量与 C 字符串处理，避免重复 strlen 计算，并确保模板匹配优先使用双参数版本。
+
+### 实施内容
+- Value/MutableValue:
+  - 为 index(const char*, size_t) 与 pathto(const char*, size_t) 增加声明与实现（Value: add pathto(const char*, size_t)；MutableValue: add pathto(const char*, size_t)）。
+  - 为字面量 const char(&)[N] 增加重载，转调双参数版本，避免 strlen。
+  - 将单参数 const char* 版本改为模板：template<typename T> enable_if<trait::is_cstr_type<T>(), ...>，在实现中使用 ::strlen 获取长度并调用双参数版本（Value::index, Value::pathto, MutableValue::index const/non-const, MutableValue::pathto）。
+  - operator[] 改为万能引用并完美转发到 index 方法。
+- Document/MutableDocument 的 operator[] 同步改为万能引用并转发。
+
+### 构建与测试
+- 构建：cmake -S . -B build && cmake --build build -j
+- 测试：./build/utxyjson --cout=silent
+- 结果：46/46 通过
+
+### 影响与兼容性
+- 字符串字面量与 std::string/const char* 行为统一；性能更优避免重复 strlen。
+- JSON Pointer 路径支持 n 版本 API：yyjson_ptr_getn / yyjson_mut_ptr_getn。
+- 向后兼容，未破坏既有用例。
+
+---
