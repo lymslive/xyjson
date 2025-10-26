@@ -278,8 +278,10 @@ public:
     bool get(yyjson_val*& result) const;
     
     // Convenience method template with default value
+    // Literals const char&[N] decay to const char*
     template<typename T>
-    T getor(const T& defaultValue) const;
+    std::decay_t<T> getor(T&& defaultValue) const;
+
     // Special overloads for sentinels
     const char* getor(EmptyString) const;
     double getor(ZeroNumber) const;
@@ -519,7 +521,7 @@ public:
     
     // Convenience method template with default value
     template<typename T>
-    T getor(const T& defaultValue) const;
+    std::decay_t<T> getor(T&& defaultValue) const;
     // Special overloads for sentinels
     const char* getor(EmptyString) const;
     double getor(ZeroNumber) const;
@@ -1427,10 +1429,11 @@ inline bool Value::get(yyjson_val*& result) const
 }
 
 template<typename T>
-inline T Value::getor(const T& defaultValue) const
+inline std::decay_t<T> Value::getor(T&& defaultValue) const
 {
-    T result;
-    return get(result) ? result : defaultValue;
+    using R = std::decay_t<T>;
+    R result{};
+    return get(result) ? result : static_cast<R>(defaultValue);
 }
 
 inline const char* Value::getor(EmptyString) const
@@ -1789,10 +1792,11 @@ inline bool MutableValue::get(yyjson_mut_doc*& result) const
 }
 
 template<typename T>
-inline T MutableValue::getor(const T& defaultValue) const
+inline std::decay_t<T> MutableValue::getor(T&& defaultValue) const
 {
-    T result;
-    return get(result) ? result : defaultValue;
+    using R = std::decay_t<T>;
+    R result{};
+    return get(result) ? result : static_cast<R>(defaultValue);
 }
 
 inline const char* MutableValue::getor(EmptyString) const
@@ -2679,21 +2683,14 @@ operator/(const jsonT& json, const T& path)
 }
 
 // Value and MutableValue extraction operators
-// `json | def` --> `json.getor(def)` : return json or default value
+// `json | def` --> `json.getor(def)` : return json value or default value
 template<typename jsonT, typename T>
-inline typename std::enable_if<trait::is_value<jsonT>::value, T>::type
-operator|(const jsonT& json, const T& defaultValue)
+inline typename std::enable_if<trait::is_value<jsonT>::value && !std::is_invocable<T, const jsonT&>::value, std::decay_t<T>>::type
+operator|(const jsonT& json, T&& defaultValue)
 {
-    return json.getor(defaultValue);
+    return json.getor(std::forward<T>(defaultValue));
 }
 
-// Specialization for const char* to avoid template deduction issues
-template<typename jsonT>
-inline typename std::enable_if<trait::is_value<jsonT>::value, const char*>::type
-operator|(const jsonT& json, const char* defaultValue)
-{
-    return json.getor(defaultValue);
-}
 // Overloads for sentinels kString and kNumber
 template<typename jsonT>
 inline typename std::enable_if<trait::is_value<jsonT>::value, const char*>::type

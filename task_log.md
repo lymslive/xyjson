@@ -1094,3 +1094,31 @@ cd build && make -j4
 - **更好的组织性**：Type Traits 和辅助函数有清晰的命名空间边界
 - **保持兼容性**：不改变现有接口和行为，仅调整命名空间结构
 - **便于维护**：相关功能分组管理，代码结构更清晰
+
+---
+
+## 任务ID: 20251026-110509
+- **任务类型**: 优化/重构
+- **任务状态**: 已完成
+- **执行AI**: Terminal Assistant Agent
+- **对应需求**: TODO:2025-10-26/1
+
+### 任务需求
+优化取值操作符与 getor 的实现：统一字面量与标量默认值的行为，减少 operator| 与 getor 的重复与歧义，保留 kString/kNumber 哨兵特化，并避免与管道函数冲突。
+
+### 实施内容
+- include/xyjson.h:1430-1444, 1792-1806 修改模板 getor 为类型衰减+转发版本，支持 const char[N] 字面量传参。
+- include/xyjson.h:2684-2691 重写 operator| 默认值重载为转发版本，并增加排除条件 !std::is_invocable<T, const jsonT&>::value 以避免与管道重载冲突。
+- include/xyjson.h:2690-2696 移除 const char* 专用重载（已不需要）。
+- 保留 kString/kNumber 的管道重载与 getor 特化，语义不变。
+
+### 构建与测试
+- 构建：cmake -S . -B build && cmake --build build -j
+- 测试：./build/utxyjson --cout=silent
+- 结果：44/44 全部通过
+
+### 影响与后续
+- 默认值传参行为统一，字面量与字符串类型一致。
+- pipe 与 getor 的区分更加稳健，避免歧义。
+- 后续若扩展 kArray/kObject，可在 getor 增加相应特化。
+
