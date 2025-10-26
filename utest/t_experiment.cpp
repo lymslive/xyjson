@@ -153,6 +153,15 @@ DEF_TAST(experiment_docx, "test operator usage")
     COUT(age & int64_t(0), true);
 }
 
+#if 0
+DEF_TAST(experiment_debug, "test debug")
+{
+    using namespace yyjson;
+//  COUT(std::is_invocable<int, int>::value);
+    COUT(trait::is_callable_type<int>::value, false);
+}
+#endif
+
 DEF_TAST(experiment_large_int, "test yyjson large integer support")
 {
     // This test explores the behavior of yyjson's C API for large integers.

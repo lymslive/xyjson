@@ -1122,3 +1122,32 @@ cd build && make -j4
 - pipe 与 getor 的区分更加稳健，避免歧义。
 - 后续若扩展 kArray/kObject，可在 getor 增加相应特化。
 
+---
+
+## 任务ID: 20251026-201131
+- **任务类型**: 开发/重构
+- **任务状态**: 已完成
+- **执行AI**: Terminal Assistant Agent
+- **对应需求**: TODO:2025-10-26/2
+
+### 任务需求
+扩展 pipe 管道功能并进行相关重构与冲突消解：
+1. 扩展 operator| 支持将可调用对象作为管道处理器（pipe handler），当 T 可调用且签名匹配 (const jsonT&) -> U 时，优先走管道分支。
+2. 调整默认值分支与管道分支的 SFINAE 条件，明确排除可调用类型，避免与 getor 重载冲突。
+3. 与 getor 的模板保持一致的类型衰减策略，统一 const char[N] 字面量、const char*、std::string 的默认值行为。
+
+### 实施内容
+- include/xyjson.h:2684-2720 重写 operator| 选择策略：
+  - 优先匹配可调用的 pipe 分支：std::is_invocable<T, const jsonT&>::value。
+  - 默认值分支：!std::is_invocable<T, const jsonT&>::value，并对 T 进行 std::decay 统一处理。
+- include/xyjson.h:1430-1444, 1792-1806 同步 getor 的模板策略，保持与管道默认值一致的字面量/字符串处理。
+
+### 构建与测试
+- 构建：cmake -S . -B build && cmake --build build -j
+- 测试：./build/utxyjson --cout=silent
+- 结果：46/46 全部通过；新增管道处理器组合用例通过。
+
+### 影响与后续
+- 管道与默认值的分支选择更明确，避免重载歧义。
+- 与 getor 的行为保持一致，降低 API 学习成本。
+- 后续可考虑为 kArray/kObject 引入 getor 特化及对应管道哨兵。

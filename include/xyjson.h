@@ -21,57 +21,59 @@
 
 /* Table of Content (TOC) */
 /* ======================================================================== */
-/* Part 1: Front Definitions                                       Line: 76 */
-/*   Section 1.1: Forward Class Declarations                       Line: 79 */
-/*   Section 1.2: Type and Operator Constants                      Line: 93 */
-/*   Section 1.3: Type Traits                                     Line: 136 */
-/* Part 2: Class Definitions                                      Line: 185 */
-/*   Section 2.1: Read-only Json Model                            Line: 188 */
-/*   Section 2.2: Mutable Json Model                              Line: 416 */
-/*   Section 2.3: Helper Class for Mutable Json                   Line: 761 */
-/*   Section 2.4: Iterator Json                                   Line: 806 */
-/* Part 3: Non-Class Functions                                   Line: 1067 */
-/*   Section 3.1: Underlying mut_val Creation                    Line: 1070 */
-/*   Section 3.2: Conversion Helper Functions                    Line: 1262 */
-/* Part 4: Class Implementations                                 Line: 1341 */
-/*   Section 4.1: Value Methods                                  Line: 1344 */
-/*     Group 4.1.1: get and getor                                Line: 1347 */
-/*     Group 4.1.2: size and index/path                          Line: 1436 */
-/*     Group 4.1.3: create iterator                              Line: 1483 */
-/*     Group 4.1.4: others                                       Line: 1530 */
-/*   Section 4.2: Document Methods                               Line: 1580 */
-/*     Group 4.2.1: primary manage                               Line: 1583 */
-/*     Group 4.2.2: read and write                               Line: 1615 */
-/*   Section 4.3: MutableValue Methods                           Line: 1700 */
-/*     Group 4.3.1: get and getor                                Line: 1703 */
-/*     Group 4.3.2: size and index/path                          Line: 1798 */
-/*     Group 4.3.3: assignment set                               Line: 1874 */
-/*     Group 4.3.4: array and object add                         Line: 2013 */
-/*     Group 4.3.5: smart input and tag                          Line: 2066 */
-/*     Group 4.3.6: create iterator                              Line: 2144 */
-/*     Group 4.3.7: others                                       Line: 2191 */
-/*   Section 4.4: MutableDocument Methods                        Line: 2241 */
-/*     Group 4.4.1: primary manage                               Line: 2244 */
-/*     Group 4.4.2: read and write                               Line: 2291 */
-/*     Group 4.4.3: create mutable value                         Line: 2388 */
-/*   Section 4.5: ArrayIterator Methods                          Line: 2411 */
-/*   Section 4.6: ObjectIterator Methods                         Line: 2458 */
-/*   Section 4.7: MutableArrayIterator Methods                   Line: 2529 */
-/*   Section 4.8: MutableObjectIterator Methods                  Line: 2582 */
-/* Part 5: Operator Interface                                    Line: 2656 */
-/*   Section 5.1: Primary Path Access                            Line: 2659 */
-/*   Section 5.2: Conversion Unary Operator                      Line: 2743 */
-/*   Section 5.3: Comparison Operator                            Line: 2789 */
-/*   Section 5.4: Create and Bind KeyValue                       Line: 2875 */
-/*   Section 5.5: Stream and Input Operator                      Line: 2904 */
-/*   Section 5.6: Iterator Creation and Operation                Line: 2946 */
-/*   Section 5.7: Document Forward Root Operator                 Line: 3021 */
-/*   Section 5.8: User-defined Literal Operator                  Line: 3086 */
-/* Part 6: Last Definitions                                      Line: 3103 */
+/* Part 1: Front Definitions                                       Line: 78 */
+/*   Section 1.1: Forward Class Declarations                       Line: 81 */
+/*   Section 1.2: Type and Operator Constants                      Line: 95 */
+/*   Section 1.3: Type Traits                                     Line: 138 */
+/* Part 2: Class Definitions                                      Line: 251 */
+/*   Section 2.1: Read-only Json Model                            Line: 254 */
+/*   Section 2.2: Mutable Json Model                              Line: 506 */
+/*   Section 2.3: Helper Class for Mutable Json                   Line: 873 */
+/*   Section 2.4: Iterator Json                                   Line: 918 */
+/* Part 3: Non-Class Functions                                   Line: 1179 */
+/*   Section 3.1: Underlying mut_val Creation                    Line: 1185 */
+/*   Section 3.2: Conversion Helper Functions                    Line: 1377 */
+/* Part 4: Class Implementations                                 Line: 1458 */
+/*   Section 4.1: Value Methods                                  Line: 1461 */
+/*     Group 4.1.1: get and getor                                Line: 1464 */
+/*     Group 4.1.2: size and index/path                          Line: 1554 */
+/*     Group 4.1.3: create iterator                              Line: 1601 */
+/*     Group 4.1.4: others                                       Line: 1648 */
+/*   Section 4.2: Document Methods                               Line: 1698 */
+/*     Group 4.2.1: primary manage                               Line: 1701 */
+/*     Group 4.2.2: read and write                               Line: 1733 */
+/*   Section 4.3: MutableValue Methods                           Line: 1818 */
+/*     Group 4.3.1: get and getor                                Line: 1821 */
+/*     Group 4.3.2: size and index/path                          Line: 1917 */
+/*     Group 4.3.3: assignment set                               Line: 1993 */
+/*     Group 4.3.4: array and object add                         Line: 2132 */
+/*     Group 4.3.5: smart input and tag                          Line: 2185 */
+/*     Group 4.3.6: create iterator                              Line: 2263 */
+/*     Group 4.3.7: others                                       Line: 2310 */
+/*   Section 4.4: MutableDocument Methods                        Line: 2360 */
+/*     Group 4.4.1: primary manage                               Line: 2363 */
+/*     Group 4.4.2: read and write                               Line: 2410 */
+/*     Group 4.4.3: create mutable value                         Line: 2507 */
+/*   Section 4.5: ArrayIterator Methods                          Line: 2530 */
+/*   Section 4.6: ObjectIterator Methods                         Line: 2577 */
+/*   Section 4.7: MutableArrayIterator Methods                   Line: 2648 */
+/*   Section 4.8: MutableObjectIterator Methods                  Line: 2701 */
+/* Part 5: Operator Interface                                    Line: 2775 */
+/*   Section 5.1: Primary Path Access                            Line: 2778 */
+/*   Section 5.2: Conversion Unary Operator                      Line: 2865 */
+/*   Section 5.3: Comparison Operator                            Line: 2911 */
+/*   Section 5.4: Create and Bind KeyValue                       Line: 2997 */
+/*   Section 5.5: Stream and Input Operator                      Line: 3026 */
+/*   Section 5.6: Iterator Creation and Operation                Line: 3068 */
+/*   Section 5.7: Document Forward Root Operator                 Line: 3143 */
+/*   Section 5.8: User-defined Literal Operator                  Line: 3208 */
+/* Part 6: Last Definitions                                      Line: 3225 */
 /* ======================================================================== */
 
 namespace yyjson
 {
+
+// moved to trait namespace below
 
 /* @Part 1: Front Definitions */
 /* ======================================================================== */
@@ -138,7 +140,6 @@ constexpr const char* okIncreace = "++";
 
 namespace trait
 {
-
 /**
  * @brief Type traits for yyjson wrapper classes
  * 
@@ -184,6 +185,66 @@ constexpr bool is_cstr_type() {
     using decayed_t = std::decay_t<T>;
     return std::is_same<decayed_t, const char*>::value || std::is_same<decayed_t, char*>::value;
 }
+
+// is_scalar<T> Type trait for supported scalar types
+template<typename T> struct is_scalar : std::false_type {};
+template<> struct is_scalar<bool> : std::true_type {};
+template<> struct is_scalar<int> : std::true_type {};
+template<> struct is_scalar<int64_t> : std::true_type {};
+template<> struct is_scalar<uint64_t> : std::true_type {};
+template<> struct is_scalar<double> : std::true_type {};
+template<> struct is_scalar<const char*> : std::true_type {};
+template<> struct is_scalar<std::string> : std::true_type {};
+
+// Helper constexpr to check scalar type
+template<typename T>
+constexpr bool is_scalar_type() {
+    using decayed_t = std::decay_t<T>;
+    return is_scalar<decayed_t>::value;
+}
+
+// enable_getor<T>: types eligible for getor(default)
+template<typename T>
+struct enable_getor : std::bool_constant<
+    is_scalar<std::decay_t<T>>::value ||
+    std::is_same<std::decay_t<T>, yyjson_val*>::value ||
+    std::is_same<std::decay_t<T>, yyjson_mut_val*>::value ||
+    std::is_same<std::decay_t<T>, yyjson_mut_doc*>::value ||
+    std::is_same<std::decay_t<T>, std::nullptr_t>::value ||
+    std::is_same<std::decay_t<T>, EmptyString>::value ||
+    std::is_same<std::decay_t<T>, ZeroNumber>::value
+> {};
+
+template<typename T>
+constexpr bool enable_getor_v = enable_getor<T>::value;
+
+// Helper: check if funcT is callable with any supported scalar type
+template<typename funcT>
+struct is_callable_with_scalar {
+    static constexpr bool value =
+        std::is_invocable_v<funcT, const char*> ||
+        std::is_invocable_v<funcT, std::string> ||
+        std::is_invocable_v<funcT, int> ||
+        std::is_invocable_v<funcT, double> ||
+        std::is_invocable_v<funcT, int64_t> ||
+        std::is_invocable_v<funcT, uint64_t> ||
+        std::is_invocable_v<funcT, bool>;
+};
+
+template<typename funcT>
+constexpr bool is_callable_with_scalar_v = is_callable_with_scalar<funcT>::value;
+
+// Helper: detect callable type (lambda, std::function, function pointer)
+template<typename F>
+struct is_callable_type : std::bool_constant<
+    std::is_class<std::decay_t<F>>::value ||
+    std::is_function<std::remove_pointer_t<std::decay_t<F>>>::value ||
+    (std::is_pointer<std::decay_t<F>>::value &&
+     std::is_function<std::remove_pointer_t<std::decay_t<F>>>::value)
+> {};
+
+template<typename F>
+constexpr bool is_callable_type_v = is_callable_type<F>::value;
 
 } /* end of namespace yyjson::trait */
 
@@ -327,11 +388,8 @@ public:
     bool less(const Value& other) const;
 
     // Pipe function for custom transformations
-    template<typename Func>
-    auto pipe(Func&& func) const -> decltype(func(*this))
-    {
-        return std::forward<Func>(func)(*this);
-    }
+    template<typename funcT>
+    inline auto pipe(funcT&& func) const;
 
 private:
     yyjson_val* m_val = nullptr;
@@ -651,11 +709,8 @@ public:
     bool less(const MutableValue& other) const;
     
     // Pipe function for custom transformations
-    template<typename Func>
-    auto pipe(Func&& func) const -> decltype(func(*this))
-    {
-        return std::forward<Func>(func)(*this);
-    }
+    template<typename funcT>
+    inline auto pipe(funcT&& func) const;
 
 private:
     yyjson_mut_val* m_val = nullptr;
@@ -1348,6 +1403,36 @@ toIntegerCast(const jsonT& val)
     return 0;
 }
 
+// Apply function to json value with smart scalar mapping
+// Prefer callable with json type, else map to supported scalars,
+// finally fallback to getor(default) when func itself is a default value.
+template<typename jsonT, typename funcT>
+inline auto pipeApply(const jsonT& json, funcT&& func)
+{
+    if constexpr (std::is_invocable_v<funcT, const jsonT&>) {
+        return std::forward<funcT>(func)(json);
+    } else if constexpr (std::is_invocable_v<funcT, const char*>) {
+        return std::forward<funcT>(func)(json.getor(kString));
+    } else if constexpr (std::is_invocable_v<funcT, std::string>) {
+        return std::forward<funcT>(func)(json.getor(std::string{}));
+    } else if constexpr (std::is_invocable_v<funcT, double>) {
+        return std::forward<funcT>(func)(json.getor(kNumber));
+    } else if constexpr (std::is_invocable_v<funcT, int>) {
+        return std::forward<funcT>(func)(json.getor(0));
+    } else if constexpr (std::is_invocable_v<funcT, int64_t>) {
+        return std::forward<funcT>(func)(json.getor(int64_t{}));
+    } else if constexpr (std::is_invocable_v<funcT, uint64_t>) {
+        return std::forward<funcT>(func)(json.getor(uint64_t{}));
+    } else if constexpr (std::is_invocable_v<funcT, bool>) {
+        return std::forward<funcT>(func)(json.getor(false));
+    } else if constexpr (trait::enable_getor<funcT>::value) {
+        // Fallback: treat func as default value for getor
+        return json.getor(std::forward<funcT>(func));
+    } else {
+        static_assert(!std::is_same_v<funcT, funcT>, "Unsupported pipe() callable parameter type");
+    }
+}
+
 } /* end of namespace yyjson::util */
 
 /* @Part 4: Class Implementations */
@@ -1444,6 +1529,12 @@ inline const char* Value::getor(EmptyString) const
 inline double Value::getor(ZeroNumber) const
 {
     return toNumber();
+}
+
+template<typename funcT>
+inline auto Value::pipe(funcT&& func) const
+{
+    return util::pipeApply(*this, std::forward<funcT>(func));
 }
 
 /* @Group 4.1.2: size and index/path */
@@ -1807,6 +1898,12 @@ inline const char* MutableValue::getor(EmptyString) const
 inline double MutableValue::getor(ZeroNumber) const
 {
     return toNumber();
+}
+
+template<typename funcT>
+inline auto MutableValue::pipe(funcT&& func) const
+{
+    return util::pipeApply(*this, std::forward<funcT>(func));
 }
 
 /* @Group 4.3.2: size and index/path */
@@ -2685,7 +2782,11 @@ operator/(const jsonT& json, const T& path)
 // Value and MutableValue extraction operators
 // `json | def` --> `json.getor(def)` : return json value or default value
 template<typename jsonT, typename T>
-inline typename std::enable_if<trait::is_value<jsonT>::value && !std::is_invocable<T, const jsonT&>::value, std::decay_t<T>>::type
+inline typename std::enable_if<
+    trait::is_value<jsonT>::value &&
+    trait::enable_getor<T>::value,
+    std::decay_t<T>
+>::type
 operator|(const jsonT& json, T&& defaultValue)
 {
     return json.getor(std::forward<T>(defaultValue));
@@ -2723,11 +2824,14 @@ operator>>(const jsonT& json, valueT& dest)
     return json.get(dest);
 }
 
-// `json | func` --> `json.pipe(func)` --> `func(json)`
-template<typename jsonT, typename Func>
-inline auto operator|(const jsonT& json, Func&& func) -> decltype(func(json))
+template<typename jsonT, typename funcT, typename ifT = typename std::enable_if<
+    // constraint by the not used 3rd optional type parameter
+    trait::is_value<jsonT>::value && !trait::enable_getor<funcT>::value
+//  && trait::is_callable_type_v<funcT>
+    >::type >
+inline auto operator|(const jsonT& json, funcT&& func)
 {
-    return json.pipe(std::forward<Func>(func));
+    return json.pipe(std::forward<funcT>(func));
 }
 
 // Value and MutableValue type checking operators

@@ -55,6 +55,7 @@ std::string formatWithPrefix(const yyjson::Value& value, const std::string& pref
 
 } // anonymous namespace
 
+#if 1
 DEF_TAST(advanced_pipe, "test pipe() method and | operator with functions")
 {
     std::string jsonText = R"json({
@@ -103,6 +104,39 @@ DEF_TAST(advanced_pipe, "test pipe() method and | operator with functions")
 
         std::string complexString = "Result: " + (doc / "string_value" | toUppercase);
         COUT(complexString, "Result: HELLO");
+    }
+
+    DESC("Test pipe with scalar parameter functions (string/int/double)");
+    {
+        yyjson::Document doc(jsonText);
+        
+        auto str_len = [](const std::string& s) { return (int)s.size(); };
+        auto append_suffix = [](const char* s) { return std::string(s) + "_suffix"; };
+        auto inc_int = [](int x) { return x + 1; };
+        auto mul_double = [](double d) { return d * 1.5; };
+
+        // string -> size
+        COUT((doc / "string_value").pipe(str_len), 5);
+        COUT((doc / "string_value" | str_len), 5);
+        // string -> append
+        COUT((doc / "string_value").pipe(append_suffix), std::string("hello_suffix"));
+        COUT((doc / "string_value" | append_suffix), std::string("hello_suffix"));
+
+        // int -> inc
+        COUT((doc / "int_value").pipe(inc_int), 43);
+        COUT((doc / "int_value" | inc_int), 43);
+
+        // double -> mul
+        yyjson::Document doc2("{\"d\": 2.0}");
+        COUT((doc2 / "d").pipe(mul_double), 3.0);
+        COUT((doc2 / "d" | mul_double), 3.0);
+
+        // invalid path default behaviors
+        auto invalid = doc / "nonexistent";
+        COUT(invalid.pipe(str_len), 0);
+        COUT(invalid.pipe(append_suffix), std::string("_suffix"));
+        COUT(invalid.pipe(inc_int), 1); // default 0 + 1
+        COUT(invalid.pipe(mul_double), 0.0); // default 0.0 * 1.5 -> 0.0
     }
 
     DESC("Test pipe() method with MutableValue");
@@ -194,8 +228,9 @@ DEF_TAST(advanced_pipe, "test pipe() method and | operator with functions")
         COUT(result, "DEFAULT");
     }
 }
+#endif
 
-DEF_TAST(advanced_trait, "test type traits for yyjson wrapper classes")
+DEF_TAST(advanced_trait1, "test base type traits for yyjson wrapper classes")
 {
     using namespace yyjson;
 
@@ -288,6 +323,100 @@ DEF_TAST(advanced_trait, "test type traits for yyjson wrapper classes")
         COUT(test_key_function(42), "invalid_key");
         COUT(test_key_function(true), "invalid_key");
     }
+}
+
+DEF_TAST(advanced_trait2, "test extended type traits: is_scalar, enable_getor, is_callable_with_scalar, is_callable_type")
+{
+    using namespace yyjson;
+
+    // is_scalar
+    COUT(trait::is_scalar<bool>::value, true);
+    COUT(trait::is_scalar<int>::value, true);
+    COUT(trait::is_scalar<int64_t>::value, true);
+    COUT(trait::is_scalar<uint64_t>::value, true);
+    COUT(trait::is_scalar<double>::value, true);
+    COUT(trait::is_scalar<const char*>::value, true);
+    COUT(trait::is_scalar<std::string>::value, true);
+    COUT(trait::is_scalar<Value>::value, false);
+
+    // enable_getor
+    COUT(trait::enable_getor_v<int>, true);
+    COUT(trait::enable_getor_v<double>, true);
+    COUT(trait::enable_getor_v<const char*>, true);
+    COUT(trait::enable_getor_v<std::string>, true);
+    COUT(trait::enable_getor_v<EmptyString>, true);
+    COUT(trait::enable_getor_v<ZeroNumber>, true);
+    COUT(trait::enable_getor_v<yyjson_val*>, true);
+    COUT(trait::enable_getor_v<yyjson_mut_val*>, true);
+    COUT(trait::enable_getor_v<yyjson_mut_doc*>, true);
+    COUT(trait::enable_getor_v<std::nullptr_t>, true);
+    COUT(trait::enable_getor_v<Value>, false);
+
+    // is_callable_with_scalar
+    auto lam_str = [](std::string){ return 0; };
+    auto lam_cstr = [](const char*){ return std::string(); };
+    auto lam_double = [](double){ return 0.0; };
+    auto lam_int = [](int){ return 1; };
+    auto lam_sint = [](int64_t){ return 1; };
+    auto lam_uint = [](uint64_t){ return 1u; };
+    auto lam_bool = [](bool){ return false; };
+
+    COUT((trait::is_callable_with_scalar_v<decltype(lam_str)>), true);
+    COUT((trait::is_callable_with_scalar_v<decltype(lam_cstr)>), true);
+    COUT((trait::is_callable_with_scalar_v<decltype(lam_double)>), true);
+    COUT((trait::is_callable_with_scalar_v<decltype(lam_int)>), true);
+    COUT((trait::is_callable_with_scalar_v<decltype(lam_sint)>), true);
+    COUT((trait::is_callable_with_scalar_v<decltype(lam_uint)>), true);
+    COUT((trait::is_callable_with_scalar_v<decltype(lam_bool)>), true);
+
+    // is_callable_type
+    COUT((trait::is_callable_type_v<decltype(lam_str)>), true);
+    COUT((trait::is_callable_type_v<int>), false);
+    using FnPtr = int(*)(int);
+    COUT((trait::is_callable_type_v<FnPtr>), true);
+}
+
+DEF_TAST(advanced_pipe_only, "test pipe() method only without operator|(json, func)")
+{
+    using namespace yyjson;
+
+    std::string jsonText = R"json({
+        "string_value": "hello",
+        "int_value": 42,
+        "double_value": 2.0,
+        "bool_true": true,
+        "bool_false": false,
+        "zero_value": 0,
+        "empty_string": ""
+    })json";
+
+    Document doc(jsonText);
+    COUT(doc.hasError(), false);
+
+    // pipe with Value-parameter functions
+    auto toUpper = [](const Value& v){ auto s = v | std::string(); std::transform(s.begin(), s.end(), s.begin(), ::toupper); return s; };
+    auto inc = [](const Value& v){ return (v | 0) + 1; };
+    auto truthy = [](const Value& v){ return v.isBool() ? (v | false) : ((v | 0) != 0); };
+
+    COUT((doc / "string_value").pipe(toUpper), std::string("HELLO"));
+    COUT((doc / "int_value").pipe(inc), 43);
+    COUT((doc / "bool_true").pipe(truthy), true);
+    COUT((doc / "bool_false").pipe(truthy), false);
+
+    // pipe with scalar-parameter lambdas
+    auto str_len = [](std::string s){ return (int)s.size(); };
+    auto append_suffix = [](const char* s){ return std::string(s) + "_suffix"; };
+    auto mul_double = [](double d){ return d * 1.5; };
+
+    COUT((doc / "string_value").pipe(str_len), 5);
+    COUT((doc / "string_value").pipe(append_suffix), std::string("hello_suffix"));
+    COUT((doc / "double_value").pipe(mul_double), 3.0);
+
+    // invalid path defaults via pipe
+    auto invalid = doc / "nonexistent";
+    COUT(invalid.pipe(str_len), 0);
+    COUT(invalid.pipe(append_suffix), std::string("_suffix"));
+    COUT(invalid.pipe(mul_double), 0.0);
 }
 
 DEF_TAST(advanced_compare_ops, "test comparison operators")
