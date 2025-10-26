@@ -281,36 +281,36 @@ DEF_TAST(advanced_trait1, "test base type traits for yyjson wrapper classes")
         }
     }
 
-    // Test is_key_type function
+    // Test is_key_v function
     {
         // Test supported key types (should return true)
-        COUT(trait::is_key_type<const char*>(), true);
-        COUT(trait::is_key_type<char*>(), true);
-        COUT(trait::is_key_type<std::string>(), true);
+        COUT(trait::is_key_v<const char*>, true);
+        COUT(trait::is_key_v<char*>, true);
+        COUT(trait::is_key_v<std::string>, true);
         
         // Test string literals (array types)
-        COUT(trait::is_key_type<const char[5]>(), true);  // e.g., "test"
-        COUT(trait::is_key_type<char[5]>(), true);        // e.g., char arr[5] = "test"
+        COUT(trait::is_key_v<const char[5]>, true);  // e.g., "test"
+        COUT(trait::is_key_v<char[5]>, true);        // e.g., char arr[5] = "test"
         
         // Test unsupported types (should return false)
-        COUT(trait::is_key_type<int>(), false);
-        COUT(trait::is_key_type<double>(), false);
-        COUT(trait::is_key_type<bool>(), false);
-        COUT(trait::is_key_type<Value>(), false);
-        COUT(trait::is_key_type<MutableValue>(), false);
-        COUT(trait::is_key_type<Document>(), false);
-        COUT(trait::is_key_type<void*>(), false);
+        COUT(trait::is_key_v<int>, false);
+        COUT(trait::is_key_v<double>, false);
+        COUT(trait::is_key_v<bool>, false);
+        COUT(trait::is_key_v<Value>, false);
+        COUT(trait::is_key_v<MutableValue>, false);
+        COUT(trait::is_key_v<Document>, false);
+        COUT(trait::is_key_v<void*>, false);
         
         // Test with decayed types (should handle array-to-pointer decay correctly)
         const char* ptr = "test";
-        COUT(trait::is_key_type<decltype(ptr)>(), true);
+        COUT(trait::is_key_v<decltype(ptr)>, true);
         
         std::string str = "test";
-        COUT(trait::is_key_type<decltype(str)>(), true);
+        COUT(trait::is_key_v<decltype(str)>, true);
         
-        // Test with function that uses is_key_type
+        // Test with function that uses is_key_v
         auto test_key_function = [](const auto& key) {
-            if constexpr (trait::is_key_type<decltype(key)>()) {
+            if constexpr (trait::is_key_v<decltype(key)>) {
                 return std::string("valid_key");
             } else {
                 return std::string("invalid_key");
@@ -404,7 +404,7 @@ DEF_TAST(advanced_pipe_only, "test pipe() method only without operator|(json, fu
     COUT((doc / "bool_false").pipe(truthy), false);
 
     // pipe with scalar-parameter lambdas
-    auto str_len = [](std::string s){ return (int)s.size(); };
+    auto str_len = [](const std::string& s){ return (int)s.size(); };
     auto append_suffix = [](const char* s){ return std::string(s) + "_suffix"; };
     auto mul_double = [](double d){ return d * 1.5; };
 

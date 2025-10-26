@@ -166,17 +166,11 @@ template<> struct is_iterator<MutableObjectIterator> : std::true_type {};
 
 // is_key<T> Type trait for supported key string types
 template<typename T> struct is_key : std::false_type {};
-template<> struct is_key<const char*> : std::true_type {}; // and const char[N]
-template<> struct is_key<char*> : std::true_type {};       // and char[N]
+template<> struct is_key<const char*> : std::true_type {}; // and decay const char[N]
+template<> struct is_key<char*> : std::true_type {};       // and decay char[N]
 template<> struct is_key<std::string> : std::true_type {};
-
-// Helper constexpr function to check if a type can be used as key
-// Handles array-to-pointer decay and string literals
 template<typename T>
-constexpr bool is_key_type() {
-    using decayed_t = std::decay_t<T>;
-    return is_key<decayed_t>::value;
-}
+constexpr bool is_key_v = is_key<std::decay_t<T>>::value;
 
 // Helper constexpr function to check if a type is a C-style string
 // Handles both const char* and char* types
@@ -195,13 +189,8 @@ template<> struct is_scalar<uint64_t> : std::true_type {};
 template<> struct is_scalar<double> : std::true_type {};
 template<> struct is_scalar<const char*> : std::true_type {};
 template<> struct is_scalar<std::string> : std::true_type {};
-
-// Helper constexpr to check scalar type
 template<typename T>
-constexpr bool is_scalar_type() {
-    using decayed_t = std::decay_t<T>;
-    return is_scalar<decayed_t>::value;
-}
+constexpr bool is_scalar_v = is_scalar<std::decay_t<T>>::value;
 
 // enable_getor<T>: types eligible for getor(default)
 template<typename T>
@@ -218,7 +207,7 @@ struct enable_getor : std::bool_constant<
 template<typename T>
 constexpr bool enable_getor_v = enable_getor<T>::value;
 
-// Helper: check if funcT is callable with any supported scalar type
+// Check if funcT is callable with any supported scalar type
 template<typename funcT>
 struct is_callable_with_scalar {
     static constexpr bool value =
@@ -234,7 +223,7 @@ struct is_callable_with_scalar {
 template<typename funcT>
 constexpr bool is_callable_with_scalar_v = is_callable_with_scalar<funcT>::value;
 
-// Helper: detect callable type (lambda, std::function, function pointer)
+// Detect callable type (lambda, std::function, function pointer)
 template<typename F>
 struct is_callable_type : std::bool_constant<
     std::is_class<std::decay_t<F>>::value ||
@@ -352,6 +341,7 @@ public:
     Value index(size_t idx) const;
     Value index(int idx) const;
     Value index(const char* key) const;
+    Value index(const char* key, size_t len) const;
     Value index(const std::string& key) const;
     
     // Array and object access operator
@@ -589,6 +579,7 @@ public:
     MutableValue index(size_t idx) const;
     MutableValue index(int idx) const;
     MutableValue index(const char* key) const;
+    MutableValue index(const char* key, size_t len) const;
     MutableValue index(const std::string& key) const;
     // non-const version for automatic object insertion
     MutableValue index(size_t idx);
@@ -1300,7 +1291,7 @@ inline yyjson_mut_val* create(yyjson_mut_doc* doc, const MutableDocument& src)
 
 // Create key node for object insertion, with string literal optimization
 template<typename T>
-inline typename std::enable_if<trait::is_key_type<T>(), yyjson_mut_val*>::type
+inline typename std::enable_if<trait::is_key_v<T>, yyjson_mut_val*>::type
 createKey(yyjson_mut_doc* doc, T&& key)
 {
     return create(doc, std::forward<T>(key));
@@ -1565,9 +1556,15 @@ inline Value Value::index(const char* key) const
     return Value(yyjson_obj_get(m_val, key));
 }
 
+inline Value Value::index(const char* key, size_t len) const
+{
+    if (!isObject() || !key) return Value(nullptr);
+    return Value(yyjson_obj_getn(m_val, key, len));
+}
+
 inline Value Value::index(const std::string& key) const
 {
-    return index(key.c_str());
+    return index(key.c_str(), key.size());
 }
 
 inline Value Value::pathto(const char* path) const
@@ -1934,9 +1931,15 @@ inline MutableValue MutableValue::index(const char* key) const
     return MutableValue(yyjson_mut_obj_get(m_val, key), m_doc);
 }
 
+inline MutableValue MutableValue::index(const char* key, size_t len) const
+{
+    if (!isObject() || !key) return MutableValue(nullptr, m_doc);
+    return MutableValue(yyjson_mut_obj_getn(m_val, key, len), m_doc);
+}
+
 inline MutableValue MutableValue::index(const std::string& key) const
 {
-    return index(key.c_str());
+    return index(key.c_str(), key.size());
 }
 
 inline MutableValue MutableValue::index(size_t idx)
@@ -2994,14 +2997,14 @@ inline MutableValue operator*(const MutableDocument& doc, T&& value)
 }
 
 template <typename T>
-inline typename std::enable_if<trait::is_key_type<T>(), KeyValue>::type
+inline typename std::enable_if<trait::is_key_v<T>, KeyValue>::type
 operator*(MutableValue&& json, T&& key)
 {
     return std::move(json).tag(std::forward<T>(key));
 }
 
 template <typename T>
-inline typename std::enable_if<trait::is_key_type<T>(), KeyValue>::type
+inline typename std::enable_if<trait::is_key_v<T>, KeyValue>::type
 operator*(T&& key, MutableValue&& json)
 {
     return std::move(json).tag(std::forward<T>(key));

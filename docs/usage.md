@@ -28,10 +28,10 @@ yyjson 结点中，用 8 字节来存储各种数字类型。
 - MutableDocument: 仅 `yyjson_mut_doc*` 指针
 - MutableValue: 包括 `yyjson_mut_val*` 与 `yyjson_mut_doc*` 指针方便修改
 
-Document 与 MutableDocument 负责整个 Json 树的内存自动管理，而 Value 与
-MutableValue 是对某个 Json 结点的引用，其中根结点可用 root 方法获取。根结点一
-般是容器类型，但简单标量也是合法 Json。这些类再通过操作符重载封装了常用操作，
-同时提供对应的具名方法供不同编程风格的用户选择。
+`Document` 与 `MutableDocument` 负责整个 Json 树的内存自动管理，相当于一个智能
+指针。而 `Value` 与 `MutableValue` 是对某个 Json 结点的引用，相当于一种代理模
+式。这些类再通过操作符重载封装了常用操作，同时提供对应的具名方法供不同编程风格
+的用户选择。
 
 注：本文的示例省去了必要的头文件包含行 `#include "xyjson.h"` 。
 
@@ -399,6 +399,24 @@ std::string name = doc / "name" | [](yyjson::Value json) {
 std::cout << name << std::endl; // 输出：ALICE
 ```
 
+管道函数也可以直接定义为接收基本类型的参数，如此 xyjson 会先从 json 结点中提取
+出符合参数类型的基本值再传给自定义函数，如果 json 类型不匹配，默认传的是基本类
+型的零值或空值。上例的等效简化写法是：
+
+```cpp
+yyjson::Document doc;
+doc << R"({"name": "Alice", "age": 30})";
+
+// 取值转大写
+std::string name = doc / "name" | [](const std::string& str) {
+    std::string result = str;
+    std::transform(result.begin(), result.end(), result.begin(), ::toupper);
+    return result;
+};
+
+std::cout << name << std::endl; // 输出：ALICE
+```
+
 在这种用法下，`|` 可读为管道，或过滤。右侧是基本类型的情况也可以视为管道函数的
 特例，只因太常用，xyjson 库内置了简化用法。
 
@@ -411,7 +429,7 @@ int age = doc / "age" | [](yyjson::Value json) {
     return json.getor(0);
 };
 
-std::cout << name << std::endl; // 输出：ALICE
+std::cout << age << std::endl; // 输出：30
 ```
 
 一个更复杂的对象读取示例：
@@ -609,11 +627,11 @@ std::cout << (doc / "int" | 0) << std::endl; // 输出：100
 #### 字符串类型
 
 从 Json 字符串结点中读取后能存入到两种常用的 C++ 字符串类型中：
-- C 风格字符串 `const char*`，只保存指针仍指向原 Json 的字符串
+- C 风格字符串 `const char\*`，只保存指针仍指向原 Json 的字符串
 - 标准库字符串 `std::string`，拷贝字符串到独立副本
 
 这两种类型的变量都可以放到 `|` 或 `&` 的后面，用于读取（默认值）或类型判断。
-由于 `std::string` 可以从 `const char*` 构造或赋值，所以读取字符串最简单的写法
+由于 `std::string` 可以从 `const char\*` 构造或赋值，所以读取字符串最简单的写法
 就是 `| ""` ，再由 `=` 左侧的变量决定最终使用什么字符串类型。
 
 ```cpp
@@ -632,7 +650,7 @@ if (doc / "name" & kString)
 此外，还有个特殊类型 `EmptyString` 及其常量 `kString` ，只能用于 `|` 与 `&` 等
 重载操作符后面作为一种类型标识，而作为普通变量是没有意义的。这个标识类型的提出，
 是由于字面 `""` 与 `"{}"` ，`"[]"` 在用于 `&` 的参数时，调用的是同一个方法，接
-收的参数类型是 `const char*` ，这就需要对后面两种特殊字面作额外的比较判断是否
+收的参数类型是 `const char \*` ，这就需要对后面两种特殊字面作额外的比较判断是否
 对象或数组。
 
 #### 特殊 Json 类型 Null
@@ -918,8 +936,8 @@ std::cout << mutDoc << std::endl;
 
 请注意 `=` 操作符还承担了标准的类对象赋值拷贝功能。`Value` 与 `MutableValue`
 是值类型的类，支持拷贝与同类赋值（Document 不可拷贝只能移动）。同类赋值只是拷
-贝底层 Json 结点的指针引用，赋值为基本类型则会修改改所引用结点的存储值，所以只
-支持 `MutableValue` 不支持 `Value` 。
+贝底层 Json 结点的指针引用。赋值为其他基本类型则会修改改所引用结点的存储值，所
+以只支持 `MutableValue` 不支持 `Value` 。
 
 ```cpp
 yyjson::MutableDocument mutDoc;
@@ -1100,7 +1118,7 @@ mutDoc << R"({
 几个类上的语义相关性，对于 Document 是整体的输入，对于 `MutableValue` 是局部的
 修改输入。
 
-### 预建结点与移动插入
+### 创建结点、移动与复制
 
 以上用 `<<` 往 Json 数组添加新结点时，其实分两步：
 1. 在 `MutableDocument` 所管理的内存池中创建结点，
@@ -1109,15 +1127,17 @@ mutDoc << R"({
 在插入对象时，第 2 步又需额外做个状态检查，如果没有悬挂键，就先创建键结点，否
 则创建值结点，将键值对一起插入底层对象，然后清空悬挂键。
 
-为了避免 `<<` 操作对象时插入键值对非原子性与悬挂键的问题，也提供了另一种操作方案。
-分 3 步：
+#### 键值对绑定
+
+为了避免 `<<` 操作对象时插入键值对非原子性与悬挂键的问题，也提供了另一种操作方
+案。分 3 步：
 1. 先分别创建键结点与值结点，方法名 `MutableDocument::create`
 2. 将键结点与值结点绑定为一个中间类型，方法名 `MuatbleValue::tag`
 3. 将中间类型表示的键值对一次调用插入到对象中，方法名 `MuatbleValue::add`
 
 这个中间类型名不关键，就叫 `KeyValue` ，只包含两个指针的轻量值类型。前两步方法
-可用二元操作符 `*` 代表，第三步就是上节已介绍过的 `<<` 。由于 `*` 操作符优先级
-比 `<<` 高，可以方便地写在一个表达式中。
+可用二元操作符 `\*` 代替，第三步就是上节已介绍过的 `<<` 。由于 `\*` 操作符优先
+级比 `<<` 高，可以方便地写在一个表达式中。
 
 这三步法也可稍作简化：
 1. 只从基本类型创建值结点；
@@ -1146,27 +1166,80 @@ root << mutDoc * 25 * "Alice";   // 值结点 * 键名，省去括号
 root << mutDoc.create(25).tag("Alice"); // root.add("Alice", 25)
 ```
 
-注意键值对绑定是移动语义，表示将要打包插入目标对象中。如果不是移动语义，就表示
-允许将这个键值对重复插入，那就有问题。因此一般用在 `*` 表达式中，不要保存中间
-变量成为左值，保存左值后要再利用还得显式用 `std::move` 转右值。
+注意键值对绑定是移动语义，表示将要打包插入到目标对象中。如果不是移动语义，就表
+示允许将这个键值对重复插入，那就有问题。因此一般用在 `\*` 表达式中，不要保存中
+间变量成为左值，保存左值后要再利用还得显式用 `std::move` 转右值。
 
-至于为什么选用乘号 `*` 来表达结点创建与绑定的操作，因为它与路径查找的除号 `/`
-原是互逆关系，一个结点要在 Json 树中通过 `/` 找到，那么它在创建时就该用 `*` 了。
-既然二元乘 `*` 是创建结点，那么一元 `*` 作用于 Document 取其根结点也相似了。
+至于为什么选用乘号 `\*` 来表达结点创建与绑定的操作，因为它与路径查找的除号 `/`
+原是互逆关系，一个结点要在 Json 树中通过 `/` 找到，那么它在创建时就该用 `\*`
+了。既然二元乘 `\*` 是创建结点，那么一元 `\*` 作用于 Document 取其根结点也相似
+了。
 
-使用两个 `*` 连乘创建的键值对不能用 `<<` 添加到数组中，用一个 `*` 创建的结点理
-论上可以添加到数组中，但是会重复拷贝结点，添加到数组不必舍近求远做这额外工作。
+#### 移动独立结点
+
+使用两个 `\*` 连乘创建的键值对不能用 `<<` 添加到数组中，用一个 `\*` 创建的结点
+可以用 `<<` 添加到数组（与对象）中。注意左值时是复制结点，右值则以移动的方式插
+入目标容器。对于新创建的独立结点，一般是期望以移动式插入到 Json 树的某个路径下
+，除非有意保留模板多处插入相同的结点。
+
+```cpp
+// 创建根为数组的 Json
+MutableDocument mutDoc("[]");
+
+// 创建独立于 Json 树根的对象，填充信息
+auto user = mutDoc * "{}";
+user << "name" << "Alice" << "age" << 30;
+
+// 将对象移入到 Json 根数组中
+mutDoc.root() << std::move(user);
+if (!user) { std::cout << "moved" << std::endl; }
+
+// 创建另一个对象，可复用 user 变量名，再移入
+user = mutDoc * "{}";
+user << "name" << "Bob" << "age" << 25;
+mutDoc.root() << std::move(user);
+
+std::cout << mutDoc << std::endl;
+//^ 输出：[{"name":"Alice","name":30},{"name":"Bob","age":25}]
+
+// 再创建一个数组
+auto favor = mutDoc * "[]";
+favor << "book" << "movie" << "music";
+
+// 将这个新数组复制两份插入到前两个（已挂到树上的） user 对象
+mutDoc / 0 << "favor" << favor;
+mutDoc / 1 << "favor" << favor;
+
+std::cout << mutDoc << std::endl;
+//^ 输出：[{"name":"Alice","name":30,"favor":["book","movie","music"]},{"name":"Bob","age":25,"favor":["book","movie","music"]}]
+
+if (favor) {
+    std::cout << favor << std::endl;
+    //^ 仍有效，输出：["book","movie","music"]
+}
+```
+
+像这样自下而上先操作新建的独立结点，内容准备好后再挂到树上的方法，比自上而下先
+在树上添加空数组或空对象占位结点，再用 `/` 路径操作符重新取出来操作的方法，效
+率要高一些，因为避免了重复的路径查找。
 
 ### 拷贝已有结点
 
-操作符 `<<` 右侧参数可以也是 `Value` 或 `MutableValue`，表示从已有结点拷贝插入。
+但是对于已经挂在树上的结点，不能用 `std::move` 移动插入到另一个地方，那可能发
+生逻辑错误。所以已有结点只能拷贝才能安全插入。
 
 ```cpp
 MutableDocument mutDoc("["Alice",25]");
 
-auto age = mutDoc / 1;
-mutDoc.root << "Bob" << age; // 拷贝原结点
+auto age = mutDoc / 1;       // 引用已有结点
+mutDoc.root() << "Bob" << age; // 拷贝原结点，不要用 std::move(age)
 std::cout << mutDoc << std::endl; // 输出：["Alice",25,"Bob",25]
+
+// 也可以先显式用 * 或 create 创建新独立结点再移动插入
+auto newNode = mutDoc * age;
+// 第二个 << 后面直接用 mutDoc * age 代替也可以，临时值也是右值移动语义
+mutDoc.root() << "Candy" << std::move(newNode);
+std::cout << mutDoc << std::endl; // 输出：["Alice",25,"Bob",25,"Candy":25]
 ```
 
 另一个更常见的情景是需要将另一个 Document 的 Json 树（或其某个子树）插入到到另
@@ -1204,6 +1277,8 @@ std::cout << mutDoc << std::endl;
 // 输出：{"first":{"name":"Alice","age":30},"second":{"name":"Bob","age":25}}
 ```
 
+- **错误警示**：路径 `/` 返回的临时值，不要放在 `<<` 后面。
+
 ### 字符串引用
 
 yyjson 为每个 Json 文档树管理的内存池分为两部分，一是大小一致的 Json 结点，二
@@ -1234,7 +1309,7 @@ std::cout << mutDoc << std::endl;
 
 在实际项目中，固定的 json 键名往往可以用字面量，一些约定的简短标志内容如
 `"OK"` 、`"Fail"` 也有时用字面量。当然有些项目规范不建议直接在代码中写字面量，
-而是用宏或常量间接表示，当定义常量时要注意类型如果是 `const char*` 类型就无法
+而是用宏或常量间接表示，当定义常量时要注意类型如果是 `const char\*` 类型就无法
 获得自动优化，应该定义为 `const char[]` ，宏替换与手写字面量却是完全一样的。
 
 ```cpp
@@ -1275,10 +1350,16 @@ if (root / "name" | "" == strName.c_str()) {
 
 ## 迭代器使用
 
-迭代器提供了一种高效遍历 JSON 容器（数组和对象）的方式。xyjson 提供了四种迭代
-器类型：ArrayIterator、MutableArrayIterator、ObjectIterator、
-MutableObjectIterator。一般不必刻意记迭代器类型，它们分别由 Value 或
-MutableValue 创建，用 `auto` 接收就行。
+Json 数组与对象是一种容器，那就应该可以用迭代器来高效访问。 xyjson 提供了四种
+迭代器类型，只读与写模型分别有对应的数组与对象迭代器：
+
+- `ArrayIterator` 只读数组迭代器；
+- `MutableArrayIterator`只读对象迭代器；
+- `ObjectIterator` 可写数组迭代器；
+- `MutableObjectIterator`可写对象迭代器。
+
+一般不必刻意记迭代器类型，它们分别由 Value 或 MutableValue 创建，用 `auto` 接
+收就行。
 
 ### 迭代器创建与基本遍历
 
@@ -1286,39 +1367,81 @@ MutableValue 创建，用 `auto` 接收就行。
 迭代器：
 
 ```cpp
-// 数组迭代器 - 从索引 0 开始
-for (auto iter = doc / "items" % 0; iter; ++iter) {
-    std::cout << "索引: " << iter->key 
-              << ", 值: " << (iter->value | "") << std::endl;
-}
+using namespace yyjson;
+auto doc = R"({"name": "Alice", "age": 30})"_xyjson;
+auto mutDoc = ~doc;
 
-// 对象迭代器 - 空字符串开始表示从对象开头迭代
-for (auto iter = doc / "user" % ""; iter; ++iter) {
-    std::cout << "键: " << iter->key 
-              << ", 值: " << (iter->value | "") << std::endl;
+// 对象迭代器
+for (auto iter = doc % ""; iter; ++iter) { }
+for (auto iter = mutDoc % ""; iter; ++iter) { }
+
+doc << R"(["name", "Alice", "age", 30])";
+mutDoc = ~doc;
+
+// 数组迭代器
+for (auto iter = doc % 0; iter; ++iter) { }
+for (auto iter = mutDoc % 0; iter; ++iter) { }
 }
 ```
 
-创建迭代器时，也可以指定一个初始位置：
+可以将 `%` 视为路径操作 `/` 的变种，因为迭代器的主要作用是为重复路径操作提效用
+的。创建数组迭代器的具名方法是 `arrayIter`，创建对象迭代器的方法名是
+`objectIter`，它们是 Value 类的方法；操作符 `%` 可以直接用于 Document ，相当于
+从其根结点创建迭代器，但是具名方法只能显式先调用 `root` 取根结点。
+
+创建迭代器方法，也可以接收一个可选参数表示初始位置；默认就是 `0` 或空字符串
+`""` 表示从头开始迭代。因此又有个通用方法 `iterator` ，根据参数类型创建哪种迭
+代器类型，此时不能省略参数。
 
 ```cpp
-// 数组迭代器 - 表示从索引 3 开始迭代访问
-for (auto iter = doc / "items" % 3; iter; ++iter) {
-    std::cout << "索引: " << iter->key 
-        << ", 值: " << (iter->value | "") << std::endl;
-}
+using namespace yyjson;
+auto doc = R"({"name": "Alice", "age": 30})"_xyjson;
 
-// 对象迭代器 - 表示从 "start_key" 键开始迭代访问
-for (auto iter = doc / "user" % "start_key"; iter; ++iter) {
-    std::cout << "键: " << iter->key 
-        << ", 值: " << (iter->value | "") << std::endl;
+// 对象迭代器，从第二个键值对 "age" 开始迭代
+for (auto iter = doc % "age"; iter; ++iter) { }
+
+doc << R"(["name", "Alice", "age", 30])";
+
+// 数组迭代器，从第三个索引开始迭代（第一个的索引是 0）
+for (auto iter = doc % 2; iter; ++iter) { }
 }
 ```
 
-简单类比一下，`doc / "items" / 0` 与 `doc / "items" % 0` 都指向同一个 Json 结
-点，只不过 `%` 多一层间接性，以交互后续迭代访问的性能。`json % "key"` 也与
-`json / "key"` 指向同一个结点。不过注意空路径对于两个操作符的指向结果不同，
-`json % ""` 指向 `json` 的第一个子结点，而 `json / ""` 指向 `json` 本身。
+简单类比一下，`doc / "age"` 与 `doc % "age"` 都指向同一个 Json 结点，只不过
+`%` 多一层间接性，以交换后续迭代访问的性能。不过注意空路径 `json / ""` 指向
+`json` 本身，而不是其第一个子结点。
+
+如果不喜欢用 `0` 与 `""` 这样的魔数，也可以用类型代表值，`%` 后接 `kArray` 表
+示创建数组迭代器，`kObject` 表示创建对象迭代器。当然无法再指定初始位置，就按默
+认的从头开始迭代，这也是最常用的。
+
+```cpp
+using namespace yyjson;
+auto doc = R"({"name": "Alice", "age": 30})"_xyjson;
+
+// 对象迭代器
+for (auto iter = doc % kObject; iter; ++iter) { }
+
+// 数组迭代器
+doc << R"(["name", "Alice", "age", 30])";
+for (auto iter = doc % kArray; iter; ++iter) { }
+}
+```
+
+还有一种类型标准库的创建迭代器方法，成对的 begin 与 end 。但是由于 Json 有两种
+类型的迭代，不能直接用 begin 与 end 命名，于是有两种变种：
+
+```cpp
+using namespace yyjson;
+auto doc = R"({"name": "Alice", "age": 30})"_xyjson;
+
+// 对象迭代器
+for (auto it = doc.root().beginObject(); it != doc.root().beginObject(); ++it) { }
+
+// 数组迭代器
+doc << R"(["name", "Alice", "age", 30])";
+for (auto it = doc.root().beginArray(); it != doc.root().beginArray(); ++it) { }
+```
 
 ### 无效迭代器与错误处理
 
@@ -1332,229 +1455,248 @@ for (auto iter = doc / "user" % "start_key"; iter; ++iter) {
 
 ```cpp
 // 迭代器有效性检查示例
-Document doc("{\"users\": [{\"name\": \"Alice\", \"age\": 25}, {\"name\": \"Bob\", \"age\": 30}]}");
+yyjson::Document doc
+doc << R"({"users": [{"name":"Alice", "age":25}, {"name":"Bob", "age":30}]})";
 
 // 1. 正确创建迭代器
-auto validArrayIter = doc / "users" % 0;  // 数组迭代器
+auto validArrayIter = doc / "users" % 0;
 if (validArrayIter) {
-    std::cout << "数组迭代器有效" << std::endl;
+    std::cout << "OK" << std::endl;
 }
 
-// 2. 无效迭代器创建尝试
-auto invalidObjectIter = doc / "users" % "";  // 错误：对数组使用对象迭代器
+// 2. 错误类型地创建迭代器
+auto invalidObjectIter = doc / "users" % "";
 if (!invalidObjectIter) {
-    std::cout << "对象迭代器无效（正确：数组不应使用对象迭代器）" << std::endl;
+    std::cout << "Error" << std::endl;
 }
 
 // 3. 空数组的迭代器
 Document emptyArrayDoc("[]");
 auto emptyArrayIter = emptyArrayDoc.root() % 0;
 if (!emptyArrayIter) {
-    std::cout << "空数组迭代器无效" << std::endl;
+    std::cout << "Error" << std::endl;
 }
 
 // 4. 空对象的迭代器  
 Document emptyObjectDoc("{}");
 auto emptyObjectIter = emptyObjectDoc.root() % "";
 if (!emptyObjectIter) {
-    std::cout << "空对象迭代器无效" << std::endl;
+    std::cout << "Error" << std::endl;
 }
 
 // 5. 迭代器边界检查
 Document arrayDoc("[1, 2, 3]");
 auto iter = arrayDoc.root() % 0;
-for (int i = 0; iter; ++iter, ++i) {
-    std::cout << "元素 " << i << ": " << (iter->value | 0) << std::endl;
-}
+for (int i = 0; iter; ++iter, ++i) { }
+
+// 迭代器已到达末尾失效
 if (!iter) {
-    std::cout << "迭代器已到达数组末尾" << std::endl;
+    std::cout << "Error" << std::endl;
 }
 ```
 
 ### 迭代器解引用
 
-如果把迭代器想象为指针，那么迭代器解引用 `*` 就该获取它所指向的对象。但是对于
-Json 对象迭代器有点特殊，它指向的是键值对，而不只是一个结点。所以在 xyjson 的
-迭代器设计中，保存了当前键值对，一个简单内部类型。解引用 `*` 与指针 `->` 操作
-符重载就指向这个内部类型。
+迭代器的基本操作是解引用 `\*`，像指针一样获取它所指向的对象。在 xyjon 中，可以
+将 Value （代理类）视为 Json 结点，那么由它创建的迭代器，解引用后获取的对象应
+该能代表它的子结点，也是 Value 类。
 
-对象迭代器当前键值对结构：
-- `key`: `const char*` 类型
-- `value`: Json 结点 `Value` 或 `MutableValue` 类型
-
-为了实现的一致性，数组迭代器的解引用也是当前键值对类型，只是它的 `key` 是
-`size_t` 整数类型。这使得数组迭代器在迭代中也能获当前所处的位置信息。
+数组迭代器易理解，解引用就是每个子结点元素：
 
 ```cpp
-// 迭代器解引用示例
-Document doc("{\"users\": [{\"name\": \"Alice\", \"age\": 25}, {\"name\": \"Bob\", \"age\": 30}], \"config\": {\"timeout\": 30, \"retries\": 3}}");
+yyjson::Document doc
+doc << R"(["name", "Alice", "age", 30])";
 
-// 1. 数组迭代器解引用
-std::cout << "=== 数组迭代器示例 ===" << std::endl;
-auto arrayIter = doc / "users" % 0;
-for (; arrayIter; ++arrayIter) {
-    auto& kvPair = *arrayIter;  // 解引用获取键值对
-    std::cout << "索引: " << kvPair.key << ", 值类型: " << kvPair.value.typeName() << std::endl;
-    
-    // 访问具体字段
-    std::string name = kvPair.value / "name" | "";
-    int age = kvPair.value / "age" | 0;
-    std::cout << "  - 用户: " << name << ", 年龄: " << age << std::endl;
-}
-
-// 2. 对象迭代器解引用
-std::cout << "\n=== 对象迭代器示例 ===" << std::endl;
-auto objectIter = doc / "config" % "";
-for (; objectIter; ++objectIter) {
-    auto& kvPair = *objectIter;  // 解引用获取键值对
-    std::cout << "键: " << kvPair.key << ", 值类型: " << kvPair.value.typeName();
-    
-    // 根据类型处理值
-    if (kvPair.value.isNumber()) {
-        int value = kvPair.value | 0;
-        std::cout << ", 值: " << value << std::endl;
-    } else {
-        std::string value = kvPair.value | "";
-        std::cout << ", 值: " << value << std::endl;
+for (auto it = doc % 0; it; ++it) {
+    if (*it & "") { // 解引用操作符 *it 优先级高，不必加括号
+        std::cout << (*it | "") << ","; // | 优先级比 << 低，要加括号
+    }
+    else if (it->isInt()) { // 调用方法，用 -> 更方便，否则 (*it).isInt()
+      std::cout << (*it | 0) << ",";
     }
 }
-
-// 3. 指针操作符 -> 使用
-std::cout << "\n=== 指针操作符示例 ===" << std::endl;
-auto iter = doc / "config" % "";
-if (iter) {
-    // 使用 -> 操作符访问成员
-    std::cout << "第一个配置项 - 键: " << iter->key << ", 值: " << (iter->value | "") << std::endl;
-    
-    // 移动到下一个
-    ++iter;
-    if (iter) {
-        std::cout << "第二个配置项 - 键: " << iter->key << ", 值: " << (iter->value | "") << std::endl;
-    }
-}
+std::cout << std::endl;
+// 输出：name,Alice,age,30,
 ```
 
-### 迭代器移动操作
+对象从概念上讲是键值对组合，但 xyjson 设计的对象迭代器，为了与数组迭代器解引用
+接口一致，它的解引用也是返回一个 Value 类表的是键值对中的值结点。
 
-迭代器支持多种移动方式，包括顺序移动和随机访问：
 
 ```cpp
-// 创建迭代器
-auto iter = doc / "items" % 0;
+yyjson::Document doc
+doc << R"({"name": "Alice", "age": 30})";
 
-// 顺序移动
-++iter;      // 前进到下一个元素
---iter;      // 后退到上一个元素（如果支持）
-
-// 随机访问
-iter += 3;   // 向前移动 3 个元素
-iter -= 2;   // 向后移动 2 个元素
+for (auto it = doc % ""; it; ++it) {
+  if (*it & "") {
+    std::cout << (*it | "") << ",";
+  }
+  else if (it->isInt()) {
+    std::cout << (*it | 0) << ",";
+  }
+}
+std::cout << std::endl;
+// 输出：Alice,30,
 ```
 
-### 迭代器的重定位
+至于键值对中的键结点，可用对象迭代器的 `key` 方法获取，相应的也有 `value` 方法
+，其效果就是与解引用 `\*` 操作相同：
 
-我们已知迭代器是由 Json 结点类用 `%` 操作符创建的，而迭代器本身也支持 `%` ，它
-也创建一个重新定位的新迭代器。同时支持 `%=` 复合操作符，它不会创建新迭代器，而
-是自身重定位。
 
 ```cpp
-// 迭代器重定位示例
-Document doc("{\"items\": [10, 20, 30, 40, 50], \"config\": {\"a\": 1, \"b\": 2, \"c\": 3, \"d\": 4, \"e\": 5}}");
+yyjson::Document doc
+doc << R"({"name": "Alice", "age": 30})";
 
-// 1. 迭代器 % 操作符重定位
-std::cout << "=== 迭代器重定位示例 ===" << std::endl;
-
-// 数组迭代器重定位
-auto arrayIter = doc / "items" % 0;
-std::cout << "初始位置: 索引 " << arrayIter->key << ", 值: " << (arrayIter->value | 0) << std::endl;
-
-// 重定位到索引 2
-arrayIter = arrayIter % 2;
-if (arrayIter) {
-    std::cout << "重定位到索引 2: 值: " << (arrayIter->value | 0) << std::endl;
+for (auto it = doc % ""; it; ++it) {
+  if (*it & "") {
+    std::cout << (it.key() | "") << "," << (it.value() | "") << ",";
+  }
+  else if (it->isInt()) {
+    std::cout << (it.key() | "") << "," << (it.value() | 0) << ",";
+  }
 }
-
-// 重定位到末尾之后（无效）
-arrayIter = arrayIter % 10;
-if (!arrayIter) {
-    std::cout << "重定位到索引 10: 迭代器无效" << std::endl;
-}
-
-// 2. 对象迭代器重定位
-auto objectIter = doc / "config" % "";
-std::cout << "\n=== 对象迭代器重定位 ===" << std::endl;
-
-// 重定位到键 "c"
-objectIter = objectIter % "c";
-if (objectIter) {
-    std::cout << "重定位到键 'c': 值: " << (objectIter->value | 0) << std::endl;
-}
-
-// 重定位到不存在的键（无效）
-objectIter = objectIter % "nonexistent";
-if (!objectIter) {
-    std::cout << "重定位到不存在的键: 迭代器无效" << std::endl;
-}
-
-// 3. %= 复合操作符示例
-std::cout << "\n=== 复合操作符 %= 示例 ===" << std::endl;
-
-// 数组迭代器
-arrayIter = doc / "items" % 0;
-std::cout << "初始位置: " << (arrayIter->value | 0) << std::endl;
-
-// 使用 %= 重定位到索引 3
-arrayIter %= 3;
-if (arrayIter) {
-    std::cout << "使用 %= 重定位到索引 3: " << (arrayIter->value | 0) << std::endl;
-}
-
-// 对象迭代器
-objectIter = doc / "config" % "";
-std::cout << "初始键: " << objectIter->key << std::endl;
-
-// 使用 %= 重定位到键 "d"
-objectIter %= "d";
-if (objectIter) {
-    std::cout << "使用 %= 重定位到键 'd': 值: " << (objectIter->value | 0) << std::endl;
-}
-
-// 4. 可写迭代器重定位
-std::cout << "\n=== 可写迭代器重定位示例 ===" << std::endl;
-MutableDocument mutDoc("{\"data\": [100, 200, 300, 400, 500]}");
-
-auto mutIter = mutDoc / "data" % 0;
-std::cout << "可写迭代器初始位置: " << (mutIter->value | 0) << std::endl;
-
-// 重定位并修改
-mutIter %= 2;
-if (mutIter) {
-    mutIter->value = 999;
-    std::cout << "重定位到索引 2 并修改为: " << (mutIter->value | 0) << std::endl;
-}
-
-std::cout << "修改后的完整文档: " << mutDoc.toString() << std::endl;
+std::cout << std::endl;
+// 输出：name,Alice,age,30,
 ```
 
-### 可写迭代器的修改能力
+对象迭代器还有另一个方法 `name` 方法，返回 `const char \*` 字符串类型的键名，
+指向存在 json 结点内的字符串，只要 json 树有效，这个指针也就有效。在上例中，如
+果用 `name()` 方法代替 `key()` ，就不必加 `|""` 取值操作了。
 
-MutableArrayIterator 和 MutableObjectIterator 支持修改当前元素的值：
+数组迭代器也有 `value` 方法与解引用等效。它没有键的概念，所以 `key` 与 `name`
+方法无效，但它另有一个索引的概念，可用 `index` 返回，是 `size_t` 类型。
+
+为了与一元操作 `\*` 解引用等效 `value` 方法，也定义了一元操作 `~` 等效 `key`
+方法。另外为与 json 的一元 `+` 与 `-` 分别转整数与字符串的功能对应，`+` 迭代器
+取索引 `index` 方法，`-` 取键名 `name` 方法。当然这可能易与迭代器常见的 `++`
+与 `--` 视觉混淆，可选慎用。
+
+另外有几个 `c` 前缀的方法，用于取底层的指针类型：
+- `c_val` 取底层值结点指针 `yyjson_val\*` 或 `yyjson_mut_val\*`
+- `c_key` 取底层键结点指针 `yyjson_val\*` 或 `yyjson_mut_val\*`
+- `c_iter` 取底层迭代指针，四种迭代器类型各不相同
+
+### 迭代器移动
+
+迭代器支持最显而易见的 `++` 操作，前进一步，在前面的示例中已经不加解释地使用了
+。具名方法 `next` 与 `Next` 分别对应前缀 `++` 与后缀 `++` 。
+
+由于 yyjson 底层的数据结构，迭代器只支持前向迭代，不支持 `--` 后退操作，也不能
+真正支持随机移动。支持的二元 `+` 与 `+=` 操作其实由 `++` 前进 `N` 次实现的，复
+杂度是 `O(N)`。
 
 ```cpp
-// 创建可写迭代器
-for (auto iter = mutDoc / "items" % 0; iter; ++iter) {
-    // 修改当前元素的值
-    iter->value = "modified value";
+yyjson::Document doc;
+doc << R"([1,2,3,4,5,6])";
+
+// 从第二个元素开始迭代，每次进两步
+for (auto it = doc % 1; it; it +=2) {
+    std::cout << (*it | 0) << ","
 }
+std::cout << std::endl;
+// 输出：2,4,6
 ```
+
+对象也是线性存储的，所以对象迭代器 `+ n` 操作也有意义，相当于根据 Json 源字符
+串的顺序将逐步 `n` 步。另外还支持 `% "key"` 与 `%= "key"` 表示向前搜索到 `key`
+的位置。
+
+```cpp
+yyjson::Document doc;
+doc << R"({"one":1, "two":2, "three":3, "four":4, "five":5, "six":6})";
+
+// 从第二个元素开始迭代，每次进两步
+for (auto it = doc % "two"; it; it += 2) {
+  std::cout << (*it | 0) << ","
+}
+std::cout << std::endl;
+// 输出：2,4,6
+
+// 不用循环，已有每个键名，向前搜索
+auto it = doc % "tow";
+std::cout << (*it | 0) << ","
+it %= "four";
+std::cout << (*it | 0) << ","
+it %= "six";
+std::cout << (*it | 0) << ","
+it %= "eight";
+if (!it); // 找不到键名，迭代器无效了
+std::cout << std::endl;
+// 输出：2,4,6
+```
+
+因为 yyjson 的数据结构是支持 Json 对象同名键的，所以 `%=` 也能用在循环中，找出
+所有同名键。
+
+```cpp
+yyjson::Document array;
+doc << R"({"one":1, "two":2, "three":3, "two":4, "five":5, "two":6})";
+
+// 从第二个元素开始迭代，每次进两步
+for (auto it = doc % "two"; it; it %= "two") {
+  std::cout << (*it | 0) << ","
+}
+std::cout << std::endl;
+// 输出：2,4,6
+```
+
+符合常规语义，后缀 `++` 、二元 `+` 与 `%` 都产生新迭代器，而前缀 `++` 、`+=`
+与 `%=` 不会创建新迭代器，只改变自身状态。另外由于迭代器类比 Value 类还大一些
+，故创建新迭代器的操作效率会慢一些。
+
+### 可写迭代器修改结点
+
+很显然，利用可写迭代器解引用后的 `MutableValue` 可以修改当前元素。
+
+```cpp
+yyjson::MutableDocument mutDoc
+mutDoc << R"({"name": "Alice", "age": 30})";
+
+auto iter = mutDoc % "age"; // item = mutDoc / "age"
+*iter = 25;                 // item = 25
+
+std::cout << mutDoc << std::endl; // 输出：{"name":"Alice","age":25}
+```
+
+在上例中，用 `/` 符号代替 `%` 直接取结点也一样达成修改目标。但是当需要在循环中
+使用 `/` 路径查找时，迭代器就更有效率了。
+
+```cpp
+yyjson::MutableDocument mutDoc;
+mutDoc << R"([1,2,3,4,5,6])";
+
+// 将每个元素增大为 2 倍
+// 路径操作 / 需要每次从头查找
+for (auto i = 0; i < +mutDoc; ++i) {
+    mutDoc / i = (mutDoc / i | 0) * 2;
+}
+std::cout << mutDoc << std::endl; // 输出：[2,4,6,8,10,12]
+
+// 使用迭代器批量修改
+for (auto it = mutDoc % 0; it; ++it) {
+    *it i = (*it | 0) * 2;
+}
+std::cout << mutDoc << std::endl; // 输出：[4,8,12,16,20,24]
+```
+
+### 可写迭代器增删结点
+(暂未实现)
+
+
+## 性能优化拾遗
+
+在前文的教程中，也曾多处点出可以增加效率与性能的推荐用法，这里再择其要者补充一
+些再行阐述。
 
 ## 常见错误与陷阱
 
 在使用 xyjson 过程中，一些常见的错误模式需要特别注意。
 
-### Document 类拷贝限制
+### 理解核心类的拷贝行为
 
-Document 类设计为不可拷贝，只能移动或转换：
+两个 Document 类是智能指针，不能拷贝，只能移动；两个 Value 类是代理指针，可以
+拷贝，但拷贝的只是对底层结点的引用。迭代器是值语义，虽能拷贝，但体积反而比前两
+者大，如无必要别拷贝。
 
 ```cpp
 yyjson::Document doc1("{\"data\": \"value\"}");
@@ -1569,42 +1711,27 @@ yyjson::Document doc2 = std::move(doc1);
 yyjson::MutableDocument mutCopy = ~doc2;
 ```
 
-### 路径操作符语义误解
+### 索引操作符只建议放 = 左边
 
-`/` 和 `[]` 操作符有不同的创建行为：
+由于 `[]` 操作符在索引对象字段时，会自动插入不存在的字段，建议只放在 `=` 左边
+确实想增加字段的情况，不要放在右侧无意间插入新字段。
 
 ```cpp
 yyjson::MutableDocument mutDoc("{}");
 
-//! 错误：用 / 操作符创建新字段
+//! 错误：用 / 操作符不会创建新字段
 //! mutDoc / "new_field" = "value";
 
 // 正确：用 [] 操作符创建新字段
 mutDoc["new_field"] = "value";
 mutDoc / "new_field" = "updated";  // 修改已存在字段
+
+//! 错误：会自动添加 "no_field" 字段，类型为 null
+int i = mutDoc["non_field"] | 0;
 ```
-
-### 字符串字面量与 const char* 不同
-
-xyjson 的操作符能识别字符串字面量进行优化，但是 `const char*` 类型的字符串不行。
-尤其要注意 `const char[N]` 数组在函数传参时常会退化为 `const char*` ，以及
-`std::string::c_str()` 方法返回的 `const char*` 不能被自动优化。但可以用具名
-方法显式表明引用。
-
-```cpp
-MutableDocument mutDoc;
-
-mutDoc["key"] = "value"; // 引用
-mutDoc["key"] = std::string("value"); // 拷贝
-
-std::string strValue = "long string value";
-mutDoc["key"] = strValue.c_str(); // 拷贝
-mutDoc["key"].setRef(strValue.c_str()); // 引用
-```
-
 ### 管道函数链式操作限制
 
-管道函数不支持链式操作：
+管道函数一般不支持链式操作：
 
 ```cpp
 //! 错误：尝试链式管道操作
@@ -1619,10 +1746,4 @@ auto result = value | [](auto v) {
 其实如果管道函数类型也是 Value 或 MutableValue ，那就可以继续管道。如果返回其
 他类型，能否继续接管道取决于返回类型（及后面类型）的实现。
 
-## 小结
 
-### 性能优化建议
-
-- **中间结点保存**：对于频繁访问的字段，保存变量，避免重复路径找
-- **字符串优化**：优先使用字符串字面量以获得引用优化
-- **使用迭代器**：在适合迭代器的场景就不要循环路径操作
