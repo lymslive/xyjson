@@ -27,47 +27,47 @@
 /*   Section 1.3: Type Traits                                     Line: 138 */
 /* Part 2: Class Definitions                                      Line: 240 */
 /*   Section 2.1: Read-only Json Model                            Line: 243 */
-/*   Section 2.2: Mutable Json Model                              Line: 482 */
-/*   Section 2.3: Helper Class for Mutable Json                   Line: 841 */
-/*   Section 2.4: Iterator Json                                   Line: 886 */
-/* Part 3: Non-Class Functions                                   Line: 1175 */
-/*   Section 3.1: Underlying mut_val Creation                    Line: 1181 */
-/*   Section 3.2: Conversion Helper Functions                    Line: 1373 */
-/* Part 4: Class Implementations                                 Line: 1484 */
-/*   Section 4.1: Value Methods                                  Line: 1487 */
-/*     Group 4.1.1: get and getor                                Line: 1490 */
-/*     Group 4.1.2: size and index/path                          Line: 1586 */
-/*     Group 4.1.3: create iterator                              Line: 1643 */
-/*     Group 4.1.4: others                                       Line: 1690 */
-/*   Section 4.2: Document Methods                               Line: 1740 */
-/*     Group 4.2.1: primary manage                               Line: 1743 */
-/*     Group 4.2.2: read and write                               Line: 1775 */
-/*   Section 4.3: MutableValue Methods                           Line: 1860 */
-/*     Group 4.3.1: get and getor                                Line: 1863 */
-/*     Group 4.3.2: size and index/path                          Line: 1965 */
-/*     Group 4.3.3: assignment set                               Line: 2058 */
-/*     Group 4.3.4: array and object add                         Line: 2197 */
-/*     Group 4.3.5: smart input and tag                          Line: 2250 */
-/*     Group 4.3.6: create iterator                              Line: 2328 */
-/*     Group 4.3.7: others                                       Line: 2375 */
-/*   Section 4.4: MutableDocument Methods                        Line: 2425 */
-/*     Group 4.4.1: primary manage                               Line: 2428 */
-/*     Group 4.4.2: read and write                               Line: 2475 */
-/*     Group 4.4.3: create mutable value                         Line: 2572 */
-/*   Section 4.5: ArrayIterator Methods                          Line: 2595 */
-/*   Section 4.6: ObjectIterator Methods                         Line: 2634 */
-/*   Section 4.7: MutableArrayIterator Methods                   Line: 2680 */
-/*   Section 4.8: MutableObjectIterator Methods                  Line: 2719 */
-/* Part 5: Operator Interface                                    Line: 2766 */
-/*   Section 5.1: Primary Path Access                            Line: 2769 */
-/*   Section 5.2: Conversion Unary Operator                      Line: 2853 */
-/*   Section 5.3: Comparison Operator                            Line: 2899 */
-/*   Section 5.4: Create and Bind KeyValue                       Line: 2985 */
-/*   Section 5.5: Stream and Input Operator                      Line: 3014 */
-/*   Section 5.6: Iterator Creation and Operation                Line: 3056 */
-/*   Section 5.7: Document Forward Root Operator                 Line: 3131 */
-/*   Section 5.8: User-defined Literal Operator                  Line: 3196 */
-/* Part 6: Last Definitions                                      Line: 3213 */
+/*   Section 2.2: Mutable Json Model                              Line: 489 */
+/*   Section 2.3: Helper Class for Mutable Json                   Line: 860 */
+/*   Section 2.4: Iterator Json                                   Line: 905 */
+/* Part 3: Non-Class Functions                                   Line: 1197 */
+/*   Section 3.1: Underlying mut_val Creation                    Line: 1203 */
+/*   Section 3.2: Conversion Helper Functions                    Line: 1395 */
+/* Part 4: Class Implementations                                 Line: 1506 */
+/*   Section 4.1: Value Methods                                  Line: 1509 */
+/*     Group 4.1.1: get and getor                                Line: 1512 */
+/*     Group 4.1.2: size and index/path                          Line: 1608 */
+/*     Group 4.1.3: create iterator                              Line: 1641 */
+/*     Group 4.1.4: others                                       Line: 1688 */
+/*   Section 4.2: Document Methods                               Line: 1738 */
+/*     Group 4.2.1: primary manage                               Line: 1741 */
+/*     Group 4.2.2: read and write                               Line: 1773 */
+/*   Section 4.3: MutableValue Methods                           Line: 1858 */
+/*     Group 4.3.1: get and getor                                Line: 1861 */
+/*     Group 4.3.2: size and index/path                          Line: 1963 */
+/*     Group 4.3.3: assignment set                               Line: 2015 */
+/*     Group 4.3.4: array and object add                         Line: 2137 */
+/*     Group 4.3.5: smart input and tag                          Line: 2190 */
+/*     Group 4.3.6: create iterator                              Line: 2268 */
+/*     Group 4.3.7: others                                       Line: 2315 */
+/*   Section 4.4: MutableDocument Methods                        Line: 2365 */
+/*     Group 4.4.1: primary manage                               Line: 2368 */
+/*     Group 4.4.2: read and write                               Line: 2415 */
+/*     Group 4.4.3: create mutable value                         Line: 2512 */
+/*   Section 4.5: ArrayIterator Methods                          Line: 2535 */
+/*   Section 4.6: ObjectIterator Methods                         Line: 2574 */
+/*   Section 4.7: MutableArrayIterator Methods                   Line: 2620 */
+/*   Section 4.8: MutableObjectIterator Methods                  Line: 2659 */
+/* Part 5: Operator Interface                                    Line: 2706 */
+/*   Section 5.1: Primary Path Access                            Line: 2709 */
+/*   Section 5.2: Conversion Unary Operator                      Line: 2793 */
+/*   Section 5.3: Comparison Operator                            Line: 2839 */
+/*   Section 5.4: Create and Bind KeyValue                       Line: 2925 */
+/*   Section 5.5: Stream and Input Operator                      Line: 2954 */
+/*   Section 5.6: Iterator Creation and Operation                Line: 2996 */
+/*   Section 5.7: Document Forward Root Operator                 Line: 3071 */
+/*   Section 5.8: User-defined Literal Operator                  Line: 3136 */
+/* Part 6: Last Definitions                                      Line: 3153 */
 /* ======================================================================== */
 
 namespace yyjson
@@ -281,18 +281,18 @@ public:
     explicit operator bool() const { return isValid(); }
 
     // Type checking
-    bool isNull() const { return isValid() && yyjson_is_null(m_val); }
-    bool isBool() const { return isValid() && yyjson_is_bool(m_val); }
-    bool isNumber() const { return isValid() && yyjson_is_num(m_val); }
-    bool isInt() const { return isValid() && yyjson_is_int(m_val); }
-    bool isSint() const { return isValid() && yyjson_is_sint(m_val); }
-    bool isUint() const { return isValid() && yyjson_is_uint(m_val); }
-    bool isReal() const { return isValid() && yyjson_is_real(m_val); }
-    bool isString() const { return isValid() && yyjson_is_str(m_val); }
-    bool isArray() const { return isValid() && yyjson_is_arr(m_val); }
-    bool isObject() const { return isValid() && yyjson_is_obj(m_val); }
+    bool isNull() const { return yyjson_is_null(m_val); }
+    bool isBool() const { return yyjson_is_bool(m_val); }
+    bool isNumber() const { return yyjson_is_num(m_val); }
+    bool isInt() const { return yyjson_is_int(m_val); }
+    bool isSint() const { return yyjson_is_sint(m_val); }
+    bool isUint() const { return yyjson_is_uint(m_val); }
+    bool isReal() const { return yyjson_is_real(m_val); }
+    bool isString() const { return yyjson_is_str(m_val); }
+    bool isArray() const { return yyjson_is_arr(m_val); }
+    bool isObject() const { return yyjson_is_obj(m_val); }
     const char* typeName() const { return yyjson_get_type_desc(m_val); }
-    yyjson_type getType() const { return isValid() ? yyjson_get_type(m_val) : YYJSON_TYPE_NONE; }
+    yyjson_type getType() const { return yyjson_get_type(m_val); }
     
     // Type checking methods with template parameters
     bool isType(int) const { return isInt(); }
@@ -306,8 +306,7 @@ public:
     bool isType(EmptyString) const { return isString(); }
     bool isType(EmptyArray) const { return isArray(); }
     bool isType(EmptyObject) const { return isObject(); }
-    bool isType(const char* type) const 
-    { 
+    bool isType(const char* type) const { 
         if (type != nullptr) {
             if (::strcmp(type, "{}") == 0) return isObject();
             if (::strcmp(type, "[]") == 0) return isArray();
@@ -336,36 +335,46 @@ public:
     const char* getor(EmptyString) const;
     double getor(ZeroNumber) const;
     
+    // Pipe function for custom transformations
+    template<typename funcT>
+    inline auto pipe(funcT&& func) const;
+
     // Array/Object size and access by index or key
     size_t size() const;
     Value index(size_t idx) const;
-    Value index(int idx) const;
-    template<typename T>
-    inline typename std::enable_if<trait::is_cstr_type<T>(), Value>::type
-    index(T key) const;
+    Value index(int idx) const { return index(static_cast<size_t>(idx)); }
+
     Value index(const char* key, size_t len) const;
-    Value index(const std::string& key) const;
+    Value index(const std::string& key) const {
+        return index(key.c_str(), key.size());
+    }
     template <size_t N>
     Value index(const char(&key)[N]) const { return index(key, N-1); }
+    template<typename T>
+    inline typename std::enable_if<trait::is_cstr_type<T>(), Value>::type
+    index(T key) const { return index(key, key ? ::strlen(key) : 0); }
     
     // Array and object access operator
     template <typename T>
-    Value operator[](T&& index) const
-    {
+    Value operator[](T&& index) const {
         return this->index(std::forward<T>(index));
     }
     
     // Path operations. 
     // Like index in the simplest case, but can resolve deep path.
-    template<typename T>
-    inline typename std::enable_if<trait::is_cstr_type<T>(), Value>::type
-    pathto(T path) const;
+    Value pathto(size_t idx) const { return index(idx); }
+    Value pathto(int idx) const { return index(idx); }
     Value pathto(const char* path, size_t len) const;
-    Value pathto(const std::string& path) const { return pathto(path.c_str(), path.size()); }
+    Value pathto(const std::string& path) const {
+        return pathto(path.c_str(), path.size());
+    }
     template <size_t N>
     Value pathto(const char(&path)[N]) const { return pathto(path, N-1); }
-    Value pathto(int idx) const { return index(idx); }
-    Value pathto(size_t idx) const { return index(idx); }
+    template<typename T>
+    inline typename std::enable_if<trait::is_cstr_type<T>(), Value>::type
+    pathto(T path) const {
+        return pathto(path, path ? ::strlen(path) : 0);
+    }
     
     // Iterator creation methods
     ArrayIterator arrayIter(size_t startIndex = 0) const;
@@ -377,7 +386,9 @@ public:
     ObjectIterator beginObject() const;
     ObjectIterator endObject() const;
 
+    // Match iterator method
     Value* operator->() { return this; }
+    yyjson_val* c_val() const { return m_val; }
     
     // Conversion methods
     std::string toString(bool pretty = false) const;
@@ -387,10 +398,6 @@ public:
     // Comparison method
     bool equal(const Value& other) const;
     bool less(const Value& other) const;
-
-    // Pipe function for custom transformations
-    template<typename funcT>
-    inline auto pipe(funcT&& func) const;
 
 private:
     yyjson_val* m_val = nullptr;
@@ -511,24 +518,24 @@ public:
     MutableValue(yyjson_mut_val* val, yyjson_mut_doc* doc) : m_val(val), m_doc(doc) {}
     
     // Error checking
-    bool isValid() const { return m_val != nullptr && m_doc != nullptr; }
+    bool isValid() const { return m_val != nullptr; }
     bool hasError() const { return !isValid(); }
     bool operator!() const { return hasError(); }
     explicit operator bool() const { return isValid(); }
 
     // Type checking (same as read-only)
-    bool isNull() const { return isValid() && yyjson_mut_is_null(m_val); }
-    bool isBool() const { return isValid() && yyjson_mut_is_bool(m_val); }
-    bool isNumber() const { return isValid() && yyjson_mut_is_num(m_val); }
-    bool isInt() const { return isValid() && yyjson_mut_is_int(m_val); }
-    bool isSint() const { return isValid() && yyjson_mut_is_sint(m_val); }
-    bool isUint() const { return isValid() && yyjson_mut_is_uint(m_val); }
-    bool isReal() const { return isValid() && yyjson_mut_is_real(m_val); }
-    bool isString() const { return isValid() && yyjson_mut_is_str(m_val); }
-    bool isArray() const { return isValid() && yyjson_mut_is_arr(m_val); }
-    bool isObject() const { return isValid() && yyjson_mut_is_obj(m_val); }
+    bool isNull() const { return yyjson_mut_is_null(m_val); }
+    bool isBool() const { return yyjson_mut_is_bool(m_val); }
+    bool isNumber() const { return yyjson_mut_is_num(m_val); }
+    bool isInt() const { return yyjson_mut_is_int(m_val); }
+    bool isSint() const { return yyjson_mut_is_sint(m_val); }
+    bool isUint() const { return yyjson_mut_is_uint(m_val); }
+    bool isReal() const { return yyjson_mut_is_real(m_val); }
+    bool isString() const { return yyjson_mut_is_str(m_val); }
+    bool isArray() const { return yyjson_mut_is_arr(m_val); }
+    bool isObject() const { return yyjson_mut_is_obj(m_val); }
     const char* typeName() const { return yyjson_mut_get_type_desc(m_val); }
-    yyjson_type getType() const { return isValid() ? yyjson_mut_get_type(m_val) : YYJSON_TYPE_NONE; }
+    yyjson_type getType() const { return yyjson_mut_get_type(m_val); }
     
     // Type checking methods with template parameters
     bool isType(int) const { return isInt(); }
@@ -585,52 +592,66 @@ public:
     const char* getor(EmptyString) const;
     double getor(ZeroNumber) const;
     
+    // Pipe function for custom transformations
+    template<typename funcT>
+    inline auto pipe(funcT&& func) const;
+
     // Array/Object size and access by index or key
     size_t size() const;
+
     MutableValue index(size_t idx) const;
-    MutableValue index(int idx) const;
-    template<typename T>
-    inline typename std::enable_if<trait::is_cstr_type<T>(), MutableValue>::type
-    index(T key) const;
+    MutableValue index(int idx) const { return index(static_cast<size_t>(idx)); }
+
     MutableValue index(const char* key, size_t len) const;
-    MutableValue index(const std::string& key) const;
+    MutableValue index(const std::string& key) const {
+        return index(key.c_str(), key.size()); 
+    }
     template <size_t N>
     MutableValue index(const char(&key)[N]) const { return index(key, N-1); }
-    // non-const version for automatic object insertion
-    MutableValue index(size_t idx);
-    MutableValue index(int idx);
     template<typename T>
     inline typename std::enable_if<trait::is_cstr_type<T>(), MutableValue>::type
-    index(T key);
+    index(T key) const { return index(key, key ? ::strlen(key) : 0); }
+
+    // non-const version for automatic object insertion
+    MutableValue index(size_t idx);
+    MutableValue index(int idx) { return index(static_cast<size_t>(idx)); }
+
     MutableValue index(const char* key, size_t len);
-    MutableValue index(const std::string& key);
+    MutableValue index(const std::string& key) {
+        return index(key.c_str(), key.size()); 
+    }
     template <size_t N>
     MutableValue index(const char(&key)[N]) { return index(key, N-1); }
+    template<typename T>
+    inline typename std::enable_if<trait::is_cstr_type<T>(), MutableValue>::type
+    index(T key) { return index(key, key ? ::strlen(key) : 0); }
 
     // Array and object access operator (const version)
     template <typename T>
-    MutableValue operator[](const T& index) const
-    {
+    MutableValue operator[](const T& index) const {
         return this->index(index);
     }
     
     // Array and object access operator (non-const version)
     template <typename T>
-    MutableValue operator[](const T& index)
-    {
+    MutableValue operator[](const T& index) {
         return this->index(index);
     }
 
     // Path operations
-    template<typename T>
-    inline typename std::enable_if<trait::is_cstr_type<T>(), MutableValue>::type
-    pathto(T path) const;
+    MutableValue pathto(size_t idx) const { return index(idx); }
+    MutableValue pathto(int idx) const { return index(idx); }
     MutableValue pathto(const char* path, size_t len) const;
-    MutableValue pathto(const std::string& path) const { return pathto(path.c_str(), path.size()); }
+    MutableValue pathto(const std::string& path) const {
+        return pathto(path.c_str(), path.size());
+    }
     template <size_t N>
     MutableValue pathto(const char(&path)[N]) const { return pathto(path, N-1); }
-    MutableValue pathto(int idx) const { return index(idx); }
-    MutableValue pathto(size_t idx) const { return index(idx); }
+    template<typename T>
+    inline typename std::enable_if<trait::is_cstr_type<T>(), MutableValue>::type
+    pathto(T path) const {
+        return pathto(path, path ? ::strlen(path) : 0);
+    }
     
     // Copy assignment
     MutableValue& set(const MutableValue& other);
@@ -649,10 +670,10 @@ public:
     MutableValue& setArray();
     MutableValue& setObject();
     // Set using empty-type sentinels
-    MutableValue& set(EmptyArray);
-    MutableValue& set(EmptyObject);
-    MutableValue& set(EmptyString);
-    MutableValue& set(ZeroNumber);
+    MutableValue& set(EmptyArray) { return setArray(); }
+    MutableValue& set(EmptyObject) { return setObject(); }
+    MutableValue& set(EmptyString) { return set(""); }
+    MutableValue& set(ZeroNumber) { return set(0.0); }
 
     // String literal optimization
     template <size_t N>
@@ -662,8 +683,7 @@ public:
     template <size_t N>
     MutableValue& set(char(&value)[N]);
     
-    // C-Style string
-//  MutableValue& set(const char* value);
+    // C-Style string: const char* value
     template<typename T>
     inline typename std::enable_if<trait::is_cstr_type<T>(), MutableValue&>::type
     set(T value);
@@ -715,7 +735,10 @@ public:
     MutableObjectIterator beginObject() const;
     MutableObjectIterator endObject() const;
     
+    // Match iterator method
     MutableValue* operator->() { return this; }
+    yyjson_mut_val* c_val() const { return m_val; }
+    yyjson_mut_doc* c_doc() const { return m_doc; }
 
     // Conversion methods
     std::string toString(bool pretty = false) const;
@@ -726,10 +749,6 @@ public:
     bool equal(const MutableValue& other) const;
     bool less(const MutableValue& other) const;
     
-    // Pipe function for custom transformations
-    template<typename funcT>
-    inline auto pipe(funcT&& func) const;
-
 private:
     yyjson_mut_val* m_val = nullptr;
     yyjson_mut_doc* m_doc = nullptr; // Needed for memory allocation
@@ -1603,34 +1622,10 @@ inline Value Value::index(size_t idx) const
     return Value(yyjson_arr_get(m_val, idx));
 }
 
-inline Value Value::index(int idx) const
-{
-    return index(static_cast<size_t>(idx));
-}
-
-template<typename T>
-inline typename std::enable_if<trait::is_cstr_type<T>(), Value>::type
-Value::index(T key) const
-{
-    return index(key, key ? ::strlen(key) : 0);
-}
-
 inline Value Value::index(const char* key, size_t len) const
 {
     if (!isObject() || !key) return Value(nullptr);
     return Value(yyjson_obj_getn(m_val, key, len));
-}
-
-inline Value Value::index(const std::string& key) const
-{
-    return index(key.c_str(), key.size());
-}
-
-template<typename T>
-inline typename std::enable_if<trait::is_cstr_type<T>(), Value>::type
-Value::pathto(T path) const
-{
-    return pathto(path, path ? ::strlen(path) : 0);
 }
 
 inline Value Value::pathto(const char* path, size_t len) const
@@ -1982,50 +1977,16 @@ inline MutableValue MutableValue::index(size_t idx) const
     return MutableValue(yyjson_mut_arr_get(m_val, idx), m_doc);
 }
 
-inline MutableValue MutableValue::index(int idx) const
-{
-    return index(static_cast<size_t>(idx));
-}
-
-template<typename T>
-inline typename std::enable_if<trait::is_cstr_type<T>(), MutableValue>::type
-MutableValue::index(T key) const
-{
-    return index(key, key ? ::strlen(key) : 0);
-}
-
 inline MutableValue MutableValue::index(const char* key, size_t len) const
 {
     if (!isObject() || !key) return MutableValue(nullptr, m_doc);
     return MutableValue(yyjson_mut_obj_getn(m_val, key, len), m_doc);
 }
 
-inline MutableValue MutableValue::index(const std::string& key) const
-{
-    return index(key.c_str(), key.size());
-}
-
 inline MutableValue MutableValue::index(size_t idx)
 {
     if (!isArray()) return MutableValue(nullptr, m_doc);
     return MutableValue(yyjson_mut_arr_get(m_val, idx), m_doc);
-}
-
-inline MutableValue MutableValue::index(int idx)
-{
-    return index(static_cast<size_t>(idx));
-}
-
-template<typename T>
-inline typename std::enable_if<trait::is_cstr_type<T>(), MutableValue>::type
-MutableValue::index(T key)
-{
-    return index(key, key ? ::strlen(key) : 0);
-}
-
-inline MutableValue MutableValue::index(const std::string& key)
-{
-    return index(key.c_str());
 }
 
 inline MutableValue MutableValue::index(const char* key, size_t len)
@@ -2039,13 +2000,6 @@ inline MutableValue MutableValue::index(const char* key, size_t len)
         yyjson_mut_obj_add(m_val, key_val, val);
     }
     return MutableValue(val, m_doc);
-}
-
-template<typename T>
-inline typename std::enable_if<trait::is_cstr_type<T>(), MutableValue>::type
-MutableValue::pathto(T path) const
-{
-    return pathto(path, path ? ::strlen(path) : 0);
 }
 
 inline MutableValue MutableValue::pathto(const char* path, size_t len) const
@@ -2178,23 +2132,6 @@ inline MutableValue& MutableValue::setObject()
         yyjson_mut_set_obj(m_val);
     }
     return *this;
-}
-
-inline MutableValue& MutableValue::set(EmptyArray)
-{
-    return setArray();
-}
-inline MutableValue& MutableValue::set(EmptyObject)
-{
-    return setObject();
-}
-inline MutableValue& MutableValue::set(EmptyString)
-{
-    return set("");
-}
-inline MutableValue& MutableValue::set(ZeroNumber)
-{
-    return set(0.0);
 }
 
 /* @Group 4.3.4: array and object add */
