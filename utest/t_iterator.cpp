@@ -295,36 +295,94 @@ DEF_TAST(iterator_edge_cases, "test iterator edge cases")
     }
 }
 
-#if 1
 DEF_TAST(iterator_begin_end, "test begin/end pattern")
 {
-    std::string jsonText = "[\"first\", \"second\", \"third\"]";
-    yyjson::Document doc(jsonText);
+    DESC("readonly array iterator");
+    {
+        std::string jsonText = "[\"first\", \"second\", \"third\"]";
+        yyjson::Document doc(jsonText);
+        auto root = doc.root();
 
-    // Test beginArray/endArray pattern
-    std::vector<std::string> values;
-    for (auto it = doc.root().beginArray(); it != doc.root().endArray(); ++it) {
-        values.push_back(it.value() | "");
-        INF_LOOP_BREAK(values.size() > 10, "Infinite loop in begin/end pattern!");
+        std::vector<std::string> values;
+        for (auto it = root.beginArray(); it != root.endArray(); ++it) {
+            values.push_back(it.value() | "");
+            INF_LOOP_BREAK(values.size() > 10, "Infinite loop in begin/end pattern!");
+        }
+        COUT(values.size(), 3);
+        COUT(values[0], "first");
+        COUT(values[1], "second");
+        COUT(values[2], "third");
     }
-    COUT(values.size(), 3);
-    COUT(values[0], "first");
-    COUT(values[1], "second");
-    COUT(values[2], "third");
 
-    // Test object begin/end pattern
-    std::string objText = "{\"x\": 100, \"y\": 200}";
-    yyjson::Document objDoc(objText);
+    DESC("readonly object iterator");
+    {
+        std::string objText = "{\"x\": 100, \"y\": 200}";
+        yyjson::Document objDoc(objText);
+        auto root = objDoc.root();
 
-    std::set<std::string> keys;
-    int count = 0;
-    for (auto it = objDoc.root().beginObject(); it != objDoc.root().endObject(); ++it, ++count) {
-        keys.insert(it.key() | "");
-        INF_LOOP_BREAK(count > 5, "Infinite loop in object begin/end pattern!");
+        std::set<std::string> keys;
+        int count = 0;
+        for (auto it = root.beginObject(); it != root.endObject(); ++it, ++count) {
+            keys.insert(it.key() | "");
+            INF_LOOP_BREAK(count > 5, "Infinite loop in object begin/end pattern!");
+        }
+        COUT(keys.size(), 2);
+        COUT(keys.count("x"), 1);
+        COUT(keys.count("y"), 1);
     }
-    COUT(keys.size(), 2);
-    COUT(keys.find("x") != keys.end(), true);
-    COUT(keys.find("y") != keys.end(), true);
+
+    DESC("mutable array iterator");
+    {
+        yyjson::MutableDocument mutDoc("[\"A\", \"B\"]");
+        auto root = mutDoc.root();
+        std::string result;
+        for (auto it = root.beginArray(); it != root.endArray(); ++it) {
+            result += (*it | "");
+        }
+        COUT(result, "AB");
+    }
+
+    DESC("mutable object iterator");
+    {
+        yyjson::MutableDocument mutDoc("{\"a\":1, \"b\":2}");
+        auto root = mutDoc.root();
+        int sum = 0;
+        for (auto it = root.beginObject(); it != root.endObject(); ++it) {
+            sum += *it | 0;
+        }
+        COUT(sum, 3);
+    }
+
+    DESC("iterator from different containers");
+    {
+        yyjson::Document doc1("[1,2]");
+        yyjson::Document doc2("[1,2]");
+        COUT(doc1.root().beginArray() != doc2.root().beginArray(), true);
+        COUT(doc1.root().endArray() != doc2.root().endArray(), true);
+
+        int count = 0;
+        for (auto it = doc1.root().beginArray(); it != doc2.root().endArray(); ++it)
+        {
+            count++;
+            // expected inf loop
+            INF_LOOP_BREAK(count > 10, "Infinite loop expected and detected");
+        }
+        COUT(count > 2, true);
+    }
+
+    DESC("default constructed iterators");
+    {
+        yyjson::ArrayIterator arr_it_def;
+        yyjson::ObjectIterator obj_it_def;
+        const yyjson_arr_iter* c_arr_it = arr_it_def.c_iter();
+        const yyjson_obj_iter* c_obj_it = obj_it_def.c_iter();
+        COUT(c_arr_it->idx, (size_t)0);
+        COUT(c_arr_it->max, (size_t)0);
+        COUT(c_arr_it->cur, nullptr);
+        COUT(c_obj_it->idx, (size_t)0);
+        COUT(c_obj_it->max, (size_t)0);
+        COUT(c_obj_it->cur, nullptr);
+        COUT(c_obj_it->obj, nullptr);
+    }
 }
-#endif
 

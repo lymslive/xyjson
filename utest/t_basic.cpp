@@ -22,18 +22,19 @@ DEF_TAST(basic_size, "verify class sizes to ensure proper optimization")
 {
     // Document and MutableDocument should be lightweight wrapper
     // Their size should be minimal (pointer size)
-    COUT(sizeof(yyjson::Document), 8);      // Goal: pointer size only (after removing m_root)
-    COUT(sizeof(yyjson::MutableDocument), 8); // Goal: pointer size only (after removing m_root)
+    size_t ptr = sizeof(size_t);
+    COUT(sizeof(yyjson::Document), 1*ptr);
+    COUT(sizeof(yyjson::MutableDocument), 1*ptr);
     
     // Value and MutableValue should be minimal
-    COUT(sizeof(yyjson::Value), 8);
-    COUT(sizeof(yyjson::MutableValue), 24);
+    COUT(sizeof(yyjson::Value), 1*ptr);
+    COUT(sizeof(yyjson::MutableValue), 3*ptr);
     
     // Iterators should be lightweight
-    COUT(sizeof(yyjson::ArrayIterator), 24);
-    COUT(sizeof(yyjson::ObjectIterator), 32);
-    COUT(sizeof(yyjson::MutableArrayIterator), 48);
-    COUT(sizeof(yyjson::MutableObjectIterator), 48);
+    COUT(sizeof(yyjson::ArrayIterator), 4*ptr);
+    COUT(sizeof(yyjson::ObjectIterator), 4*ptr);
+    COUT(sizeof(yyjson::MutableArrayIterator), 6*ptr);
+    COUT(sizeof(yyjson::MutableObjectIterator), 6*ptr);
 }
 
 DEF_TAST(basic_read_number, "operator read number from scalar value")

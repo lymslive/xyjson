@@ -26,7 +26,7 @@ TEST_SOURCES := $(wildcard utest/*.cpp)
 # Standard build
 build/Makefile:
 	mkdir -p build
-	cd build && cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 ..
+	cd build && cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=1 ..
 build: build/Makefile
 	cd build && make
 

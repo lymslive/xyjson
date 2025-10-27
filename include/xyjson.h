@@ -920,7 +920,7 @@ struct KeyValue
 class ArrayIterator
 {
 public:
-    ArrayIterator() : m_iter({}) {}
+    ArrayIterator() : m_arr(nullptr), m_iter({0}) {}
     explicit ArrayIterator(yyjson_val* root);
     
     // Check if iterator is valid (current element exists)
@@ -936,7 +936,7 @@ public:
     // Check if two iterators are equal
     bool equal(const ArrayIterator& other) const
     {
-        return m_iter.cur == other.m_iter.cur;
+        return m_arr == other.m_arr && m_iter.idx == other.m_iter.idx;
     }
     
     // Move to next element
@@ -968,8 +968,14 @@ public:
     ArrayIterator& advance(size_t steps = 1);          // Advance iterator by n steps
     ArrayIterator& seek(size_t index); // Seek to specific index
     
+    // Set to end state
+    void over()
+    {
+        m_iter.idx = m_iter.max;
+    }
     
 private:
+    yyjson_val* m_arr = nullptr;
     mutable yyjson_arr_iter m_iter; // Native yyjson array iterator (mutable for const methods)
 };
 
@@ -988,7 +994,7 @@ private:
 class ObjectIterator
 {
 public:
-    ObjectIterator() : m_iter({}) {}
+    ObjectIterator() : m_iter({0}) {}
     explicit ObjectIterator(yyjson_val* root);
     
     // Check if iterator is valid (current element exists)
@@ -1004,7 +1010,7 @@ public:
     // Check if two iterators are equal
     bool equal(const ObjectIterator& other) const
     {
-        return m_iter.cur == other.m_iter.cur;
+        return m_iter.obj == other.m_iter.obj && m_iter.idx == other.m_iter.idx;
     }
 
     // Move to next key-value pair
@@ -1045,6 +1051,12 @@ public:
     ObjectIterator& advance(size_t steps = 1);          // Advance iterator by n steps
     ObjectIterator& seek(const char* key); // Seek to specific key
     
+    // Set to end state
+    void over()
+    {
+        m_iter.idx = m_iter.max;
+    }
+    
 private:
     mutable yyjson_obj_iter m_iter; // Native yyjson object iterator (mutable for const methods)
 };
@@ -1064,7 +1076,7 @@ private:
 class MutableArrayIterator
 {
 public:
-    MutableArrayIterator() : m_doc(nullptr), m_iter({}) {}
+    MutableArrayIterator() : m_doc(nullptr), m_iter({0}) {}
     explicit MutableArrayIterator(yyjson_mut_val* root, yyjson_mut_doc* doc);
     
     // Check if iterator is valid (current element exists)
@@ -1080,7 +1092,7 @@ public:
     // Check if two iterators are equal
     bool equal(const MutableArrayIterator& other) const
     {
-        return m_iter.cur == other.m_iter.cur;
+        return m_iter.arr == other.m_iter.arr && m_iter.idx == other.m_iter.idx;
     }
 
     // Move to next element
@@ -1112,6 +1124,12 @@ public:
     MutableArrayIterator& advance(size_t steps = 1);          // Advance iterator by n steps
     MutableArrayIterator& seek(size_t index); // Seek to specific index
     
+    // Set to end state
+    void over()
+    {
+        m_iter.idx = m_iter.max;
+    }
+    
 private:
     yyjson_mut_doc* m_doc = nullptr;   // Document for context (needed for mutation)
     mutable yyjson_mut_arr_iter m_iter; // Native yyjson mutable array iterator (mutable for const methods)
@@ -1132,7 +1150,7 @@ private:
 class MutableObjectIterator
 {
 public:
-    MutableObjectIterator() : m_doc(nullptr), m_iter({}) {}
+    MutableObjectIterator() : m_doc(nullptr), m_iter({0}) {}
     explicit MutableObjectIterator(yyjson_mut_val* root, yyjson_mut_doc* doc);
     
     // Check if iterator is valid (current element exists)
@@ -1148,7 +1166,7 @@ public:
     // Check if two iterators are equal
     bool equal(const MutableObjectIterator& other) const
     {
-        return m_iter.cur == other.m_iter.cur;
+        return m_iter.obj == other.m_iter.obj && m_iter.idx == other.m_iter.idx;
     }
 
     // Move to next key-value pair
@@ -1188,6 +1206,12 @@ public:
     // Position manipulation  
     MutableObjectIterator& advance(size_t steps = 1);          // Advance iterator by n steps
     MutableObjectIterator& seek(const char* key); // Seek to specific key
+    
+    // Set to end state
+    void over()
+    {
+        m_iter.idx = m_iter.max;
+    }
     
 private:
     yyjson_mut_doc* m_doc = nullptr;   // Document for context (needed for mutation)
@@ -1672,7 +1696,10 @@ inline ArrayIterator Value::beginArray() const
 
 inline ArrayIterator Value::endArray() const
 {
-    return ArrayIterator();
+    if (!isArray()) return ArrayIterator();
+    ArrayIterator iter(m_val);
+    iter.over();
+    return iter;
 }
 
 inline ObjectIterator Value::beginObject() const
@@ -1682,7 +1709,10 @@ inline ObjectIterator Value::beginObject() const
 
 inline ObjectIterator Value::endObject() const
 {
-    return ObjectIterator();
+    if (!isObject()) return ObjectIterator();
+    ObjectIterator iter(m_val);
+    iter.over();
+    return iter;
 }
 
 /* @Group 4.1.4: others */
@@ -2299,7 +2329,10 @@ inline MutableArrayIterator MutableValue::beginArray() const
 
 inline MutableArrayIterator MutableValue::endArray() const
 {
-    return MutableArrayIterator();
+    if (!isArray()) return MutableArrayIterator();
+    MutableArrayIterator iter(m_val, m_doc);
+    iter.over();
+    return iter;
 }
 
 inline MutableObjectIterator MutableValue::beginObject() const
@@ -2309,7 +2342,10 @@ inline MutableObjectIterator MutableValue::beginObject() const
 
 inline MutableObjectIterator MutableValue::endObject() const
 {
-    return MutableObjectIterator();
+    if (!isObject()) return MutableObjectIterator();
+    MutableObjectIterator iter(m_val, m_doc);
+    iter.over();
+    return iter;
 }
 
 /* @Group 4.3.7: others */
@@ -2535,7 +2571,7 @@ inline MutableValue MutableDocument::create(T&& value) const
 /* @Section 4.5: ArrayIterator Methods */
 /* ------------------------------------------------------------------------ */
 
-inline ArrayIterator::ArrayIterator(yyjson_val* root)
+inline ArrayIterator::ArrayIterator(yyjson_val* root) : m_arr(root)
 {
     if (root) {
         yyjson_arr_iter_init(root, &m_iter);

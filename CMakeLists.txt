@@ -5,6 +5,9 @@ project(xyjson VERSION 1.0.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Set compile options for Debug build
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
+
 # Add $HOME to search paths for some dependent libs may install there
 list(APPEND CMAKE_PREFIX_PATH "$ENV{HOME}")
 
@@ -60,21 +63,6 @@ target_include_directories(xyjson INTERFACE
 )
 target_link_libraries(xyjson INTERFACE yyjson)
 
-# Source files for test executable
-set(TEST_SOURCES
-    utest/t_basic.cpp
-    utest/t_mutable.cpp
-    utest/t_stream.cpp
-    utest/t_iterator.cpp
-    utest/t_conversion.cpp
-    utest/t_advanced.cpp
-    utest/t_experiment.cpp
-)
-
-# Create test executable
-add_executable(utxyjson ${TEST_SOURCES})
-target_link_libraries(utxyjson PRIVATE xyjson couttast)
-
 # Install headers only for header-only library
 install(DIRECTORY include/
     DESTINATION include
@@ -100,3 +88,22 @@ install(EXPORT xyjsonTargets
     NAMESPACE xyjson::
     DESTINATION lib/cmake/xyjson
 )
+
+# ------------------------------------------------------------ #
+# Unit Test:
+
+# Source files for test executable
+set(TEST_SOURCES
+    utest/t_basic.cpp
+    utest/t_mutable.cpp
+    utest/t_stream.cpp
+    utest/t_iterator.cpp
+    utest/t_conversion.cpp
+    utest/t_advanced.cpp
+    utest/t_experiment.cpp
+)
+
+# Create test executable
+add_executable(utxyjson ${TEST_SOURCES})
+target_link_libraries(utxyjson PRIVATE xyjson couttast)
+
