@@ -1018,7 +1018,62 @@ template<typename T, typename ifT = typename std::enable_if<trait::is_cstr_type<
 
 ### DONE: 20251027-000346
 
+## TODO:2025-10-27/1 迭代器重构之瘦身计划
+
+核心需求：
+减少 xyjson 四个迭代器类的大小，移除不必要的成员，直接操作 yyjson C API 的原生
+迭代器结构体。
+
+具体实施要求：
+- 删除内部缓存成员 Item `m_current`
+- 删除当前 `m_root` , 原生迭代器结构已有当前迭代的对象
+- 但可变迭代器保留 `m_doc`，以便还原构造 MutableValue
+- 增加 value() 方法取当前值，key() 取当前键结点（Value类）
+- 增加 index() 取当前索引，name() 方法取当前键名(const char*)
+- 解引用 `*` 与 `->` 都调用 value() 方法返回 Value 类型
+- 两个 Value 类增加 `->` 重载返回 `this` 自身，以满足迭代器 `->` 的传递原则
+- 迭代器类的有效性判断，分析能否调用原生 api 的 `*_has_next` 函数或读取内部状
+  态判断；
+- 迭代器类的 `++` 操作，不必调用原生的 `*iter_next` 函数取返回值，直接参考其实
+  现维护内部原生迭代器状态
+- 迭代器类的 rewind 方法删除，这功能没必要，不如需要时重新构造
+- 新增 `c_val` 返回当前值结点，`c_key` 返回当前键结点，`c_iter` 返回当前迭代器，
+  都是 yyjson 底层 C 结构体的指针
+
+请分析 xyjson 当前封装实现及 yyjson API 相关代码，完成以上目标。
+注意 yyjson 原生只读迭代器的成员 cur 表示当前值，可变迭代器的成员 `cur->next` 才
+表示当前结点.
+
+单元测试，破坏比较大，需要同步修改，预计主要修改点：
+- 取当前值 `->value` 改 `.value()`
+- 取当前键 `->key` 改 `.name()` 或 `.index()`
+- `t_iterator.cpp` 如果修改量大，可重写，重写的话先保存备份文件加 `.bak` 后缀；
+  其他测试文件可能有少量用到迭代器的请修改用法
+
+另注： yyjson 本地安装于 /usr/local/include/yyjson.h
+
+### DONE:20251027-173000
+
+## TODO:2025-10-27/2 迭代器优化之快速查找
+## TODO:2025-10-27/3 迭代器增删结点功能
+## TODO:2025-10-27/4 迭代器接口标准化
+
 ## TODO: 分析迭代器优化方案
+
+经过与几个 AI 问答，有些初步优化概念。
+Value 是代理类，Document 是智能指针。
+
+Iterator 的解引用 `*` 返回 Value 临时值，Value 实现 `->` 返回自身 this ；于是
+Iterator 的 `->` 也返回 Value 临时值，可满足 `it->method` 等效 `(*it).method`
+
+```cpp
+using iterator_category = std::forward_iterator_tag;
+using value_type = ValueProxy;      // 代理作为值类型
+using difference_type = std::ptrdiff_t;
+using pointer = ValueProxy*;
+using reference = ValueProxy;
+```
+
 ## TODO: 考虑实现 MutableValue 删除功能
 
 ## TODO: 优化文档示例代码管理同步单元测试
@@ -1039,11 +1094,9 @@ template<typename T, typename ifT = typename std::enable_if<trait::is_cstr_type<
 
 ## TODO: 不支持功能联想
 
-AI 写出这样的代码：
-doc / "name" | [](const std::string& s) { 转大写 } | "DEFAULT"
-目前支持的函数只接收 Value 参数，但不支持这样传基本类型的
-
 ---
 
+## 快速备忘
 - AI  完成任务ID: date +"%Y%m%d-%H%M%S"
 - 人工完成任务ID: date +"%Y%m%d/%H%M%S"
+cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 ..

@@ -111,15 +111,18 @@ DEF_TAST(mutable_value_input, "test input operator << for mutable value")
         COUT(doc / "third" | 0.0, 3.14);
         COUT(doc / "fourth" | true, false);
 
+        COUT(doc);
+
         // verify key is reference
         auto it = *doc %  "second";
-        COUT_PTR(it->key, "second");
+        COUT_PTR(it.name(), "second");
         ++it;
-        COUT(it->key == third, true);
-        COUT(it->key == third.c_str(), false);
+        COUT(it.name() == third, true);
+        COUT(it.name() == third.c_str(), false);
         ++it;
-        COUT(it->key == fourth, false);
-        COUT(::strcmp(it->key, fourth), 0);
+        COUT(it.name() == fourth, false);
+        COUT(it.name() == nullptr, false);
+        COUT(::strcmp(it.name(), fourth), 0);
 
         // verify value is reference
         *doc << "fifth" << "5th";
@@ -413,9 +416,9 @@ DEF_TAST(mutable_kvpair_objadd, "test object add method")
         {
             COUT_PTR(doc / "name" | "", "test");
             auto it = *doc %  "name";
-            COUT_PTR(it->key, "name");
+            COUT_PTR(it.name(), "name");
             ++it;
-            COUT_PTR(it->key, "value");
+            COUT_PTR(it.name(), "value");
         }
         
         (*doc).add("string_value", "hello").add("number_value", 42.5);

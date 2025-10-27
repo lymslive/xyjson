@@ -606,7 +606,7 @@ DEF_TAST(advanced_sort_mixed_array, "sort a mixed array of json values")
     std::vector<Value> values;
     for (auto it = doc.root().beginArray(); it.isValid(); it.next())
     {
-        values.push_back(it->value);
+        values.push_back(it.value());
     }
 
     std::sort(values.begin(), values.end());

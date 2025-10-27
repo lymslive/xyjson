@@ -30,10 +30,10 @@ DEF_TAST(basic_size, "verify class sizes to ensure proper optimization")
     COUT(sizeof(yyjson::MutableValue), 24);
     
     // Iterators should be lightweight
-    COUT(sizeof(yyjson::ArrayIterator), 48);
-    COUT(sizeof(yyjson::ObjectIterator), 56);
-    COUT(sizeof(yyjson::MutableArrayIterator), 88);
-    COUT(sizeof(yyjson::MutableObjectIterator), 88);
+    COUT(sizeof(yyjson::ArrayIterator), 24);
+    COUT(sizeof(yyjson::ObjectIterator), 32);
+    COUT(sizeof(yyjson::MutableArrayIterator), 48);
+    COUT(sizeof(yyjson::MutableObjectIterator), 48);
 }
 
 DEF_TAST(basic_read_number, "operator read number from scalar value")

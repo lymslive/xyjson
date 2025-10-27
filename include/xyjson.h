@@ -25,49 +25,49 @@
 /*   Section 1.1: Forward Class Declarations                       Line: 81 */
 /*   Section 1.2: Type and Operator Constants                      Line: 95 */
 /*   Section 1.3: Type Traits                                     Line: 138 */
-/* Part 2: Class Definitions                                      Line: 251 */
-/*   Section 2.1: Read-only Json Model                            Line: 254 */
-/*   Section 2.2: Mutable Json Model                              Line: 506 */
-/*   Section 2.3: Helper Class for Mutable Json                   Line: 873 */
-/*   Section 2.4: Iterator Json                                   Line: 918 */
-/* Part 3: Non-Class Functions                                   Line: 1179 */
-/*   Section 3.1: Underlying mut_val Creation                    Line: 1185 */
-/*   Section 3.2: Conversion Helper Functions                    Line: 1377 */
-/* Part 4: Class Implementations                                 Line: 1458 */
-/*   Section 4.1: Value Methods                                  Line: 1461 */
-/*     Group 4.1.1: get and getor                                Line: 1464 */
-/*     Group 4.1.2: size and index/path                          Line: 1554 */
-/*     Group 4.1.3: create iterator                              Line: 1601 */
-/*     Group 4.1.4: others                                       Line: 1648 */
-/*   Section 4.2: Document Methods                               Line: 1698 */
-/*     Group 4.2.1: primary manage                               Line: 1701 */
-/*     Group 4.2.2: read and write                               Line: 1733 */
-/*   Section 4.3: MutableValue Methods                           Line: 1818 */
-/*     Group 4.3.1: get and getor                                Line: 1821 */
-/*     Group 4.3.2: size and index/path                          Line: 1917 */
-/*     Group 4.3.3: assignment set                               Line: 1993 */
-/*     Group 4.3.4: array and object add                         Line: 2132 */
-/*     Group 4.3.5: smart input and tag                          Line: 2185 */
-/*     Group 4.3.6: create iterator                              Line: 2263 */
-/*     Group 4.3.7: others                                       Line: 2310 */
-/*   Section 4.4: MutableDocument Methods                        Line: 2360 */
-/*     Group 4.4.1: primary manage                               Line: 2363 */
-/*     Group 4.4.2: read and write                               Line: 2410 */
-/*     Group 4.4.3: create mutable value                         Line: 2507 */
-/*   Section 4.5: ArrayIterator Methods                          Line: 2530 */
-/*   Section 4.6: ObjectIterator Methods                         Line: 2577 */
-/*   Section 4.7: MutableArrayIterator Methods                   Line: 2648 */
-/*   Section 4.8: MutableObjectIterator Methods                  Line: 2701 */
-/* Part 5: Operator Interface                                    Line: 2775 */
-/*   Section 5.1: Primary Path Access                            Line: 2778 */
-/*   Section 5.2: Conversion Unary Operator                      Line: 2865 */
-/*   Section 5.3: Comparison Operator                            Line: 2911 */
-/*   Section 5.4: Create and Bind KeyValue                       Line: 2997 */
-/*   Section 5.5: Stream and Input Operator                      Line: 3026 */
-/*   Section 5.6: Iterator Creation and Operation                Line: 3068 */
-/*   Section 5.7: Document Forward Root Operator                 Line: 3143 */
-/*   Section 5.8: User-defined Literal Operator                  Line: 3208 */
-/* Part 6: Last Definitions                                      Line: 3225 */
+/* Part 2: Class Definitions                                      Line: 240 */
+/*   Section 2.1: Read-only Json Model                            Line: 243 */
+/*   Section 2.2: Mutable Json Model                              Line: 482 */
+/*   Section 2.3: Helper Class for Mutable Json                   Line: 841 */
+/*   Section 2.4: Iterator Json                                   Line: 886 */
+/* Part 3: Non-Class Functions                                   Line: 1175 */
+/*   Section 3.1: Underlying mut_val Creation                    Line: 1181 */
+/*   Section 3.2: Conversion Helper Functions                    Line: 1373 */
+/* Part 4: Class Implementations                                 Line: 1484 */
+/*   Section 4.1: Value Methods                                  Line: 1487 */
+/*     Group 4.1.1: get and getor                                Line: 1490 */
+/*     Group 4.1.2: size and index/path                          Line: 1586 */
+/*     Group 4.1.3: create iterator                              Line: 1643 */
+/*     Group 4.1.4: others                                       Line: 1690 */
+/*   Section 4.2: Document Methods                               Line: 1740 */
+/*     Group 4.2.1: primary manage                               Line: 1743 */
+/*     Group 4.2.2: read and write                               Line: 1775 */
+/*   Section 4.3: MutableValue Methods                           Line: 1860 */
+/*     Group 4.3.1: get and getor                                Line: 1863 */
+/*     Group 4.3.2: size and index/path                          Line: 1965 */
+/*     Group 4.3.3: assignment set                               Line: 2058 */
+/*     Group 4.3.4: array and object add                         Line: 2197 */
+/*     Group 4.3.5: smart input and tag                          Line: 2250 */
+/*     Group 4.3.6: create iterator                              Line: 2328 */
+/*     Group 4.3.7: others                                       Line: 2375 */
+/*   Section 4.4: MutableDocument Methods                        Line: 2425 */
+/*     Group 4.4.1: primary manage                               Line: 2428 */
+/*     Group 4.4.2: read and write                               Line: 2475 */
+/*     Group 4.4.3: create mutable value                         Line: 2572 */
+/*   Section 4.5: ArrayIterator Methods                          Line: 2595 */
+/*   Section 4.6: ObjectIterator Methods                         Line: 2634 */
+/*   Section 4.7: MutableArrayIterator Methods                   Line: 2680 */
+/*   Section 4.8: MutableObjectIterator Methods                  Line: 2719 */
+/* Part 5: Operator Interface                                    Line: 2766 */
+/*   Section 5.1: Primary Path Access                            Line: 2769 */
+/*   Section 5.2: Conversion Unary Operator                      Line: 2853 */
+/*   Section 5.3: Comparison Operator                            Line: 2899 */
+/*   Section 5.4: Create and Bind KeyValue                       Line: 2985 */
+/*   Section 5.5: Stream and Input Operator                      Line: 3014 */
+/*   Section 5.6: Iterator Creation and Operation                Line: 3056 */
+/*   Section 5.7: Document Forward Root Operator                 Line: 3131 */
+/*   Section 5.8: User-defined Literal Operator                  Line: 3196 */
+/* Part 6: Last Definitions                                      Line: 3213 */
 /* ======================================================================== */
 
 namespace yyjson
@@ -376,6 +376,8 @@ public:
     ArrayIterator endArray() const;
     ObjectIterator beginObject() const;
     ObjectIterator endObject() const;
+
+    Value* operator->() { return this; }
     
     // Conversion methods
     std::string toString(bool pretty = false) const;
@@ -713,6 +715,8 @@ public:
     MutableObjectIterator beginObject() const;
     MutableObjectIterator endObject() const;
     
+    MutableValue* operator->() { return this; }
+
     // Conversion methods
     std::string toString(bool pretty = false) const;
     int toInteger() const;
@@ -897,17 +901,14 @@ struct KeyValue
 class ArrayIterator
 {
 public:
-    struct Item
-    {
-        size_t key = 0; // Array index (0-based)
-        Value value;    // Current array element value
-    };
-    
-    ArrayIterator() : m_root(nullptr), m_iter({}) {}
+    ArrayIterator() : m_iter({}) {}
     explicit ArrayIterator(yyjson_val* root);
     
-    // Check if iterator is valid
-    bool isValid() const { return m_current.value.isValid(); }
+    // Check if iterator is valid (current element exists)
+    bool isValid() const { 
+        return m_iter.idx < m_iter.max;
+//      return m_iter.cur != nullptr; 
+    }
     
     // Boolean conversion for conditional checks
     explicit operator bool() const { return isValid(); }
@@ -916,7 +917,7 @@ public:
     // Check if two iterators are equal
     bool equal(const ArrayIterator& other) const
     {
-        return m_current.value.get() == other.m_current.value.get();
+        return m_iter.cur == other.m_iter.cur;
     }
     
     // Move to next element
@@ -925,25 +926,32 @@ public:
     // Create a copy of current state, then move to next element (for postfix ++)
     ArrayIterator Next();
     
-    // Get current item
-    Item& operator*() { return m_current; }
-    const Item& operator*() const { return m_current; }
+    // Get current value
+    Value value() const { return Value(c_val()); }
     
-    // Get current item pointer
-    Item* operator->() { return &m_current; }
-    const Item* operator->() const { return &m_current; }
+    // Get current index
+    size_t index() const { return m_iter.idx; }
+    
+    // Get current value (for dereference operator)
+    Value operator*() const { return value(); }
+    
+    // Get current value for method access (arrow operator)
+    Value operator->() const { return value(); }
+    
+    // Get underlying C API value pointer
+    yyjson_val* c_val() const { return m_iter.cur; }
+    
+    // Get underlying C API iterator structure pointer
+    yyjson_arr_iter* c_iter() { return &m_iter; }
+    const yyjson_arr_iter* c_iter() const { return &m_iter; }
     
     // Position manipulation
     ArrayIterator& advance(size_t steps = 1);          // Advance iterator by n steps
-    ArrayIterator& seek(size_t index, bool reset = true); // Seek to specific index
+    ArrayIterator& seek(size_t index); // Seek to specific index
     
-    // Rewind to beginning
-    ArrayIterator& rewind();
     
 private:
-    yyjson_val* m_root = nullptr;  // Root array for context  
-    yyjson_arr_iter m_iter;        // Native yyjson array iterator (read-only)
-    Item m_current;                // Current item (index and value)
+    mutable yyjson_arr_iter m_iter; // Native yyjson array iterator (mutable for const methods)
 };
 
 /**
@@ -961,17 +969,14 @@ private:
 class ObjectIterator
 {
 public:
-    struct Item
-    {
-        const char* key = nullptr; // Object key
-        Value value;               // Current value
-    };
-    
-    ObjectIterator() : m_root(nullptr), m_iter({}) {}
+    ObjectIterator() : m_iter({}) {}
     explicit ObjectIterator(yyjson_val* root);
     
-    // Check if iterator is valid
-    bool isValid() const { return m_current.value.isValid(); }
+    // Check if iterator is valid (current element exists)
+    bool isValid() const { 
+        return m_iter.idx < m_iter.max;
+//      return m_iter.cur != nullptr; 
+    }
     
     // Boolean conversion for conditional checks
     explicit operator bool() const { return isValid(); }
@@ -980,7 +985,7 @@ public:
     // Check if two iterators are equal
     bool equal(const ObjectIterator& other) const
     {
-        return m_current.value.get() == other.m_current.value.get();
+        return m_iter.cur == other.m_iter.cur;
     }
 
     // Move to next key-value pair
@@ -989,25 +994,40 @@ public:
     // Create a copy of current state, then move to next element (for postfix ++)
     ObjectIterator Next();
     
-    // Get current item
-    Item& operator*() { return m_current; }
-    const Item& operator*() const { return m_current; }
+    // Get current key name
+    const char* name() const { return m_iter.cur ? yyjson_get_str(m_iter.cur) : nullptr; }
     
-    // Get current item pointer
-    Item* operator->() { return &m_current; }
-    const Item* operator->() const { return &m_current; }
+    // Get current key value
+    Value key() const { return Value(c_key()); }
+    
+    // Get current value
+    Value value() const { return Value(c_val()); }
+    
+    // Get current index
+    size_t index() const { return m_iter.idx; }
+    
+    // Get current value (for dereference operator)
+    Value operator*() const { return value(); }
+    
+    // Get current value for method access (arrow operator)
+    Value operator->() const { return value(); }
+    
+    // Get underlying C API key pointer
+    yyjson_val* c_key() const { return m_iter.cur; }
+    
+    // Get underlying C API value pointer
+    yyjson_val* c_val() const { return m_iter.cur ? (m_iter.cur + 1) : nullptr; }
+    
+    // Get underlying C API iterator structure pointer
+    yyjson_obj_iter* c_iter() { return &m_iter; }
+    const yyjson_obj_iter* c_iter() const { return &m_iter; }
     
     // Position manipulation  
     ObjectIterator& advance(size_t steps = 1);          // Advance iterator by n steps
-    ObjectIterator& seek(const char* key, bool reset = true); // Seek to specific key
-    
-    // Rewind to beginning
-    ObjectIterator& rewind();
+    ObjectIterator& seek(const char* key); // Seek to specific key
     
 private:
-    yyjson_val* m_root = nullptr;  // Root object for context
-    yyjson_obj_iter m_iter;        // Native yyjson object iterator (read-only)
-    Item m_current;                // Current item (key and value)
+    mutable yyjson_obj_iter m_iter; // Native yyjson object iterator (mutable for const methods)
 };
 
 /** 
@@ -1025,17 +1045,14 @@ private:
 class MutableArrayIterator
 {
 public:
-    struct Item
-    {
-        size_t key = 0;          // Array index (0-based)
-        MutableValue value;      // Current array element value (mutable)
-    };
-    
-    MutableArrayIterator() : m_root(nullptr), m_iter({}) {}
+    MutableArrayIterator() : m_doc(nullptr), m_iter({}) {}
     explicit MutableArrayIterator(yyjson_mut_val* root, yyjson_mut_doc* doc);
     
-    // Check if iterator is valid
-    bool isValid() const { return m_current.value.isValid(); }
+    // Check if iterator is valid (current element exists)
+    bool isValid() const { 
+        return m_iter.idx < m_iter.max;
+//      return m_iter.cur != nullptr; 
+    }
     
     // Boolean conversion for conditional checks
     explicit operator bool() const { return isValid(); }
@@ -1044,7 +1061,7 @@ public:
     // Check if two iterators are equal
     bool equal(const MutableArrayIterator& other) const
     {
-        return m_current.value.get() == other.m_current.value.get();
+        return m_iter.cur == other.m_iter.cur;
     }
 
     // Move to next element
@@ -1053,26 +1070,32 @@ public:
     // Create a copy of current state, then move to next element (for postfix ++)
     MutableArrayIterator Next();
     
-    // Get current item
-    Item& operator*() { return m_current; }
-    const Item& operator*() const { return m_current; }
+    // Get current value
+    MutableValue value() const { return MutableValue(c_val(), m_doc); }
     
-    // Get current item pointer
-    Item* operator->() { return &m_current; }
-    const Item* operator->() const { return &m_current; }
+    // Get current index
+    size_t index() const { return m_iter.idx; }
+    
+    // Get current value (for dereference operator)
+    MutableValue operator*() const { return value(); }
+    
+    // Get current value for method access (arrow operator)
+    MutableValue operator->() const { return value(); }
+    
+    // Get underlying C API value pointer
+    yyjson_mut_val* c_val() const { return m_iter.cur ? m_iter.cur->next : nullptr; }
+    
+    // Get underlying C API iterator structure pointer
+    yyjson_mut_arr_iter* c_iter() { return &m_iter; }
+    const yyjson_mut_arr_iter* c_iter() const { return &m_iter; }
     
     // Position manipulation
     MutableArrayIterator& advance(size_t steps = 1);          // Advance iterator by n steps
-    MutableArrayIterator& seek(size_t index, bool reset = true); // Seek to specific index
-    
-    // Rewind to beginning
-    MutableArrayIterator& rewind();
+    MutableArrayIterator& seek(size_t index); // Seek to specific index
     
 private:
-    yyjson_mut_val* m_root = nullptr;  // Root array for context  
     yyjson_mut_doc* m_doc = nullptr;   // Document for context (needed for mutation)
-    yyjson_mut_arr_iter m_iter;        // Native yyjson mutable array iterator
-    Item m_current;                    // Current item (index and mutable value)
+    mutable yyjson_mut_arr_iter m_iter; // Native yyjson mutable array iterator (mutable for const methods)
 };
 
 /** 
@@ -1090,17 +1113,14 @@ private:
 class MutableObjectIterator
 {
 public:
-    struct Item
-    {
-        const char* key = nullptr; // Object key
-        MutableValue value;        // Current value (mutable)
-    };
-    
-    MutableObjectIterator() : m_root(nullptr), m_iter({}) {}
+    MutableObjectIterator() : m_doc(nullptr), m_iter({}) {}
     explicit MutableObjectIterator(yyjson_mut_val* root, yyjson_mut_doc* doc);
     
-    // Check if iterator is valid
-    bool isValid() const { return m_current.value.isValid(); }
+    // Check if iterator is valid (current element exists)
+    bool isValid() const { 
+        return m_iter.idx < m_iter.max;
+//      return m_iter.cur != nullptr; 
+    }
     
     // Boolean conversion for conditional checks
     explicit operator bool() const { return isValid(); }
@@ -1109,7 +1129,7 @@ public:
     // Check if two iterators are equal
     bool equal(const MutableObjectIterator& other) const
     {
-        return m_current.value.get() == other.m_current.value.get();
+        return m_iter.cur == other.m_iter.cur;
     }
 
     // Move to next key-value pair
@@ -1118,26 +1138,41 @@ public:
     // Create a copy of current state, then move to next element (for postfix ++)
     MutableObjectIterator Next();
     
-    // Get current item
-    Item& operator*() { return m_current; }
-    const Item& operator*() const { return m_current; }
+    // Get current key name
+    const char* name() const { return m_iter.cur ? yyjson_mut_get_str(m_iter.cur) : nullptr; }
     
-    // Get current item pointer
-    Item* operator->() { return &m_current; }
-    const Item* operator->() const { return &m_current; }
+    // Get current key value
+    MutableValue key() const { return MutableValue(c_key(), m_doc); }
+    
+    // Get current value
+    MutableValue value() const { return MutableValue(c_val(), m_doc); }
+    
+    // Get current index
+    size_t index() const { return m_iter.idx; }
+    
+    // Get current value (for dereference operator)
+    MutableValue operator*() const { return value(); }
+    
+    // Get current value for method access (arrow operator)
+    MutableValue operator->() const { return value(); }
+    
+    // Get underlying C API key pointer
+    yyjson_mut_val* c_key() const { return m_iter.cur ? m_iter.cur->next->next : nullptr; }
+    
+    // Get underlying C API value pointer
+    yyjson_mut_val* c_val() const { return yyjson_mut_obj_iter_get_val(c_key()); }
+    
+    // Get underlying C API iterator structure pointer
+    yyjson_mut_obj_iter* c_iter() { return &m_iter; }
+    const yyjson_mut_obj_iter* c_iter() const { return &m_iter; }
     
     // Position manipulation  
     MutableObjectIterator& advance(size_t steps = 1);          // Advance iterator by n steps
-    MutableObjectIterator& seek(const char* key, bool reset = true); // Seek to specific key
-    
-    // Rewind to beginning
-    MutableObjectIterator& rewind();
+    MutableObjectIterator& seek(const char* key); // Seek to specific key
     
 private:
-    yyjson_mut_val* m_root = nullptr;  // Root object for context
     yyjson_mut_doc* m_doc = nullptr;   // Document for context (needed for mutation)
-    yyjson_mut_obj_iter m_iter;        // Native yyjson mutable object iterator
-    Item m_current;                    // Current item (key and mutable value)
+    mutable yyjson_mut_obj_iter m_iter; // Native yyjson mutable object iterator (mutable for const methods)
 };
 
 /* @Part 3: Non-Class Functions */
@@ -2563,19 +2598,16 @@ inline MutableValue MutableDocument::create(T&& value) const
 /* @Section 4.5: ArrayIterator Methods */
 /* ------------------------------------------------------------------------ */
 
-inline ArrayIterator::ArrayIterator(yyjson_val* root) : m_root(root) 
+inline ArrayIterator::ArrayIterator(yyjson_val* root)
 {
     if (root) {
         yyjson_arr_iter_init(root, &m_iter);
-        m_current.value.set(yyjson_arr_iter_next(&m_iter));
-        m_current.key = 0;
     }
 }
 
 inline ArrayIterator& ArrayIterator::next()
 {
-    m_current.value.set(yyjson_arr_iter_next(&m_iter));
-    m_current.key++;
+    yyjson_arr_iter_next(const_cast<yyjson_arr_iter*>(&m_iter));
     return *this;
 }
 
@@ -2588,50 +2620,33 @@ inline ArrayIterator ArrayIterator::Next()
 
 inline ArrayIterator& ArrayIterator::advance(size_t steps)
 {
-    for (int i = 0; i < steps; i++) { next(); }
+    for (size_t i = 0; i < steps && isValid(); i++) { 
+        next();
+    }
     return *this;
 }
 
-inline ArrayIterator& ArrayIterator::seek(size_t index, bool reset)
+inline ArrayIterator& ArrayIterator::seek(size_t index)
 {
-    if (reset) { rewind(); }
-    advance(index);
-    return *this;
-}
-
-inline ArrayIterator& ArrayIterator::rewind()
-{
-    yyjson_arr_iter_init(m_root, &m_iter);
-    m_current.value.set(yyjson_arr_iter_next(&m_iter));
-    m_current.key = 0;
+    for (size_t i = 0; i < index && isValid(); i++) {
+        next();
+    }
     return *this;
 }
 
 /* @Section 4.6: ObjectIterator Methods */
 /* ------------------------------------------------------------------------ */
 
-inline ObjectIterator::ObjectIterator(yyjson_val* root) : m_root(root) 
+inline ObjectIterator::ObjectIterator(yyjson_val* root)
 {
     if (root) {
         yyjson_obj_iter_init(root, &m_iter);
-        yyjson_val* currentKey = yyjson_obj_iter_next(&m_iter);
-        if (currentKey) {
-            m_current.key = yyjson_get_str(currentKey);
-            m_current.value.set(yyjson_obj_iter_get_val(currentKey));
-        }
     }
 }
 
 inline ObjectIterator& ObjectIterator::next()
 {
-    yyjson_val* currentKey = yyjson_obj_iter_next(&m_iter);
-    if (currentKey) {
-        m_current.key = yyjson_get_str(currentKey);
-        m_current.value.set(yyjson_obj_iter_get_val(currentKey));
-    } else {
-        m_current.key = nullptr;
-        m_current.value.set(nullptr);
-    }
+    yyjson_obj_iter_next(const_cast<yyjson_obj_iter*>(&m_iter));
     return *this;
 }
 
@@ -2644,19 +2659,20 @@ inline ObjectIterator ObjectIterator::Next()
 
 inline ObjectIterator& ObjectIterator::advance(size_t steps)
 {
-    for (int i = 0; i < steps; i++) { next(); }
+    for (size_t i = 0; i < steps && isValid(); i++) { 
+        next();
+    }
     return *this;
 }
 
-inline ObjectIterator& ObjectIterator::seek(const char* key, bool reset)
+inline ObjectIterator& ObjectIterator::seek(const char* key)
 {
     if (!key || !*key) return *this;
     
-    if (reset) { rewind(); }
-    
     // Search for the key from current position
-    while (m_current.value.isValid()) {
-        if (m_current.key && strcmp(m_current.key, key) == 0) {
+    while (isValid()) {
+        const char* currentKey = yyjson_get_str(m_iter.cur);
+        if (currentKey && strcmp(currentKey, key) == 0) {
             break; // Found the key
         }
         next();
@@ -2664,39 +2680,19 @@ inline ObjectIterator& ObjectIterator::seek(const char* key, bool reset)
     return *this;
 }
 
-inline ObjectIterator& ObjectIterator::rewind()
-{
-    yyjson_obj_iter_init(m_root, &m_iter);
-    yyjson_val* currentKey = yyjson_obj_iter_next(&m_iter);
-    if (currentKey) {
-        m_current.key = yyjson_get_str(currentKey);
-        m_current.value.set(yyjson_obj_iter_get_val(currentKey));
-    } else {
-        m_current.key = nullptr;
-        m_current.value.set(nullptr);
-    }
-    return *this;
-}
-
 /* @Section 4.7: MutableArrayIterator Methods */
 /* ------------------------------------------------------------------------ */
 
-inline MutableArrayIterator::MutableArrayIterator(yyjson_mut_val* root, yyjson_mut_doc* doc) 
-    : m_root(root), m_doc(doc)
+inline MutableArrayIterator::MutableArrayIterator(yyjson_mut_val* root, yyjson_mut_doc* doc) : m_doc(doc)
 {
     if (root) {
         yyjson_mut_arr_iter_init(root, &m_iter);
-        yyjson_mut_val* nextVal = yyjson_mut_arr_iter_next(&m_iter);
-        m_current.value = MutableValue(nextVal, m_doc);
-        m_current.key = 0;
     }
 }
 
 inline MutableArrayIterator& MutableArrayIterator::next()
 {
-    yyjson_mut_val* nextVal = yyjson_mut_arr_iter_next(&m_iter);
-    m_current.value.set(nextVal);
-    m_current.key++;
+    yyjson_mut_arr_iter_next(const_cast<yyjson_mut_arr_iter*>(&m_iter));
     return *this;
 }
 
@@ -2709,24 +2705,16 @@ inline MutableArrayIterator MutableArrayIterator::Next()
 
 inline MutableArrayIterator& MutableArrayIterator::advance(size_t steps)
 {
-    for (int i = 0; i < steps; i++) { next(); }
+    for (size_t i = 0; i < steps && isValid(); i++) { 
+        next();
+    }
     return *this;
 }
 
-inline MutableArrayIterator& MutableArrayIterator::seek(size_t index, bool reset)
+inline MutableArrayIterator& MutableArrayIterator::seek(size_t index)
 {
-    if (reset) { rewind(); }
-    advance(index);
-    return *this;
-}
-
-inline MutableArrayIterator& MutableArrayIterator::rewind()
-{
-    if (m_root) {
-        yyjson_mut_arr_iter_init(m_root, &m_iter);
-        yyjson_mut_val* nextVal = yyjson_mut_arr_iter_next(&m_iter);
-        m_current.value.set(nextVal);
-        m_current.key = 0;
+    for (size_t i = 0; i < index && isValid(); i++) {
+        next();
     }
     return *this;
 }
@@ -2734,29 +2722,16 @@ inline MutableArrayIterator& MutableArrayIterator::rewind()
 /* @Section 4.8: MutableObjectIterator Methods */
 /* ------------------------------------------------------------------------ */
 
-inline MutableObjectIterator::MutableObjectIterator(yyjson_mut_val* root, yyjson_mut_doc* doc) 
-    : m_root(root), m_doc(doc)
+inline MutableObjectIterator::MutableObjectIterator(yyjson_mut_val* root, yyjson_mut_doc* doc) : m_doc(doc)
 {
     if (root) {
         yyjson_mut_obj_iter_init(root, &m_iter);
-        yyjson_mut_val* currentKey = yyjson_mut_obj_iter_next(&m_iter);
-        if (currentKey) {
-            m_current.key = yyjson_mut_get_str(currentKey);
-            m_current.value = MutableValue(yyjson_mut_obj_iter_get_val(currentKey), m_doc);
-        }
     }
 }
 
 inline MutableObjectIterator& MutableObjectIterator::next()
 {
-    yyjson_mut_val* currentKey = yyjson_mut_obj_iter_next(&m_iter);
-    if (currentKey) {
-        m_current.key = yyjson_mut_get_str(currentKey);
-        m_current.value.set(yyjson_mut_obj_iter_get_val(currentKey));
-    } else {
-        m_current.key = nullptr;
-        m_current.value.set(static_cast<yyjson_mut_val*>(nullptr));
-    }
+    yyjson_mut_obj_iter_next(const_cast<yyjson_mut_obj_iter*>(&m_iter));
     return *this;
 }
 
@@ -2769,19 +2744,20 @@ inline MutableObjectIterator MutableObjectIterator::Next()
 
 inline MutableObjectIterator& MutableObjectIterator::advance(size_t steps)
 {
-    for (int i = 0; i < steps; i++) { next(); }
+    for (size_t i = 0; i < steps && isValid(); i++) { 
+        next();
+    }
     return *this;
 }
 
-inline MutableObjectIterator& MutableObjectIterator::seek(const char* key, bool reset)
+inline MutableObjectIterator& MutableObjectIterator::seek(const char* key)
 {
     if (!key || !*key) return *this;
     
-    if (reset) { rewind(); }
-    
     // Search for the key from current position
-    while (m_current.value.isValid()) {
-        if (m_current.key && strcmp(m_current.key, key) == 0) {
+    while (isValid()) {
+        const char* currentKey = yyjson_mut_get_str(m_iter.cur);
+        if (currentKey && strcmp(currentKey, key) == 0) {
             break; // Found the key
         }
         next();
@@ -2789,21 +2765,6 @@ inline MutableObjectIterator& MutableObjectIterator::seek(const char* key, bool 
     return *this;
 }
 
-inline MutableObjectIterator& MutableObjectIterator::rewind()
-{
-    if (m_root) {
-        yyjson_mut_obj_iter_init(m_root, &m_iter);
-        yyjson_mut_val* currentKey = yyjson_mut_obj_iter_next(&m_iter);
-        if (currentKey) {
-            m_current.key = yyjson_mut_get_str(currentKey);
-            m_current.value.set(yyjson_mut_obj_iter_get_val(currentKey));
-        } else {
-            m_current.key = nullptr;
-            m_current.value.set(static_cast<yyjson_mut_val*>(nullptr));
-        }
-    }
-    return *this;
-}
 
 /* @Part 5: Operator Interface */
 /* ======================================================================== */

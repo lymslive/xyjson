@@ -9,6 +9,7 @@ CMakeFiles/
 cmake_install.cmake
 Makefile
 *.cmake
+compile_commands.json
 
 # IDE files
 .vscode/
@@ -21,7 +22,7 @@ Makefile
 *.temp
 *.bak
 *.tmp/
-bakup-*
+backup-*
 .touch
 
 # Binary files
@@ -37,3 +38,6 @@ bakup-*
 # Test output files
 *.log
 *.trs
+
+# ignore local symbol link to yyjson lib header
+include/yyjson.h
