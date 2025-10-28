@@ -1301,3 +1301,56 @@ cd build && make -j4
 - **可维护性**：非成员模板函数避免代码重复
 
 ---
+
+## 任务ID: 20251028-215325
+- **任务类型**: 重构/优化
+- **任务状态**: 已完成
+- **执行AI**: DeepSeek-V3.1-Terminus
+- **对应需求**: TODO:2025-10-28/2
+
+### 任务需求
+迭代器 advance 方法与 % 操作符再优化：
+- 撤销 advance 方法的 rescan 参数，改为连续调用 iter.rewind().advance(target)
+- 为数组迭代器类添加空实现方法：advance(const char*)、key()、name()
+- 合并 % %= ~ - 操作符模板，消除 iteratorT::for_object 分支重复代码
+- 简化 Value 类创建迭代器的方法，直接调用 iter.advance()
+
+### 执行过程
+**1. 移除 rescan 参数**
+- 修改所有四个迭代器类的 advance 方法声明和实现
+- 将 rescan=true 的逻辑改为 rewind().advance() 连续调用
+- 更新 seek 方法使用 rewind().advance() 实现
+
+**2. 为数组迭代器添加空实现**
+- 为 ArrayIterator 和 MutableArrayIterator 添加：
+  - advance(const char*): 调用 over() 使迭代器失效
+  - key(): 返回 Value() 默认构造
+  - name(): 返回 nullptr
+
+**3. 合并操作符模板**
+- 统一 %、%=、~、- 操作符的实现
+- 消除 iteratorT::for_object 和 !iteratorT::for_object 的分支重复代码
+- 简化模板参数，现在所有操作符都能同时处理数组和对象迭代器
+
+**4. 简化 Value 类迭代器创建**
+- 修改 Value::arrayIter() 和 Value::objectIter() 方法
+- 修改 MutableValue::arrayIter() 和 MutableValue::objectIter() 方法
+- 改为直接调用 iter.advance(startIndex) 或 iter.advance(startKey)
+
+### 完成成果
+**功能实现**：
+- ✅ advance 方法 rescan 参数完全移除，语义更清晰
+- ✅ 数组迭代器空实现方法添加，支持统一操作符模板
+- ✅ % %= ~ - 操作符模板合并，代码更简洁
+- ✅ Value 类迭代器创建方法简化，逻辑更直接
+
+**测试验证**：
+- ✅ 编译成功，无错误
+- ✅ 所有 48 个测试用例全部通过
+- ✅ 功能完整性验证通过
+
+**设计优化**：
+- **语义清晰**：rescan 参数撤销，rewind().advance() 连续调用语义明确
+- **代码简洁**：操作符模板合并，消除重复分支代码
+- **逻辑直接**：Value 类迭代器创建直接调用 advance，无需条件判断
+- **兼容性**：保持所有现有功能，无破坏性变更

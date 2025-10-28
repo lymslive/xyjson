@@ -949,8 +949,10 @@ public:
     // Get current Proxy Value
     Value value() const { return Value(c_val()); }
 
-    // Get current index
+    // Get current index and key name (for array iterators, key returns default Value)
     size_t index() const { return m_iter.idx; }
+    Value key() const { return Value(); } // Empty value for array iterators
+    const char* name() const { return nullptr; } // nullptr for array iterators
 
     // Get current value (for dereference/array operator)
     Value operator*()  const { return value(); }
@@ -962,8 +964,9 @@ public:
     
     // Position manipulation
     ArrayIterator& rewind(); // Reset iterator to beginning
-    ArrayIterator& advance(size_t steps = 1, bool rescan = false);
-    ArrayIterator& advance(const char* key) { return *this; } // No-op for array iterator
+    ArrayIterator& advance(size_t steps = 1);
+    ArrayIterator& advance(const char* key) { return over(); } // No-op for array iterator
+
     ArrayIterator& seek(size_t index); // Seek to specific index
     
 private:
@@ -1033,8 +1036,9 @@ public:
 
     // Position manipulation  
     ObjectIterator& rewind(); // Reset iterator to beginning
-    ObjectIterator& advance(size_t steps = 1, bool rescan = false);
-    ObjectIterator& advance(const char* key, bool rescan = false); // Seek to specific key
+    ObjectIterator& advance(size_t steps = 1);
+    ObjectIterator& advance(const char* key); // Jump to specific key
+
     ObjectIterator& seek(const char* key); // Seek to specific key
     
 private:
@@ -1086,8 +1090,10 @@ public:
     // Get current Proxy Value
     MutableValue value() const { return MutableValue(c_val(), m_doc); }
 
-    // Get current index
+    // Get current index and key name (for array iterators, key returns default MutableValue)
     size_t index() const { return m_iter.idx; }
+    MutableValue key() const { return MutableValue(); } // Empty value for array iterators
+    const char* name() const { return nullptr; } // nullptr for array iterators
 
     // Move to next element
     MutableArrayIterator& next(); // prefix ++
@@ -1099,8 +1105,9 @@ public:
     
     // Position manipulation
     MutableArrayIterator& rewind(); // Reset iterator to beginning
-    MutableArrayIterator& advance(size_t steps = 1, bool rescan = false);
-    MutableArrayIterator& advance(const char* key) { return *this; } // No-op for array iterator
+    MutableArrayIterator& advance(size_t steps = 1);
+    MutableArrayIterator& advance(const char* key) { return over(); } // No-op for array iterator
+
     MutableArrayIterator& seek(size_t index); // Seek to specific index
     
 private:
@@ -1172,8 +1179,9 @@ public:
     
     // Position manipulation  
     MutableObjectIterator& rewind(); // Reset iterator to beginning
-    MutableObjectIterator& advance(size_t steps = 1, bool rescan = false);
-    MutableObjectIterator& advance(const char* key, bool rescan = false); // Seek to specific key
+    MutableObjectIterator& advance(size_t steps = 1);
+    MutableObjectIterator& advance(const char* key); // jump to specific key
+
     MutableObjectIterator& seek(const char* key); // Seek to specific key
     
 private:
@@ -1634,10 +1642,7 @@ inline ArrayIterator Value::arrayIter(size_t startIndex) const
 {
     if (isArray()) {
         ArrayIterator iter(m_val);
-        if (startIndex > 0) {
-            iter.advance(startIndex);
-        }
-        return iter;
+        return iter.advance(startIndex);
     }
     return ArrayIterator();
 }
@@ -1646,10 +1651,7 @@ inline ObjectIterator Value::objectIter(const char* startKey) const
 {
     if (isObject()) {
         ObjectIterator iter(m_val);
-        if (startKey && *startKey) {
-            iter.advance(startKey);
-        }
-        return iter;
+        return iter.advance(startKey);
     }
     return ObjectIterator();
 }
@@ -2261,10 +2263,7 @@ inline MutableArrayIterator MutableValue::arrayIter(size_t startIndex) const
 {
     if (isArray()) {
         MutableArrayIterator iter(m_val, m_doc);
-        if (startIndex > 0) {
-            iter.advance(startIndex);
-        }
-        return iter;
+        return iter.advance(startIndex);
     }
     return MutableArrayIterator();
 }
@@ -2273,10 +2272,7 @@ inline MutableObjectIterator MutableValue::objectIter(const char* startKey) cons
 {
     if (isObject()) {
         MutableObjectIterator iter(m_val, m_doc);
-        if (startKey && *startKey) {
-            iter.advance(startKey);
-        }
-        return iter;
+        return iter.advance(startKey);
     }
     return MutableObjectIterator();
 }
@@ -2552,12 +2548,8 @@ inline ArrayIterator& ArrayIterator::rewind()
     return *this;
 }
 
-inline ArrayIterator& ArrayIterator::advance(size_t steps, bool rescan)
+inline ArrayIterator& ArrayIterator::advance(size_t steps)
 {
-    if (rescan) {
-        rewind();
-    }
-    
     for (size_t i = 0; i < steps && isValid(); i++) { 
         next();
     }
@@ -2566,7 +2558,7 @@ inline ArrayIterator& ArrayIterator::advance(size_t steps, bool rescan)
 
 inline ArrayIterator& ArrayIterator::seek(size_t index)
 {
-    return *this;
+    return rewind().advance(index);
 }
 
 /* @Section 4.6: ObjectIterator Methods */
@@ -2600,25 +2592,17 @@ inline ObjectIterator& ObjectIterator::rewind()
     return *this;
 }
 
-inline ObjectIterator& ObjectIterator::advance(size_t steps, bool rescan)
+inline ObjectIterator& ObjectIterator::advance(size_t steps)
 {
-    if (rescan) {
-        rewind();
-    }
-    
     for (size_t i = 0; i < steps && isValid(); i++) { 
         next();
     }
     return *this;
 }
 
-inline ObjectIterator& ObjectIterator::advance(const char* key, bool rescan)
+inline ObjectIterator& ObjectIterator::advance(const char* key)
 {
     if (!key || !*key) return *this;
-    
-    if (rescan) {
-        rewind();
-    }
     
     while (isValid()) {
         const char* currentKey = name();
@@ -2632,7 +2616,7 @@ inline ObjectIterator& ObjectIterator::advance(const char* key, bool rescan)
 
 inline ObjectIterator& ObjectIterator::seek(const char* key)
 {
-    return *this;
+    return rewind().advance(key);
 }
 
 /* @Section 4.7: MutableArrayIterator Methods */
@@ -2666,12 +2650,8 @@ inline MutableArrayIterator& MutableArrayIterator::rewind()
     return *this;
 }
 
-inline MutableArrayIterator& MutableArrayIterator::advance(size_t steps, bool rescan)
+inline MutableArrayIterator& MutableArrayIterator::advance(size_t steps)
 {
-    if (rescan) {
-        rewind();
-    }
-    
     for (size_t i = 0; i < steps && isValid(); i++) { 
         next();
     }
@@ -2680,7 +2660,7 @@ inline MutableArrayIterator& MutableArrayIterator::advance(size_t steps, bool re
 
 inline MutableArrayIterator& MutableArrayIterator::seek(size_t index)
 {
-    return *this;
+    return rewind().advance(index);
 }
 
 /* @Section 4.8: MutableObjectIterator Methods */
@@ -2714,25 +2694,17 @@ inline MutableObjectIterator& MutableObjectIterator::rewind()
     return *this;
 }
 
-inline MutableObjectIterator& MutableObjectIterator::advance(size_t steps, bool rescan)
+inline MutableObjectIterator& MutableObjectIterator::advance(size_t steps)
 {
-    if (rescan) {
-        rewind();
-    }
-    
     for (size_t i = 0; i < steps && isValid(); i++) { 
         next();
     }
     return *this;
 }
 
-inline MutableObjectIterator& MutableObjectIterator::advance(const char* key, bool rescan)
+inline MutableObjectIterator& MutableObjectIterator::advance(const char* key)
 {
     if (!key || !*key) return *this;
-    
-    if (rescan) {
-        rewind();
-    }
     
     while (isValid()) {
         const char* currentKey = name();
@@ -2746,7 +2718,7 @@ inline MutableObjectIterator& MutableObjectIterator::advance(const char* key, bo
 
 inline MutableObjectIterator& MutableObjectIterator::seek(const char* key)
 {
-    return *this;
+    return rewind().advance(key);
 }
 
 
@@ -3111,38 +3083,21 @@ operator+(iteratorT& iter, size_t step)
 }
 
 // Iterator seek operators (%= %)
-// `iter %= target` --> `iter.advance(target, true)` for position jump
+// `iter %= target` --> `iter.rewind().advance(target)` for position jump
 template<typename iteratorT, typename T>
-inline typename std::enable_if<trait::is_iterator<iteratorT>::value && !iteratorT::for_object, iteratorT&>::type
+inline typename std::enable_if<trait::is_iterator<iteratorT>::value, iteratorT&>::type
 operator%=(iteratorT& iter, const T& target)
 {
-    return iter.advance(target, true);
+    return iter.rewind().advance(target);
 }
 
-// `iter %= key` --> `iter.advance(key, true)` for position jump
+// `iter % target` --> `copy iter.rewind().advance(target)` for position jump
 template<typename iteratorT, typename T>
-inline typename std::enable_if<trait::is_iterator<iteratorT>::value && iteratorT::for_object, iteratorT&>::type
-operator%=(iteratorT& iter, const T& target)
-{
-    return iter.advance(target, true);
-}
-
-// `iter % target` --> `copy iter.advance(target, true)` for position jump
-template<typename iteratorT, typename T>
-inline typename std::enable_if<trait::is_iterator<iteratorT>::value && !iteratorT::for_object, iteratorT>::type
+inline typename std::enable_if<trait::is_iterator<iteratorT>::value, iteratorT>::type
 operator%(iteratorT& iter, const T& target)
 {
     iteratorT copy = iter;
-    return copy.advance(target, true);
-}
-
-// `iter % key` --> `copy iter.advance(key, true)` for position jump
-template<typename iteratorT, typename T>
-inline typename std::enable_if<trait::is_iterator<iteratorT>::value && iteratorT::for_object, iteratorT>::type
-operator%(iteratorT& iter, const T& target)
-{
-    iteratorT copy = iter;
-    return copy.advance(target, true);
+    return copy.rewind().advance(target);
 }
 
 // Iterator unary operator: +iter (get current index)
@@ -3155,34 +3110,18 @@ operator+(const iteratorT& iter)
 
 // Iterator unary operator: -iter (get current key name)
 template<typename iteratorT>
-inline typename std::enable_if<trait::is_iterator<iteratorT>::value && iteratorT::for_object, const char*>::type
+inline typename std::enable_if<trait::is_iterator<iteratorT>::value, const char*>::type
 operator-(const iteratorT& iter)
 {
     return iter.name();
 }
 
-// Iterator unary operator: -iter (no-op for array iterators)
-template<typename iteratorT>
-inline typename std::enable_if<trait::is_iterator<iteratorT>::value && !iteratorT::for_object, const char*>::type
-operator-(const iteratorT& iter)
-{
-    return nullptr;
-}
-
 // Iterator unary operator: ~iter (get current key node)
 template<typename iteratorT>
-inline typename std::enable_if<trait::is_iterator<iteratorT>::value && iteratorT::for_object, typename iteratorT::json_type>::type
+inline typename std::enable_if<trait::is_iterator<iteratorT>::value, typename iteratorT::json_type>::type
 operator~(const iteratorT& iter)
 {
     return iter.key();
-}
-
-// Iterator unary operator: ~iter (no-op for array iterators) - SFINAE fallback
-template<typename iteratorT>
-inline typename std::enable_if<trait::is_iterator<iteratorT>::value && !iteratorT::for_object, typename iteratorT::json_type>::type
-operator~(const iteratorT& iter)
-{
-    return typename iteratorT::json_type();
 }
 
 /* @Section 5.7: Document Forward Root Operator */

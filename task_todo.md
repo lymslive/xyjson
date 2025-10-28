@@ -1111,7 +1111,29 @@ begin 创建的迭代器就期望能在不断 ++ 后达到与 end 相等的状�
 
 ### DONE: 20251028-190256
 
-## TODO:2025-10-28/2 迭代器优化之快速查找
+## TODO:2025-10-28/2 迭代器 advance 方法与 % 操作再优化
+
+四个迭代器类的 advance 方法加个 rescan 可选参数的实现很别扭，意义模糊。
+考虑如下优化：
+- 撤销 rescan 参数；
+- 在 %= 与 % 操作符实现中改为连续调用 iter.rewind().advance(target);
+
+几个操作符模板的 `iteratorT::for_object` 与 `!iteratorT::for_object` 分支代码
+完全一样，不如合并化简。改为在数组迭代器类添加相应的方法做空实现：
+- advance(const char*)：调用 over 将迭代器失效；
+- key(): 返回相应的 Value() 默认构造
+- name(): 返回 nullptr
+
+如此，% %= ~ - 几个操作符都可以合并为一个模板。
+
+然后再考虑能否将两个 Value 类创建迭代器的方法，也化简为直接
+return iter.advance(startIndex); 或 iter.advance(startKey) 不要条件判断，
+因为在迭代器的 advance 方法中已经有对参数的判断，有内联、尾 return 优化，效率
+应该没多少差别吧。
+
+### DONE: 20251028-215325
+
+## TODO:2025-10-28/3 迭代器优化之快速查找
 
 yyjson 的对象迭代器有两个特殊的查找 API `yyjson_obj_iter_getn` 与
 `yyjson_mut_obj_iter_getn` 能加速按固定顺序访问对象的各个键。xyjson 想将该功能
@@ -1125,11 +1147,12 @@ yyjson 的对象迭代器有两个特殊的查找 API `yyjson_obj_iter_getn` 与
 - 这个 seek 方法只对对象迭代器有意义
 
 支持几种字符串的处理可参与 Value 类的 pathto(/) 实现。
+因为这个方法就是为查找效率，所以需要对不同字符串参数作重载。
 
 增加一个单元测试覆盖各迭代器 seek 与 / 的功能。
 
-## TODO:2025-10-28/3 迭代器增删结点功能
-## TODO:2025-10-28/4 迭代器接口标准化
+## TODO: 迭代器增删结点功能
+## TODO: 迭代器接口标准化
 
 ## TODO: 分析迭代器优化方案
 
