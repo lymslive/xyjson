@@ -924,59 +924,46 @@ public:
     explicit ArrayIterator(yyjson_val* root);
     
     // Check if iterator is valid (current element exists)
-    bool isValid() const { 
-        return m_iter.idx < m_iter.max;
-//      return m_iter.cur != nullptr; 
-    }
-    
-    // Boolean conversion for conditional checks
+    bool isValid() const { return m_iter.idx < m_iter.max; }
     explicit operator bool() const { return isValid(); }
     bool operator!() const { return !isValid(); }
     
+    // Set to end state
+    void over() { m_iter.idx = m_iter.max; }
+
     // Check if two iterators are equal
-    bool equal(const ArrayIterator& other) const
-    {
+    bool equal(const ArrayIterator& other) const {
         return m_arr == other.m_arr && m_iter.idx == other.m_iter.idx;
     }
     
-    // Move to next element
-    ArrayIterator& next();
-    
-    // Create a copy of current state, then move to next element (for postfix ++)
-    ArrayIterator Next();
-    
-    // Get current value
-    Value value() const { return Value(c_val()); }
-    
-    // Get current index
-    size_t index() const { return m_iter.idx; }
-    
-    // Get current value (for dereference operator)
-    Value operator*() const { return value(); }
-    
-    // Get current value for method access (arrow operator)
-    Value operator->() const { return value(); }
-    
-    // Get underlying C API value pointer
-    yyjson_val* c_val() const { return m_iter.cur; }
-    
-    // Get underlying C API iterator structure pointer
+    // Get underlying C API iterator and value structure pointer
     yyjson_arr_iter* c_iter() { return &m_iter; }
     const yyjson_arr_iter* c_iter() const { return &m_iter; }
+    yyjson_val* c_val() const { return m_iter.cur; }
+
+    // Get current Proxy Value
+    Value value() const { return Value(c_val()); }
+
+    // Get current index
+    size_t index() const { return m_iter.idx; }
+
+    // Get current value (for dereference/array operator)
+    Value operator*()  const { return value(); }
+    Value operator->() const { return value(); }
+
+    // Move to next element
+    ArrayIterator& next(); // prefix ++
+    ArrayIterator  Next(); // postfix ++
     
     // Position manipulation
-    ArrayIterator& advance(size_t steps = 1);          // Advance iterator by n steps
+    ArrayIterator& advance(size_t steps = 1);
     ArrayIterator& seek(size_t index); // Seek to specific index
     
-    // Set to end state
-    void over()
-    {
-        m_iter.idx = m_iter.max;
-    }
-    
 private:
+    /// Native yyjson array iterator (mutable for const methods)
+    mutable yyjson_arr_iter m_iter;
+    /// Current array to iterate (not include in m_iter)
     yyjson_val* m_arr = nullptr;
-    mutable yyjson_arr_iter m_iter; // Native yyjson array iterator (mutable for const methods)
 };
 
 /**
@@ -997,68 +984,50 @@ public:
     ObjectIterator() : m_iter({0}) {}
     explicit ObjectIterator(yyjson_val* root);
     
-    // Check if iterator is valid (current element exists)
-    bool isValid() const { 
-        return m_iter.idx < m_iter.max;
-//      return m_iter.cur != nullptr; 
-    }
-    
-    // Boolean conversion for conditional checks
+    // Check if iterator is valid
+    bool isValid() const { return m_iter.idx < m_iter.max; }
     explicit operator bool() const { return isValid(); }
     bool operator!() const { return !isValid(); }
     
+    // Set to end state
+    void over() { m_iter.idx = m_iter.max; }
+
     // Check if two iterators are equal
-    bool equal(const ObjectIterator& other) const
-    {
+    bool equal(const ObjectIterator& other) const {
         return m_iter.obj == other.m_iter.obj && m_iter.idx == other.m_iter.idx;
     }
 
-    // Move to next key-value pair
-    ObjectIterator& next();
-    
-    // Create a copy of current state, then move to next element (for postfix ++)
-    ObjectIterator Next();
-    
-    // Get current key name
-    const char* name() const { return m_iter.cur ? yyjson_get_str(m_iter.cur) : nullptr; }
-    
-    // Get current key value
-    Value key() const { return Value(c_key()); }
-    
-    // Get current value
-    Value value() const { return Value(c_val()); }
-    
-    // Get current index
-    size_t index() const { return m_iter.idx; }
-    
-    // Get current value (for dereference operator)
-    Value operator*() const { return value(); }
-    
-    // Get current value for method access (arrow operator)
-    Value operator->() const { return value(); }
-    
-    // Get underlying C API key pointer
-    yyjson_val* c_key() const { return m_iter.cur; }
-    
-    // Get underlying C API value pointer
-    yyjson_val* c_val() const { return m_iter.cur ? (m_iter.cur + 1) : nullptr; }
-    
-    // Get underlying C API iterator structure pointer
+    // Get underlying C API iterator and key/val structure pointer
     yyjson_obj_iter* c_iter() { return &m_iter; }
     const yyjson_obj_iter* c_iter() const { return &m_iter; }
-    
-    // Position manipulation  
-    ObjectIterator& advance(size_t steps = 1);          // Advance iterator by n steps
-    ObjectIterator& seek(const char* key); // Seek to specific key
-    
-    // Set to end state
-    void over()
-    {
-        m_iter.idx = m_iter.max;
+    yyjson_val* c_key() const { return m_iter.cur; }
+    yyjson_val* c_val() const { return m_iter.cur ? (m_iter.cur + 1) : nullptr; }
+
+    // Get current key/val Proxy Value
+    Value key() const { return Value(c_key()); }
+    Value value() const { return Value(c_val()); }
+
+    // Get current index and key name
+    size_t index() const { return m_iter.idx; }
+    const char* name() const {
+        return m_iter.cur ? yyjson_get_str(m_iter.cur) : nullptr;
     }
     
+    // Get current value (for dereference/array operator)
+    Value operator*()  const { return value(); }
+    Value operator->() const { return value(); }
+    
+    // Move to next key-value pair
+    ObjectIterator& next(); // prefix ++
+    ObjectIterator  Next(); // postfix ++
+
+    // Position manipulation  
+    ObjectIterator& advance(size_t steps = 1);
+    ObjectIterator& seek(const char* key); // Seek to specific key
+    
 private:
-    mutable yyjson_obj_iter m_iter; // Native yyjson object iterator (mutable for const methods)
+    /// Native yyjson object iterator (mutable for const methods)
+    mutable yyjson_obj_iter m_iter;
 };
 
 /** 
@@ -1080,59 +1049,46 @@ public:
     explicit MutableArrayIterator(yyjson_mut_val* root, yyjson_mut_doc* doc);
     
     // Check if iterator is valid (current element exists)
-    bool isValid() const { 
-        return m_iter.idx < m_iter.max;
-//      return m_iter.cur != nullptr; 
-    }
-    
-    // Boolean conversion for conditional checks
+    bool isValid() const { return m_iter.idx < m_iter.max; }
     explicit operator bool() const { return isValid(); }
     bool operator!() const { return !isValid(); }
     
+    // Set to end state
+    void over() { m_iter.idx = m_iter.max; }
+
     // Check if two iterators are equal
-    bool equal(const MutableArrayIterator& other) const
-    {
+    bool equal(const MutableArrayIterator& other) const {
         return m_iter.arr == other.m_iter.arr && m_iter.idx == other.m_iter.idx;
     }
 
-    // Move to next element
-    MutableArrayIterator& next();
-    
-    // Create a copy of current state, then move to next element (for postfix ++)
-    MutableArrayIterator Next();
-    
-    // Get current value
-    MutableValue value() const { return MutableValue(c_val(), m_doc); }
-    
-    // Get current index
-    size_t index() const { return m_iter.idx; }
-    
-    // Get current value (for dereference operator)
-    MutableValue operator*() const { return value(); }
-    
-    // Get current value for method access (arrow operator)
-    MutableValue operator->() const { return value(); }
-    
-    // Get underlying C API value pointer
-    yyjson_mut_val* c_val() const { return m_iter.cur ? m_iter.cur->next : nullptr; }
-    
-    // Get underlying C API iterator structure pointer
+    // Get underlying C API iterator and value structure pointer
     yyjson_mut_arr_iter* c_iter() { return &m_iter; }
     const yyjson_mut_arr_iter* c_iter() const { return &m_iter; }
+    yyjson_mut_val* c_val() const { return m_iter.cur ? m_iter.cur->next : nullptr; }
+
+    // Get current Proxy Value
+    MutableValue value() const { return MutableValue(c_val(), m_doc); }
+
+    // Get current index
+    size_t index() const { return m_iter.idx; }
+
+    // Move to next element
+    MutableArrayIterator& next(); // prefix ++
+    MutableArrayIterator  Next(); // postfix ++
+    
+    // Get current value (for dereference/array operator)
+    MutableValue operator*()  const { return value(); }
+    MutableValue operator->() const { return value(); }
     
     // Position manipulation
-    MutableArrayIterator& advance(size_t steps = 1);          // Advance iterator by n steps
+    MutableArrayIterator& advance(size_t steps = 1);
     MutableArrayIterator& seek(size_t index); // Seek to specific index
     
-    // Set to end state
-    void over()
-    {
-        m_iter.idx = m_iter.max;
-    }
-    
 private:
-    yyjson_mut_doc* m_doc = nullptr;   // Document for context (needed for mutation)
-    mutable yyjson_mut_arr_iter m_iter; // Native yyjson mutable array iterator (mutable for const methods)
+    /// Native yyjson mutable array iterator (mutable for const methods)
+    mutable yyjson_mut_arr_iter m_iter;
+    // Document for context (needed for mutation)
+    yyjson_mut_doc* m_doc = nullptr;
 };
 
 /** 
@@ -1153,69 +1109,54 @@ public:
     MutableObjectIterator() : m_doc(nullptr), m_iter({0}) {}
     explicit MutableObjectIterator(yyjson_mut_val* root, yyjson_mut_doc* doc);
     
-    // Check if iterator is valid (current element exists)
-    bool isValid() const { 
-        return m_iter.idx < m_iter.max;
-//      return m_iter.cur != nullptr; 
-    }
-    
-    // Boolean conversion for conditional checks
+    // Check if iterator is valid
+    bool isValid() const { return m_iter.idx < m_iter.max; }
     explicit operator bool() const { return isValid(); }
     bool operator!() const { return !isValid(); }
     
+    // Set to end state
+    void over() { m_iter.idx = m_iter.max; }
+
     // Check if two iterators are equal
-    bool equal(const MutableObjectIterator& other) const
-    {
+    bool equal(const MutableObjectIterator& other) const {
         return m_iter.obj == other.m_iter.obj && m_iter.idx == other.m_iter.idx;
     }
 
-    // Move to next key-value pair
-    MutableObjectIterator& next();
-    
-    // Create a copy of current state, then move to next element (for postfix ++)
-    MutableObjectIterator Next();
-    
-    // Get current key name
-    const char* name() const { return m_iter.cur ? yyjson_mut_get_str(m_iter.cur) : nullptr; }
-    
-    // Get current key value
-    MutableValue key() const { return MutableValue(c_key(), m_doc); }
-    
-    // Get current value
-    MutableValue value() const { return MutableValue(c_val(), m_doc); }
-    
-    // Get current index
-    size_t index() const { return m_iter.idx; }
-    
-    // Get current value (for dereference operator)
-    MutableValue operator*() const { return value(); }
-    
-    // Get current value for method access (arrow operator)
-    MutableValue operator->() const { return value(); }
-    
-    // Get underlying C API key pointer
-    yyjson_mut_val* c_key() const { return m_iter.cur ? m_iter.cur->next->next : nullptr; }
-    
-    // Get underlying C API value pointer
-    yyjson_mut_val* c_val() const { return yyjson_mut_obj_iter_get_val(c_key()); }
-    
-    // Get underlying C API iterator structure pointer
+    // Get underlying C API iterator and key/val structure pointer
     yyjson_mut_obj_iter* c_iter() { return &m_iter; }
     const yyjson_mut_obj_iter* c_iter() const { return &m_iter; }
+    yyjson_mut_val* c_key() const {
+        return m_iter.cur && m_iter.cur->next ? m_iter.cur->next->next : nullptr;
+    }
+    yyjson_mut_val* c_val() const { return yyjson_mut_obj_iter_get_val(c_key()); }
+
+    // Get current key/val Proxy Value
+    MutableValue key() const { return MutableValue(c_key(), m_doc); }
+    MutableValue value() const { return MutableValue(c_val(), m_doc); }
+
+    // Get current index and key name
+    size_t index() const { return m_iter.idx; }
+    const char* name() const {
+        return m_iter.cur ? yyjson_mut_get_str(m_iter.cur) : nullptr;
+    }
+
+    // Get current value (for dereference/array operator)
+    MutableValue operator*()  const { return value(); }
+    MutableValue operator->() const { return value(); }
+
+    // Move to next key-value pair
+    MutableObjectIterator& next(); // prefix ++
+    MutableObjectIterator  Next(); // postfix ++
     
     // Position manipulation  
-    MutableObjectIterator& advance(size_t steps = 1);          // Advance iterator by n steps
+    MutableObjectIterator& advance(size_t steps = 1);
     MutableObjectIterator& seek(const char* key); // Seek to specific key
     
-    // Set to end state
-    void over()
-    {
-        m_iter.idx = m_iter.max;
-    }
-    
 private:
-    yyjson_mut_doc* m_doc = nullptr;   // Document for context (needed for mutation)
-    mutable yyjson_mut_obj_iter m_iter; // Native yyjson mutable object iterator (mutable for const methods)
+    /// Native yyjson mutable object iterator (mutable for const methods)
+    mutable yyjson_mut_obj_iter m_iter;
+    /// Document for context (needed for mutation)
+    yyjson_mut_doc* m_doc = nullptr;
 };
 
 /* @Part 3: Non-Class Functions */

@@ -17,7 +17,7 @@
  */
 #define INF_LOOP_BREAK(condition, message) \
     if (condition) { \
-        std::cerr << "ERROR: " << message << " at " << __FILE__ << ":" << __LINE__ << std::endl; \
+        DESC("ERROR: %s at %s:%d", message, __FILE__, __LINE__); \
         break; \
     }
 
@@ -163,24 +163,57 @@ DEF_TAST(iterator_basic_loop, "basic loop with four iterator")
     }
 }
 
-DEF_TAST(iterator_copy_assignment, "test iterator copying and assignment")
+DEF_TAST(iterator_copy_ctor, "iterator basic constructor, copying and assignment")
 {
-    std::string jsonText = "[1, 2, 3]";
-    yyjson::Document doc(jsonText);
-    
-    auto iter1 = doc.root().arrayIter();
-    COUT(iter1->toInteger(), 1);
-    
-    // Test copy constructor
-    auto iter2 = iter1;
-    COUT(iter2->toInteger(), 1);
-    
-    // Test assignment
-    auto iter3 = doc.root().arrayIter();
-    ++iter3; // Move to second element
-    iter1 = iter3;
-    COUT(iter1->toInteger(), 2);
-    COUT(iter2->toInteger(), 1); // Should not affect iter2
+    DESC("default constructed iterators");
+    {
+        yyjson::ArrayIterator arr_it_def;
+        const yyjson_arr_iter* c_arr_it = arr_it_def.c_iter();
+        COUT(c_arr_it->idx, (size_t)0);
+        COUT(c_arr_it->max, (size_t)0);
+        COUT(c_arr_it->cur, nullptr);
+
+        yyjson::ObjectIterator obj_it_def;
+        const yyjson_obj_iter* c_obj_it = obj_it_def.c_iter();
+        COUT(c_obj_it->idx, (size_t)0);
+        COUT(c_obj_it->max, (size_t)0);
+        COUT(c_obj_it->cur, nullptr);
+        COUT(c_obj_it->obj, nullptr);
+
+        yyjson::MutableArrayIterator marr_it_def;
+        const yyjson_mut_arr_iter* c_marr_it = marr_it_def.c_iter();
+        COUT(c_marr_it->idx, (size_t)0);
+        COUT(c_marr_it->max, (size_t)0);
+        COUT(c_marr_it->cur, nullptr);
+        COUT(c_marr_it->arr, nullptr);
+
+        yyjson::MutableObjectIterator mobj_it_def;
+        const yyjson_mut_obj_iter* c_mobj_it = mobj_it_def.c_iter();
+        COUT(c_mobj_it->idx, (size_t)0);
+        COUT(c_mobj_it->max, (size_t)0);
+        COUT(c_mobj_it->cur, nullptr);
+        COUT(c_mobj_it->obj, nullptr);
+    }
+
+    DESC("iterator copy =");
+    {
+        std::string jsonText = "[1, 2, 3]";
+        yyjson::Document doc(jsonText);
+
+        auto iter1 = doc.root().arrayIter();
+        COUT(iter1->toInteger(), 1);
+
+        // Test copy constructor
+        auto iter2 = iter1;
+        COUT(iter2->toInteger(), 1);
+
+        // Test assignment
+        auto iter3 = doc.root().arrayIter();
+        ++iter3; // Move to second element
+        iter1 = iter3;
+        COUT(iter1->toInteger(), 2);
+        COUT(iter2->toInteger(), 1); // Should not affect iter2
+    }
 }
 
 DEF_TAST(iterator_operators, "test iterator operators and methods")
@@ -259,6 +292,23 @@ DEF_TAST(iterator_edge_cases, "test iterator edge cases")
         COUT(*iter2 | false, true);
         ++iter2;
         COUT(iter2.isValid(), false);
+
+        // Test Mutable single element array
+        auto doc3 = ~doc1;
+        auto iter3 = doc3.root().arrayIter();
+        COUT(iter3.isValid(), true);
+        COUT(iter3.value().toInteger(), 999);
+        ++iter3;
+        COUT(iter3.isValid(), false);
+
+        // Test Mutable single element object
+        auto doc4 = ~doc2;
+        auto iter4 = doc4.root().objectIter();
+        COUT(iter4.isValid(), true);
+        COUT(std::string(iter4.name() ? iter4.name() : ""), "only");
+        COUT(*iter4 | false, true);
+        ++iter4;
+        COUT(iter4.isValid(), false);
     }
     
     DESC("empty container:");
@@ -292,6 +342,32 @@ DEF_TAST(iterator_edge_cases, "test iterator edge cases")
             INF_LOOP_BREAK(count2 > 5, "Should not iterate empty object");
         }
         COUT(count2, 0);
+
+        // Test Mutable single empty array
+        auto doc3 = ~doc1;
+        auto iter3 = doc3.root().arrayIter();
+        COUT(iter3.isValid(), false);
+
+        int count3 = 0;
+        while (iter3.isValid()) {
+            count3++;
+            ++iter3;
+            INF_LOOP_BREAK(count3 > 5, "Should not iterate empty array");
+        }
+        COUT(count3, 0);
+
+        // Test Mutable single empty object
+        auto doc4 = ~doc2;
+        auto iter4 = doc4.root().objectIter();
+        COUT(iter4.isValid(), false);
+
+        int count4 = 0;
+        while (iter4.isValid()) {
+            count4++;
+            ++iter4;
+            INF_LOOP_BREAK(count4 > 5, "Should not iterate empty object");
+        }
+        COUT(count4, 0);
     }
 }
 
@@ -368,21 +444,6 @@ DEF_TAST(iterator_begin_end, "test begin/end pattern")
             INF_LOOP_BREAK(count > 10, "Infinite loop expected and detected");
         }
         COUT(count > 2, true);
-    }
-
-    DESC("default constructed iterators");
-    {
-        yyjson::ArrayIterator arr_it_def;
-        yyjson::ObjectIterator obj_it_def;
-        const yyjson_arr_iter* c_arr_it = arr_it_def.c_iter();
-        const yyjson_obj_iter* c_obj_it = obj_it_def.c_iter();
-        COUT(c_arr_it->idx, (size_t)0);
-        COUT(c_arr_it->max, (size_t)0);
-        COUT(c_arr_it->cur, nullptr);
-        COUT(c_obj_it->idx, (size_t)0);
-        COUT(c_obj_it->max, (size_t)0);
-        COUT(c_obj_it->cur, nullptr);
-        COUT(c_obj_it->obj, nullptr);
     }
 }
 
