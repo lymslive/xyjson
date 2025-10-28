@@ -929,7 +929,7 @@ public:
     bool operator!() const { return !isValid(); }
     
     // Set to end state
-    void over() { m_iter.idx = m_iter.max; }
+    ArrayIterator& over() { m_iter.idx = m_iter.max; return *this; }
 
     // Check if two iterators are equal
     bool equal(const ArrayIterator& other) const {
@@ -990,7 +990,7 @@ public:
     bool operator!() const { return !isValid(); }
     
     // Set to end state
-    void over() { m_iter.idx = m_iter.max; }
+    ObjectIterator& over() { m_iter.idx = m_iter.max; return *this; }
 
     // Check if two iterators are equal
     bool equal(const ObjectIterator& other) const {
@@ -1054,7 +1054,7 @@ public:
     bool operator!() const { return !isValid(); }
     
     // Set to end state
-    void over() { m_iter.idx = m_iter.max; }
+    MutableArrayIterator& over() { m_iter.idx = m_iter.max; return *this; }
 
     // Check if two iterators are equal
     bool equal(const MutableArrayIterator& other) const {
@@ -1115,7 +1115,7 @@ public:
     bool operator!() const { return !isValid(); }
     
     // Set to end state
-    void over() { m_iter.idx = m_iter.max; }
+    MutableObjectIterator& over() { m_iter.idx = m_iter.max; return *this; }
 
     // Check if two iterators are equal
     bool equal(const MutableObjectIterator& other) const {
@@ -1637,10 +1637,7 @@ inline ArrayIterator Value::beginArray() const
 
 inline ArrayIterator Value::endArray() const
 {
-    if (!isArray()) return ArrayIterator();
-    ArrayIterator iter(m_val);
-    iter.over();
-    return iter;
+    return beginArray().over();
 }
 
 inline ObjectIterator Value::beginObject() const
@@ -1650,10 +1647,7 @@ inline ObjectIterator Value::beginObject() const
 
 inline ObjectIterator Value::endObject() const
 {
-    if (!isObject()) return ObjectIterator();
-    ObjectIterator iter(m_val);
-    iter.over();
-    return iter;
+    return beginObject().over();
 }
 
 /* @Group 4.1.4: others */
@@ -2270,10 +2264,7 @@ inline MutableArrayIterator MutableValue::beginArray() const
 
 inline MutableArrayIterator MutableValue::endArray() const
 {
-    if (!isArray()) return MutableArrayIterator();
-    MutableArrayIterator iter(m_val, m_doc);
-    iter.over();
-    return iter;
+    return beginArray().over();
 }
 
 inline MutableObjectIterator MutableValue::beginObject() const
@@ -2283,10 +2274,7 @@ inline MutableObjectIterator MutableValue::beginObject() const
 
 inline MutableObjectIterator MutableValue::endObject() const
 {
-    if (!isObject()) return MutableObjectIterator();
-    MutableObjectIterator iter(m_val, m_doc);
-    iter.over();
-    return iter;
+    return beginObject().over();
 }
 
 /* @Group 4.3.7: others */
