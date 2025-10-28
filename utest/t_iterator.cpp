@@ -249,6 +249,11 @@ DEF_TAST(iterator_operators, "test iterator operators and methods")
         ++iter3; ++iter3;
         COUT(iter.equal(iter3), true);
         COUT(iter3.equal(iter), true);
+
+        auto iter4 = doc.root().arrayIter();
+        COUT(+iter4, (size_t)0); // Get current index
+        COUT(-iter4, nullptr); // No-op for array iterator
+        COUT(!~iter4, true); // No-op for array iterator
     }
 
     DESC("readonly object iterator:");
@@ -265,6 +270,67 @@ DEF_TAST(iterator_operators, "test iterator operators and methods")
         ++iter;
         COUT(std::string(iter.name() ? iter.name() : ""), "value");
         COUT(iter->toNumber(), 42.5);
+
+        auto iter2 = doc.root().objectIter();
+        COUT(+iter2, (size_t)0); // Get current index
+        COUT(std::string(-iter2 ? -iter2 : ""), "name"); // Get current key name
+        COUT(!~iter2, false); // Get current key node
+
+        ++iter2;
+        COUT(+iter2, (size_t)1); // Get current index
+        COUT(std::string(-iter2 ? -iter2 : ""), "value"); // Get current key name
+    }
+
+    DESC("mutable array iterator:");
+    {
+        std::string jsonText = "[100, 200, 300]";
+        yyjson::MutableDocument doc(jsonText);
+
+        auto iter = doc.root().arrayIter();
+
+        // Test dereference operator
+        COUT((*iter).toInteger(), 100);
+
+        // Test arrow operator
+        COUT(iter->toInteger(), 100);
+
+        // Test increment operators
+        ++iter;
+        COUT(iter->toInteger(), 200);
+
+        auto old = iter++;
+        COUT(old->toInteger(), 200);
+        COUT(iter->toInteger(), 300);
+
+        auto iter2 = doc.root().arrayIter();
+        COUT(+iter2, (size_t)0); // Get current index
+        COUT(-iter2, nullptr); // No-op for array iterator
+        COUT(!~iter2, true); // No-op for array iterator
+    }
+
+    DESC("mutable object iterator:");
+    {
+        std::string jsonText = "{\"key1\": \"value1\", \"key2\": 999}";
+        yyjson::MutableDocument doc(jsonText);
+
+        auto iter = doc.root().objectIter();
+
+        // Test basic functionality
+        COUT(std::string(iter.name() ? iter.name() : ""), "key1");
+        COUT(iter->toString(), "value1");
+
+        ++iter;
+        COUT(std::string(iter.name() ? iter.name() : ""), "key2");
+        COUT(iter->toInteger(), 999);
+
+        auto iter2 = doc.root().objectIter();
+        COUT(+iter2, (size_t)0); // Get current index
+        COUT(std::string(-iter2 ? -iter2 : ""), "key1"); // Get current key name
+        COUT((~iter2).toString(), "key1"); // Get current key node value
+
+        ++iter2;
+        COUT(+iter2, (size_t)1); // Get current index
+        COUT(std::string(-iter2 ? -iter2 : ""), "key2"); // Get current key name
     }
 }
 
@@ -444,6 +510,199 @@ DEF_TAST(iterator_begin_end, "test begin/end pattern")
             INF_LOOP_BREAK(count > 10, "Infinite loop expected and detected");
         }
         COUT(count > 2, true);
+    }
+}
+
+DEF_TAST(iterator_arithmetic, "test iterator arithmetic operators % %= + +=")
+{
+    DESC("array iterator with % and + operators");
+    {
+        std::string jsonText = "[100, 200, 300, 400, 500]";
+        yyjson::Document doc(jsonText);
+        auto root = doc.root();
+
+        // Test json % index creates iterator at specific position
+        auto iter1 = root % 2; // Start at index 2 (value 300)
+        COUT(iter1.isValid(), true);
+        COUT(iter1->toInteger(), 300);
+        COUT(+iter1, (size_t)2); // Verify current index
+
+        // Test + operator (creates new iterator at offset)
+        auto iter2 = iter1 + 1; // Move forward 1 step
+        COUT(iter2.isValid(), true);
+        COUT(iter2->toInteger(), 400);
+        COUT(+iter2, (size_t)3);
+
+        // Test += operator (modifies iterator in place)
+        iter1 += 2; // Move forward 2 steps from index 2
+        COUT(iter1.isValid(), true);
+        COUT(iter1->toInteger(), 500);
+        COUT(+iter1, (size_t)4);
+
+        // Test % operator (moves to specific index)
+        auto iter3 = iter1 % 0; // Jump to index 0
+        COUT(iter3.isValid(), true);
+        COUT(iter3->toInteger(), 100);
+        COUT(+iter3, (size_t)0);
+
+        // Test %= operator (modifies iterator to specific index)
+        iter3 %= 1; // Jump to index 1
+        COUT(iter3.isValid(), true);
+        COUT(iter3->toInteger(), 200);
+        COUT(+iter3, (size_t)1);
+
+        // Test boundary conditions
+        auto iter4 = root % 100; // Invalid index
+        COUT(iter4.isValid(), false);
+
+        auto iter5 = root % 4; // Last valid index
+        COUT(iter5.isValid(), true);
+        COUT(iter5->toInteger(), 500);
+
+        iter5 += 1; // Move beyond end
+        COUT(iter5.isValid(), false);
+    }
+
+    DESC("object iterator with % and + operators");
+    {
+        std::string jsonText = "{\"a\": 1, \"b\": 2, \"c\": 3, \"d\": 4}";
+        yyjson::Document doc(jsonText);
+        auto root = doc.root();
+
+        // Test json % key creates iterator at specific position
+        auto iter1 = root % "b"; // Start at key "b"
+        COUT(iter1.isValid(), true);
+        COUT(iter1->toInteger(), 2);
+        COUT(std::string(-iter1 ? -iter1 : ""), "b");
+
+        // Test + operator (moves forward steps)
+        auto iter2 = iter1 + 1; // Move forward 1 step
+        COUT(iter2.isValid(), true);
+        COUT(iter2->toInteger(), 3);
+        COUT(std::string(-iter2 ? -iter2 : ""), "c");
+
+        // Test += operator (modifies iterator in place)
+        iter1 += 1; // Move forward 1 step from "b"
+        COUT(iter1.isValid(), true);
+        COUT(iter1->toInteger(), 3);
+        COUT(std::string(-iter1 ? -iter1 : ""), "c");
+
+        // Test % operator (moves to specific key)
+        auto iter3 = iter1 % "a"; // Jump to key "a"
+        COUT(iter3.isValid(), true);
+        COUT(iter3->toInteger(), 1);
+        COUT(std::string(-iter3 ? -iter3 : ""), "a");
+
+        // Test %= operator (modifies iterator to specific key)
+        iter3 %= "d"; // Jump to key "d"
+        COUT(iter3.isValid(), true);
+        COUT(iter3->toInteger(), 4);
+        COUT(std::string(-iter3 ? -iter3 : ""), "d");
+
+        // Test boundary conditions
+        auto iter4 = root % "nonexistent"; // Invalid key
+        COUT(iter4.isValid(), false);
+
+        auto iter5 = root % "d"; // Last key
+        COUT(iter5.isValid(), true);
+        COUT(iter5->toInteger(), 4);
+
+        iter5 += 1; // Move beyond end
+        COUT(iter5.isValid(), false);
+    }
+
+    DESC("mutable array iterator with % and + operators");
+    {
+        yyjson::MutableDocument doc("[10, 20, 30, 40]");
+        auto root = doc.root();
+
+        // Test json % index for mutable array
+        auto iter1 = root % 1; // Start at index 1 (value 20)
+        COUT(iter1.isValid(), true);
+        COUT(iter1->toInteger(), 20);
+        COUT(+iter1, (size_t)1);
+
+        // Test + operator
+        auto iter2 = iter1 + 2; // Move forward 2 steps
+        COUT(iter2.isValid(), true);
+        COUT(iter2->toInteger(), 40);
+        COUT(+iter2, (size_t)3);
+
+        // Test += operator
+        iter1 += 1; // Move forward 1 step
+        COUT(iter1.isValid(), true);
+        COUT(iter1->toInteger(), 30);
+        COUT(+iter1, (size_t)2);
+
+        // Test % operator
+        auto iter3 = iter1 % 0; // Jump to index 0
+        COUT(iter3.isValid(), true);
+        COUT(iter3->toInteger(), 10);
+        COUT(+iter3, (size_t)0);
+
+        // Test %= operator
+        iter3 %= 3; // Jump to index 3
+        COUT(iter3.isValid(), true);
+        COUT(iter3->toInteger(), 40);
+        COUT(+iter3, (size_t)3);
+
+        // Test boundary conditions
+        auto iter4 = root % 10; // Invalid index
+        COUT(iter4.isValid(), false);
+
+        auto iter5 = root % 3; // Last valid index
+        COUT(iter5.isValid(), true);
+        COUT(iter5->toInteger(), 40);
+
+        iter5 += 1; // Move beyond end
+        COUT(iter5.isValid(), false);
+    }
+
+    DESC("mutable object iterator with % and + operators");
+    {
+        yyjson::MutableDocument doc("{\"x\": 100, \"y\": 200, \"z\": 300}");
+        auto root = doc.root();
+
+        // Test json % key for mutable object
+        auto iter1 = root % "y"; // Start at key "y"
+        COUT(iter1.isValid(), true);
+        COUT(iter1->toInteger(), 200);
+        COUT(std::string(-iter1 ? -iter1 : ""), "y");
+
+        // Test + operator
+        auto iter2 = iter1 + 1; // Move forward 1 step
+        COUT(iter2.isValid(), true);
+        COUT(iter2->toInteger(), 300);
+        COUT(std::string(-iter2 ? -iter2 : ""), "z");
+
+        // Test += operator
+        iter1 += 1; // Move forward 1 step
+        COUT(iter1.isValid(), true);
+        COUT(iter1->toInteger(), 300);
+        COUT(std::string(-iter1 ? -iter1 : ""), "z");
+
+        // Test % operator
+        auto iter3 = iter1 % "x"; // Jump to key "x"
+        COUT(iter3.isValid(), true);
+        COUT(iter3->toInteger(), 100);
+        COUT(std::string(-iter3 ? -iter3 : ""), "x");
+
+        // Test %= operator
+        iter3 %= "z"; // Jump to key "z"
+        COUT(iter3.isValid(), true);
+        COUT(iter3->toInteger(), 300);
+        COUT(std::string(-iter3 ? -iter3 : ""), "z");
+
+        // Test boundary conditions
+        auto iter4 = root % "none"; // Invalid key
+        COUT(iter4.isValid(), false);
+
+        auto iter5 = root % "z"; // Last key
+        COUT(iter5.isValid(), true);
+        COUT(iter5->toInteger(), 300);
+
+        iter5 += 1; // Move beyond end
+        COUT(iter5.isValid(), false);
     }
 }
 

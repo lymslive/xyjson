@@ -913,13 +913,18 @@ struct KeyValue
  * - Dereference: *iter, iter-> (access current item)
  * - Increment: ++iter (calls next()), iter++ (calls Next())
  * - Advance: iter + n, iter += n (calls advance(n))
- * - Position: iter % n , iter %= n (calls seek(n))
+ * - Position: iter % n , iter %= n (calls advance(n))
+ * - Unary: +iter (get current index), -iter (no-op), ~iter (no-op)
  * - Comparison: ==, != (calls equal())
  * - Boolean: if (iter), !iter
  */
 class ArrayIterator
 {
 public:
+    static constexpr bool for_object = false;
+    static constexpr bool for_mutable = false;
+    using json_type = Value;
+
     ArrayIterator() : m_arr(nullptr), m_iter({0}) {}
     explicit ArrayIterator(yyjson_val* root);
     
@@ -956,7 +961,9 @@ public:
     ArrayIterator  Next(); // postfix ++
     
     // Position manipulation
-    ArrayIterator& advance(size_t steps = 1);
+    ArrayIterator& rewind(); // Reset iterator to beginning
+    ArrayIterator& advance(size_t steps = 1, bool rescan = false);
+    ArrayIterator& advance(const char* key) { return *this; } // No-op for array iterator
     ArrayIterator& seek(size_t index); // Seek to specific index
     
 private:
@@ -971,16 +978,21 @@ private:
  * Provides efficient iteration over object properties
  * 
  * Supported operators:
- * - Dereference: *iter, iter-> (access current key-value pair)
+ * - Dereference: *iter, iter-> (access value node)
  * - Increment: ++iter (calls next()), iter++ (calls Next())
  * - Advance: iter + n, iter += n (calls advance(n))
- * - Position: iter % key , iter %= key (calls seek(key))
+ * - Position: iter % key , iter %= key (calls advance(key))
+ * - Unary: +iter(current index), -iter(current key name), ~iter(current key node)
  * - Comparison: ==, != (calls equal())
  * - Boolean: if (iter), !iter
  */
 class ObjectIterator
 {
 public:
+    static constexpr bool for_object = true;
+    static constexpr bool for_mutable = false;
+    using json_type = Value;
+    
     ObjectIterator() : m_iter({0}) {}
     explicit ObjectIterator(yyjson_val* root);
     
@@ -1009,20 +1021,20 @@ public:
 
     // Get current index and key name
     size_t index() const { return m_iter.idx; }
-    const char* name() const {
-        return m_iter.cur ? yyjson_get_str(m_iter.cur) : nullptr;
-    }
+    const char* name() const { return yyjson_get_str(c_key()); }
     
     // Get current value (for dereference/array operator)
     Value operator*()  const { return value(); }
     Value operator->() const { return value(); }
-    
+
     // Move to next key-value pair
     ObjectIterator& next(); // prefix ++
     ObjectIterator  Next(); // postfix ++
 
     // Position manipulation  
-    ObjectIterator& advance(size_t steps = 1);
+    ObjectIterator& rewind(); // Reset iterator to beginning
+    ObjectIterator& advance(size_t steps = 1, bool rescan = false);
+    ObjectIterator& advance(const char* key, bool rescan = false); // Seek to specific key
     ObjectIterator& seek(const char* key); // Seek to specific key
     
 private:
@@ -1038,13 +1050,18 @@ private:
  * - Dereference: *iter, iter-> (access current mutable item)
  * - Increment: ++iter (calls next()), iter++ (calls Next())
  * - Advance: iter + n, iter += n (calls advance(n))
- * - Position: iter % n , iter %= n (calls seek(n))
+ * - Position: iter % n , iter %= n (calls advance(n))
+ * - Unary: +iter (get current index), -iter (no-op), ~iter (no-op)
  * - Comparison: ==, != (calls equal())
  * - Boolean: if (iter), !iter
  */
 class MutableArrayIterator
 {
 public:
+    static constexpr bool for_object = false;
+    static constexpr bool for_mutable = true;
+    using json_type = MutableValue;
+    
     MutableArrayIterator() : m_doc(nullptr), m_iter({0}) {}
     explicit MutableArrayIterator(yyjson_mut_val* root, yyjson_mut_doc* doc);
     
@@ -1081,13 +1098,15 @@ public:
     MutableValue operator->() const { return value(); }
     
     // Position manipulation
-    MutableArrayIterator& advance(size_t steps = 1);
+    MutableArrayIterator& rewind(); // Reset iterator to beginning
+    MutableArrayIterator& advance(size_t steps = 1, bool rescan = false);
+    MutableArrayIterator& advance(const char* key) { return *this; } // No-op for array iterator
     MutableArrayIterator& seek(size_t index); // Seek to specific index
     
 private:
     /// Native yyjson mutable array iterator (mutable for const methods)
     mutable yyjson_mut_arr_iter m_iter;
-    // Document for context (needed for mutation)
+    /// Document for context (needed for mutation)
     yyjson_mut_doc* m_doc = nullptr;
 };
 
@@ -1099,13 +1118,18 @@ private:
  * - Dereference: *iter, iter-> (access current mutable key-value pair)
  * - Increment: ++iter (calls next()), iter++ (calls Next())
  * - Advance: iter + n, iter += n (calls advance(n))
- * - Position: iter % key , iter %= key (calls seek(key))
+ * - Position: iter % key , iter %= key (calls advance(key))
+ * - Unary: +iter(current index), -iter(current key name), ~iter(current key node)
  * - Comparison: ==, != (calls equal())
  * - Boolean: if (iter), !iter
  */
 class MutableObjectIterator
 {
 public:
+    static constexpr bool for_object = true;
+    static constexpr bool for_mutable = true;
+    using json_type = MutableValue;
+    
     MutableObjectIterator() : m_doc(nullptr), m_iter({0}) {}
     explicit MutableObjectIterator(yyjson_mut_val* root, yyjson_mut_doc* doc);
     
@@ -1136,9 +1160,7 @@ public:
 
     // Get current index and key name
     size_t index() const { return m_iter.idx; }
-    const char* name() const {
-        return m_iter.cur ? yyjson_mut_get_str(m_iter.cur) : nullptr;
-    }
+    const char* name() const { return yyjson_mut_get_str(c_key()); }
 
     // Get current value (for dereference/array operator)
     MutableValue operator*()  const { return value(); }
@@ -1149,7 +1171,9 @@ public:
     MutableObjectIterator  Next(); // postfix ++
     
     // Position manipulation  
-    MutableObjectIterator& advance(size_t steps = 1);
+    MutableObjectIterator& rewind(); // Reset iterator to beginning
+    MutableObjectIterator& advance(size_t steps = 1, bool rescan = false);
+    MutableObjectIterator& advance(const char* key, bool rescan = false); // Seek to specific key
     MutableObjectIterator& seek(const char* key); // Seek to specific key
     
 private:
@@ -1623,7 +1647,7 @@ inline ObjectIterator Value::objectIter(const char* startKey) const
     if (isObject()) {
         ObjectIterator iter(m_val);
         if (startKey && *startKey) {
-            iter.seek(startKey);
+            iter.advance(startKey);
         }
         return iter;
     }
@@ -2250,7 +2274,7 @@ inline MutableObjectIterator MutableValue::objectIter(const char* startKey) cons
     if (isObject()) {
         MutableObjectIterator iter(m_val, m_doc);
         if (startKey && *startKey) {
-            iter.seek(startKey);
+            iter.advance(startKey);
         }
         return iter;
     }
@@ -2520,8 +2544,20 @@ inline ArrayIterator ArrayIterator::Next()
     return old;
 }
 
-inline ArrayIterator& ArrayIterator::advance(size_t steps)
+inline ArrayIterator& ArrayIterator::rewind()
 {
+    if (m_arr) {
+        yyjson_arr_iter_init(m_arr, const_cast<yyjson_arr_iter*>(&m_iter));
+    }
+    return *this;
+}
+
+inline ArrayIterator& ArrayIterator::advance(size_t steps, bool rescan)
+{
+    if (rescan) {
+        rewind();
+    }
+    
     for (size_t i = 0; i < steps && isValid(); i++) { 
         next();
     }
@@ -2530,9 +2566,6 @@ inline ArrayIterator& ArrayIterator::advance(size_t steps)
 
 inline ArrayIterator& ArrayIterator::seek(size_t index)
 {
-    for (size_t i = 0; i < index && isValid(); i++) {
-        next();
-    }
     return *this;
 }
 
@@ -2559,9 +2592,39 @@ inline ObjectIterator ObjectIterator::Next()
     return old;
 }
 
-inline ObjectIterator& ObjectIterator::advance(size_t steps)
+inline ObjectIterator& ObjectIterator::rewind()
 {
+    if (m_iter.obj) {
+        yyjson_obj_iter_init(m_iter.obj, const_cast<yyjson_obj_iter*>(&m_iter));
+    }
+    return *this;
+}
+
+inline ObjectIterator& ObjectIterator::advance(size_t steps, bool rescan)
+{
+    if (rescan) {
+        rewind();
+    }
+    
     for (size_t i = 0; i < steps && isValid(); i++) { 
+        next();
+    }
+    return *this;
+}
+
+inline ObjectIterator& ObjectIterator::advance(const char* key, bool rescan)
+{
+    if (!key || !*key) return *this;
+    
+    if (rescan) {
+        rewind();
+    }
+    
+    while (isValid()) {
+        const char* currentKey = name();
+        if (currentKey && ::strcmp(currentKey, key) == 0) {
+            break;
+        }
         next();
     }
     return *this;
@@ -2569,16 +2632,6 @@ inline ObjectIterator& ObjectIterator::advance(size_t steps)
 
 inline ObjectIterator& ObjectIterator::seek(const char* key)
 {
-    if (!key || !*key) return *this;
-    
-    // Search for the key from current position
-    while (isValid()) {
-        const char* currentKey = yyjson_get_str(m_iter.cur);
-        if (currentKey && strcmp(currentKey, key) == 0) {
-            break; // Found the key
-        }
-        next();
-    }
     return *this;
 }
 
@@ -2605,8 +2658,20 @@ inline MutableArrayIterator MutableArrayIterator::Next()
     return old;
 }
 
-inline MutableArrayIterator& MutableArrayIterator::advance(size_t steps)
+inline MutableArrayIterator& MutableArrayIterator::rewind()
 {
+    if (m_iter.arr) {
+        yyjson_mut_arr_iter_init(m_iter.arr, const_cast<yyjson_mut_arr_iter*>(&m_iter));
+    }
+    return *this;
+}
+
+inline MutableArrayIterator& MutableArrayIterator::advance(size_t steps, bool rescan)
+{
+    if (rescan) {
+        rewind();
+    }
+    
     for (size_t i = 0; i < steps && isValid(); i++) { 
         next();
     }
@@ -2615,9 +2680,6 @@ inline MutableArrayIterator& MutableArrayIterator::advance(size_t steps)
 
 inline MutableArrayIterator& MutableArrayIterator::seek(size_t index)
 {
-    for (size_t i = 0; i < index && isValid(); i++) {
-        next();
-    }
     return *this;
 }
 
@@ -2644,9 +2706,39 @@ inline MutableObjectIterator MutableObjectIterator::Next()
     return old;
 }
 
-inline MutableObjectIterator& MutableObjectIterator::advance(size_t steps)
+inline MutableObjectIterator& MutableObjectIterator::rewind()
 {
+    if (m_iter.obj) {
+        yyjson_mut_obj_iter_init(m_iter.obj, const_cast<yyjson_mut_obj_iter*>(&m_iter));
+    }
+    return *this;
+}
+
+inline MutableObjectIterator& MutableObjectIterator::advance(size_t steps, bool rescan)
+{
+    if (rescan) {
+        rewind();
+    }
+    
     for (size_t i = 0; i < steps && isValid(); i++) { 
+        next();
+    }
+    return *this;
+}
+
+inline MutableObjectIterator& MutableObjectIterator::advance(const char* key, bool rescan)
+{
+    if (!key || !*key) return *this;
+    
+    if (rescan) {
+        rewind();
+    }
+    
+    while (isValid()) {
+        const char* currentKey = name();
+        if (currentKey && ::strcmp(currentKey, key) == 0) {
+            break;
+        }
         next();
     }
     return *this;
@@ -2654,16 +2746,6 @@ inline MutableObjectIterator& MutableObjectIterator::advance(size_t steps)
 
 inline MutableObjectIterator& MutableObjectIterator::seek(const char* key)
 {
-    if (!key || !*key) return *this;
-    
-    // Search for the key from current position
-    while (isValid()) {
-        const char* currentKey = yyjson_mut_get_str(m_iter.cur);
-        if (currentKey && strcmp(currentKey, key) == 0) {
-            break; // Found the key
-        }
-        next();
-    }
     return *this;
 }
 
@@ -2961,6 +3043,19 @@ inline MutableValue& operator<<(MutableValue&& json, T&& value)
 /* @Section 5.6: Iterator Creation and Operation */
 /* ------------------------------------------------------------------------ */
 
+/**
+ * @brief Iterator operation operators
+ * 
+ * These operators provide common iterator operations:
+ * - `+iter` : Get current index (calls index())
+ * - `-iter` : Get current key name (calls name(), only for object iterators)
+ * - `~iter` : Get current key node (calls key(), only for object iterators)
+ * 
+ * For array iterators, `-` and `~` operators return empty/null values.
+ * These are implemented as non-member template functions that work with
+ * all iterator types through SFINAE and compile-time type traits.
+ */
+
 // Array iterator creation (json % int)
 // `json % index` --> `json.arrayIter(index)`
 template<typename jsonT>
@@ -3016,21 +3111,78 @@ operator+(iteratorT& iter, size_t step)
 }
 
 // Iterator seek operators (%= %)
-// `iter %= target` --> `iter.seek(target)`
+// `iter %= target` --> `iter.advance(target, true)` for position jump
 template<typename iteratorT, typename T>
-inline typename std::enable_if<trait::is_iterator<iteratorT>::value, iteratorT&>::type
+inline typename std::enable_if<trait::is_iterator<iteratorT>::value && !iteratorT::for_object, iteratorT&>::type
 operator%=(iteratorT& iter, const T& target)
 {
-    return iter.seek(target);
+    return iter.advance(target, true);
 }
 
-// `iter % target` --> `copy iter.seek(target)`
+// `iter %= key` --> `iter.advance(key, true)` for position jump
 template<typename iteratorT, typename T>
-inline typename std::enable_if<trait::is_iterator<iteratorT>::value, iteratorT>::type
+inline typename std::enable_if<trait::is_iterator<iteratorT>::value && iteratorT::for_object, iteratorT&>::type
+operator%=(iteratorT& iter, const T& target)
+{
+    return iter.advance(target, true);
+}
+
+// `iter % target` --> `copy iter.advance(target, true)` for position jump
+template<typename iteratorT, typename T>
+inline typename std::enable_if<trait::is_iterator<iteratorT>::value && !iteratorT::for_object, iteratorT>::type
 operator%(iteratorT& iter, const T& target)
 {
     iteratorT copy = iter;
-    return copy.seek(target);
+    return copy.advance(target, true);
+}
+
+// `iter % key` --> `copy iter.advance(key, true)` for position jump
+template<typename iteratorT, typename T>
+inline typename std::enable_if<trait::is_iterator<iteratorT>::value && iteratorT::for_object, iteratorT>::type
+operator%(iteratorT& iter, const T& target)
+{
+    iteratorT copy = iter;
+    return copy.advance(target, true);
+}
+
+// Iterator unary operator: +iter (get current index)
+template<typename iteratorT>
+inline typename std::enable_if<trait::is_iterator<iteratorT>::value, size_t>::type
+operator+(const iteratorT& iter)
+{
+    return iter.index();
+}
+
+// Iterator unary operator: -iter (get current key name)
+template<typename iteratorT>
+inline typename std::enable_if<trait::is_iterator<iteratorT>::value && iteratorT::for_object, const char*>::type
+operator-(const iteratorT& iter)
+{
+    return iter.name();
+}
+
+// Iterator unary operator: -iter (no-op for array iterators)
+template<typename iteratorT>
+inline typename std::enable_if<trait::is_iterator<iteratorT>::value && !iteratorT::for_object, const char*>::type
+operator-(const iteratorT& iter)
+{
+    return nullptr;
+}
+
+// Iterator unary operator: ~iter (get current key node)
+template<typename iteratorT>
+inline typename std::enable_if<trait::is_iterator<iteratorT>::value && iteratorT::for_object, typename iteratorT::json_type>::type
+operator~(const iteratorT& iter)
+{
+    return iter.key();
+}
+
+// Iterator unary operator: ~iter (no-op for array iterators) - SFINAE fallback
+template<typename iteratorT>
+inline typename std::enable_if<trait::is_iterator<iteratorT>::value && !iteratorT::for_object, typename iteratorT::json_type>::type
+operator~(const iteratorT& iter)
+{
+    return typename iteratorT::json_type();
 }
 
 /* @Section 5.7: Document Forward Root Operator */
