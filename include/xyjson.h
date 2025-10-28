@@ -967,8 +967,6 @@ public:
     ArrayIterator& advance(size_t steps = 1);
     ArrayIterator& advance(const char* key) { return over(); } // No-op for array iterator
 
-    ArrayIterator& seek(size_t index); // Seek to specific index
-    
 private:
     /// Native yyjson array iterator (mutable for const methods)
     mutable yyjson_arr_iter m_iter;
@@ -985,6 +983,7 @@ private:
  * - Increment: ++iter (calls next()), iter++ (calls Next())
  * - Advance: iter + n, iter += n (calls advance(n))
  * - Position: iter % key , iter %= key (calls advance(key))
+ * - Fast Seek: / (sequential static seek)
  * - Unary: +iter(current index), -iter(current key name), ~iter(current key node)
  * - Comparison: ==, != (calls equal())
  * - Boolean: if (iter), !iter
@@ -1039,7 +1038,14 @@ public:
     ObjectIterator& advance(size_t steps = 1);
     ObjectIterator& advance(const char* key); // Jump to specific key
 
-    ObjectIterator& seek(const char* key); // Seek to specific key
+    // Seek to specific key using fast yyjson API and return Value
+    Value seek(const char* key, size_t key_len);
+    Value seek(const std::string& key) { return seek(key.c_str(), key.size()); }
+    template<size_t N>
+    Value seek(const char(&key)[N]) { return seek(key, N-1); }
+    template<typename T>
+    typename std::enable_if<trait::is_cstr_type<T>(), Value>::type
+    seek(T key) { return seek(key, key ? ::strlen(key) : 0); }
     
 private:
     /// Native yyjson object iterator (mutable for const methods)
@@ -1108,8 +1114,6 @@ public:
     MutableArrayIterator& advance(size_t steps = 1);
     MutableArrayIterator& advance(const char* key) { return over(); } // No-op for array iterator
 
-    MutableArrayIterator& seek(size_t index); // Seek to specific index
-    
 private:
     /// Native yyjson mutable array iterator (mutable for const methods)
     mutable yyjson_mut_arr_iter m_iter;
@@ -1126,6 +1130,7 @@ private:
  * - Increment: ++iter (calls next()), iter++ (calls Next())
  * - Advance: iter + n, iter += n (calls advance(n))
  * - Position: iter % key , iter %= key (calls advance(key))
+ * - Fast Seek: / (sequential static seek)
  * - Unary: +iter(current index), -iter(current key name), ~iter(current key node)
  * - Comparison: ==, != (calls equal())
  * - Boolean: if (iter), !iter
@@ -1182,7 +1187,14 @@ public:
     MutableObjectIterator& advance(size_t steps = 1);
     MutableObjectIterator& advance(const char* key); // jump to specific key
 
-    MutableObjectIterator& seek(const char* key); // Seek to specific key
+    // Seek to specific key using fast yyjson API and return MutableValue
+    MutableValue seek(const char* key, size_t key_len);
+    MutableValue seek(const std::string& key) { return seek(key.c_str(), key.size()); }
+    template<size_t N>
+    MutableValue seek(const char(&key)[N]) { return seek(key, N-1); }
+    template<typename T>
+    typename std::enable_if<trait::is_cstr_type<T>(), MutableValue>::type
+    seek(T key) { return seek(key, key ? ::strlen(key) : 0); }
     
 private:
     /// Native yyjson mutable object iterator (mutable for const methods)
@@ -2556,10 +2568,6 @@ inline ArrayIterator& ArrayIterator::advance(size_t steps)
     return *this;
 }
 
-inline ArrayIterator& ArrayIterator::seek(size_t index)
-{
-    return rewind().advance(index);
-}
 
 /* @Section 4.6: ObjectIterator Methods */
 /* ------------------------------------------------------------------------ */
@@ -2614,9 +2622,11 @@ inline ObjectIterator& ObjectIterator::advance(const char* key)
     return *this;
 }
 
-inline ObjectIterator& ObjectIterator::seek(const char* key)
+// ObjectIterator fast seek implementation using yyjson_obj_iter_getn
+inline Value ObjectIterator::seek(const char* key, size_t key_len)
 {
-    return rewind().advance(key);
+    yyjson_val* val = yyjson_obj_iter_getn(&m_iter, key, key_len);
+    return Value(val);
 }
 
 /* @Section 4.7: MutableArrayIterator Methods */
@@ -2658,10 +2668,6 @@ inline MutableArrayIterator& MutableArrayIterator::advance(size_t steps)
     return *this;
 }
 
-inline MutableArrayIterator& MutableArrayIterator::seek(size_t index)
-{
-    return rewind().advance(index);
-}
 
 /* @Section 4.8: MutableObjectIterator Methods */
 /* ------------------------------------------------------------------------ */
@@ -2716,11 +2722,12 @@ inline MutableObjectIterator& MutableObjectIterator::advance(const char* key)
     return *this;
 }
 
-inline MutableObjectIterator& MutableObjectIterator::seek(const char* key)
+// MutableObjectIterator fast seek implementation using yyjson_mut_obj_iter_getn
+inline MutableValue MutableObjectIterator::seek(const char* key, size_t key_len)
 {
-    return rewind().advance(key);
+    yyjson_mut_val* val = yyjson_mut_obj_iter_getn(&m_iter, key, key_len);
+    return MutableValue(val, m_doc);
 }
-
 
 /* @Part 5: Operator Interface */
 /* ======================================================================== */
@@ -3015,19 +3022,6 @@ inline MutableValue& operator<<(MutableValue&& json, T&& value)
 /* @Section 5.6: Iterator Creation and Operation */
 /* ------------------------------------------------------------------------ */
 
-/**
- * @brief Iterator operation operators
- * 
- * These operators provide common iterator operations:
- * - `+iter` : Get current index (calls index())
- * - `-iter` : Get current key name (calls name(), only for object iterators)
- * - `~iter` : Get current key node (calls key(), only for object iterators)
- * 
- * For array iterators, `-` and `~` operators return empty/null values.
- * These are implemented as non-member template functions that work with
- * all iterator types through SFINAE and compile-time type traits.
- */
-
 // Array iterator creation (json % int)
 // `json % index` --> `json.arrayIter(index)`
 template<typename jsonT>
@@ -3122,6 +3116,18 @@ inline typename std::enable_if<trait::is_iterator<iteratorT>::value, typename it
 operator~(const iteratorT& iter)
 {
     return iter.key();
+}
+
+// Iterator fast seek operator: iter / key (calls iter.seek(key))
+// Only for object iterators, should fail to compile for array iterators
+template<typename iteratorT, typename T>
+inline typename std::enable_if<
+    trait::is_iterator<iteratorT>::value && iteratorT::for_object,
+    typename iteratorT::json_type
+>::type
+operator/(iteratorT& iter, const T& key)
+{
+    return iter.seek(key);
 }
 
 /* @Section 5.7: Document Forward Root Operator */

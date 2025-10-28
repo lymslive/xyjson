@@ -706,3 +706,191 @@ DEF_TAST(iterator_arithmetic, "test iterator arithmetic operators % %= + +=")
     }
 }
 
+DEF_TAST(iterator_fast_seek, "test fast seek functionality with / operator")
+{
+    DESC("readonly object iterator fast seek");
+    {
+        std::string jsonText = "{\"name\": \"Alice\", \"age\": 25, \"city\": \"Beijing\"}";
+        yyjson::Document doc(jsonText);
+        
+        auto iter = doc.root().objectIter();
+        
+        // Test fast seek with string literal
+        auto nameValue = iter.seek("name");
+        COUT(nameValue.isValid(), true);
+        COUT(std::string(nameValue | ""), "Alice");
+        
+        // Note: yyjson_obj_iter_getn moves iterator to next element after found key
+        COUT(iter.index(), size_t(1)); // Iterator moved to next element after "name"
+        COUT(std::string(-iter ? -iter : ""), "age"); // Current key is now "age"
+        
+        // Test fast seek with std::string
+        std::string ageKey = "age";
+        auto ageValue = iter.seek(ageKey);
+        COUT(ageValue.isValid(), true);
+        COUT(ageValue.toInteger(), 25);
+        
+        // Iterator moved to next element after "age"
+        COUT(iter.index(), size_t(2)); // Iterator moved to next element after "age"
+        COUT(std::string(-iter ? -iter : ""), "city"); // Current key is now "city"
+        
+        // Test fast seek with / operator
+        auto cityValue = iter / "city";
+        COUT(cityValue.isValid(), true);
+        COUT(std::string(cityValue | ""), "Beijing");
+        
+        // Iterator moved to next element after "city" (beyond end)
+        COUT(iter.isValid(), false); // Iterator is now beyond end
+        
+        // Test seek with non-existing key
+        auto noneValue = iter.seek("nonexistent");
+        COUT(noneValue.isValid(), false);
+        
+        // Test that iterator position is updated after seek
+        COUT(iter.isValid(), false); // Iterator remains beyond end
+        
+        // Reset iterator to test from beginning
+        iter.rewind();
+        COUT(iter.isValid(), true);
+        COUT(std::string(-iter ? -iter : ""), "name"); // Back to first key
+        
+        // Test sequential seeks
+        auto val1 = iter.seek("name");
+        COUT(std::string(val1 | ""), "Alice");
+        COUT(std::string(-iter ? -iter : ""), "age"); // Moved to next
+        
+        // Test re-seek with non-existing key, iter stay on
+        noneValue = iter.seek("nonexistent");
+        COUT(noneValue.isValid(), false);
+        COUT(-iter, "age");
+        COUT(+iter, size_t(1));
+
+        auto val2 = iter.seek("city");
+        COUT(std::string(val2 | ""), "Beijing");
+        COUT(iter.isValid(), false); // Moved beyond end after last key
+    }
+    
+    DESC("mutable object iterator fast seek");
+    {
+        yyjson::MutableDocument doc("{\"id\": 123, \"status\": \"active\", \"score\": 95.5}");
+        
+        auto iter = doc.root().objectIter();
+        
+        // Test fast seek with string literal
+        auto idValue = iter.seek("id");
+        COUT(idValue.isValid(), true);
+        COUT(idValue.toInteger(), 123);
+        
+        // Note: yyjson_mut_obj_iter_getn moves iterator to next element after found key
+        COUT(std::string(-iter ? -iter : ""), "status"); // Iterator moved to next key
+        
+        // Test fast seek with std::string
+        std::string statusKey = "status";
+        auto statusValue = iter.seek(statusKey);
+        COUT(statusValue.isValid(), true);
+        COUT(std::string(statusValue | ""), "active");
+        
+        // Iterator moved to next element after "status"
+        COUT(std::string(-iter ? -iter : ""), "score"); // Current key is now "score"
+        
+        // Test fast seek with / operator
+        auto scoreValue = iter / "score";
+        COUT(scoreValue.isValid(), true);
+        COUT(scoreValue.toNumber(), 95.5);
+        
+        // Iterator moved beyond end after last key
+        COUT(iter.isValid(), false); // Iterator is now beyond end
+        
+        // Test seek with non-existing key
+        auto noneValue = iter.seek("missing");
+        COUT(noneValue.isValid(), false);
+        
+        // Test that iterator position is updated after seek
+        COUT(iter.isValid(), false); // Iterator remains beyond end
+        
+        // Reset iterator to test from beginning
+        iter.rewind();
+        COUT(iter.isValid(), true);
+        COUT(std::string(-iter ? -iter : ""), "id"); // Back to first key
+    }
+    
+    DESC("test array iterator doesn't support fast seek");
+    {
+        yyjson::Document doc("[10, 20, 30]");
+        auto iter = doc.root().arrayIter();
+        // Note: Array iterators don't have seek method for keys
+        //! auto first = iter / 0;
+        //! auto val = iter / "key";
+    }
+    
+    DESC("test seek on empty object iterator");
+    {
+        yyjson::Document doc("{}");
+        auto iter = doc.root().objectIter();
+        
+        // Test seek on empty object
+        COUT(iter.isValid(), false); // Empty object iterator starts invalid
+        
+        auto noneValue = iter.seek("anykey");
+        COUT(noneValue.isValid(), false); // Should not find anything
+        
+        // Test / operator on empty object
+        auto noneValue2 = iter / "otherkey";
+        COUT(noneValue2.isValid(), false); // Should not find anything
+        
+        COUT(iter.isValid(), false); // Iterator should remain invalid
+    }
+    
+    DESC("test seek on default-constructed iterator");
+    {
+        yyjson::ObjectIterator iter; // Default constructed
+        
+        // Test seek on default constructed iterator
+        COUT(iter.isValid(), false); // Default iterator is invalid
+        
+        auto noneValue = iter.seek("key");
+        COUT(noneValue.isValid(), false); // Should not find anything
+        
+        // Test / operator on default constructed iterator
+        auto noneValue2 = iter / "key";
+        COUT(noneValue2.isValid(), false); // Should not find anything
+        
+        COUT(iter.isValid(), false); // Iterator should remain invalid
+    }
+    
+    DESC("test seek on empty mutable object iterator");
+    {
+        yyjson::MutableDocument doc("{}");
+        auto iter = doc.root().objectIter();
+        
+        // Test seek on empty mutable object
+        COUT(iter.isValid(), false); // Empty object iterator starts invalid
+        
+        auto noneValue = iter.seek("anykey");
+        COUT(noneValue.isValid(), false); // Should not find anything
+        
+        // Test / operator on empty mutable object
+        auto noneValue2 = iter / "otherkey";
+        COUT(noneValue2.isValid(), false); // Should not find anything
+        
+        COUT(iter.isValid(), false); // Iterator should remain invalid
+    }
+    
+    DESC("test seek on default-constructed mutable iterator");
+    {
+        yyjson::MutableObjectIterator iter; // Default constructed
+        
+        // Test seek on default constructed mutable iterator
+        COUT(iter.isValid(), false); // Default iterator is invalid
+        
+        auto noneValue = iter.seek("key");
+        COUT(noneValue.isValid(), false); // Should not find anything
+        
+        // Test / operator on default constructed mutable iterator
+        auto noneValue2 = iter / "key";
+        COUT(noneValue2.isValid(), false); // Should not find anything
+        
+        COUT(iter.isValid(), false); // Iterator should remain invalid
+    }
+}
+

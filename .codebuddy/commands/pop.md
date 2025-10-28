@@ -20,7 +20,7 @@ description: "核心代码开发 TODO 需求"
   * 开发任务要确保编译与测试通过
   * 如果陷入 debug 循环 5 次以上仍未能解决问题，请放弃，视为任务失败
 - 如果任务成功完成
-  * 以任务 ID 为标题在 `tast_log.md` 中记录日志，参考已有格式
+  * 以任务 ID 为标题在 `tast_log.md` 末尾记录日志，参考已有格式
   * 将任务 ID 写回 `task_todo.md` 关联需求 ID
     + 可用更新脚本： perl script/todo.pl "需求ID" "任务ID"
   * 提交 git ，提交消息的 scope 为需求ID(**$1**)
