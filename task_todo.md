@@ -1191,7 +1191,50 @@ MutableArrayIterator << MutableValue << {Basic Scalar Type}
 
 根据迭代器状态原位插入维护环形链表的工作，AI 居然没搞定，得手动上。
 
-## TODO: 迭代器增删结点功能
+可变数组结构：
+array --> Vn --> V0 --> V1 --> V2 ... --> Vn
+可变对象结构：
+object --> Kn -> Vn --> K0 -> V0 --> K1 -> V1 ... --> Kn -> Vn
+
+头指针指向尾元素
+
+只读数组/对象结构：
+array  | V0 | V1 | V2 ... | Vn
+object | K0 | V0 | K1 | V1 ... | Kn | Vn
+
+## TODO:2025-10-29/2 Bug Fix 迭代器到达末尾取值问题
+
+在调试 `iterator_mutable_array` 单元测试时发现的 bug 。
+
+可写数组迭代器移至末尾后，取值得到第一个元素。
+因为内部是环形链接。
+但迭代器到末尾应该失效，外部接口 `c_val` 应该返回 nullptr.
+另一个方案是每次 next 时判断是否到末尾，将 cur 指针置空。
+
+请评估这两个方案，个人觉得改 `c_val` 接口更好些。
+
+可写对象迭代器也是环形链接，可能也有类似问题。需要修改 `c_key` 方法。
+
+只读数组与对象是线性结构，但也要再检查迭代器到末尾解引用取值的问题。
+
+在单元测试 `iterator_edge_cases` 内补充更多此类边界情况的测试。
+
+### DONE: 20251029-225352
+
+## TODO:2025-10-29/3 可写数组迭代器支持删除功能
+
+已有 yyjson.h C API `yyjson_mut_arr_iter_remove` 删除当前结点。
+但是它的迭代器当前结点语义可能与我们 C++ 的 MutableArrayIterator 当前结点有一
+步的偏差。需要先 next 一步再调用这个 C 函数作删除。
+
+- 增加 MutableArrayIterator::remove 方法，删除当前结点，返回 MutableValue
+- 增加 MutableArrayIterator >> MutableValue 操作符，将删除的结点保存在右侧参数
+  中，返回原迭代器，支持链式删除。在Section 5.6 定义为非类方法。
+- 增加 `iterator_array_insert` 单元测试用例。
+
+## TODO: 可写对象迭代支持插入功能
+## TODO: 可写对象迭代支持删除功能
+
 ## TODO: 迭代器接口标准化
 
 ## TODO: 分析迭代器优化方案
@@ -1227,21 +1270,6 @@ using reference = ValueProxy;
   拷回文档
 
 ## TODO: 考虑条件编译宏过滤不用的功能
-
-## TODO: Bug Fix 迭代器到达末尾取值问题
-
-在调试  `iterator_mutable_array` 单元测试时发现的 bug 。
-
-可写数组迭代器移至末尾后，取值得到第一个元素。
-因为内部是环形链接。
-但迭代器到末尾应该失效，外部接口 `c_val` 应该返回 nullptr.
-另一个方案是每次 next 时判断是否到末尾，将 cur 指针置空。
-
-请评估这两个方案，个人觉得改 `c_val` 接口更好些。
-
-可写对象迭代器也是环形链接，可能也有类似问题。需要修改 `c_key` 或 next 方法。
-
-只读数组与对象是线性结构，但也要再检查迭代器到末尾解引用取值的问题。
 
 ---
 

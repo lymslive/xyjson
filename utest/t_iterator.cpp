@@ -435,6 +435,55 @@ DEF_TAST(iterator_edge_cases, "test iterator edge cases")
         }
         COUT(count4, 0);
     }
+
+    DESC("test iterator end value access");
+    {
+        // Test MutableArrayIterator c_val() at end
+        yyjson::MutableDocument doc1("[1, 2, 3]");
+        auto iter1 = doc1.root().arrayIter();
+
+        // Iterate to end
+        while (iter1.isValid()) {
+            ++iter1;
+        }
+
+        // Test that c_val() returns nullptr at end
+        COUT(iter1.c_val() == nullptr, true);
+
+        // Test MutableObjectIterator c_key() at end
+        yyjson::MutableDocument doc2("{\"a\":1, \"b\":2}");
+        auto iter2 = doc2.root().objectIter();
+
+        // Iterate to end
+        while (iter2.isValid()) {
+            ++iter2;
+        }
+
+        // Test that c_key()/c_val() returns nullptr at end
+        COUT(iter2.c_key() == nullptr, true);
+        COUT(iter2.c_val() == nullptr, true);
+
+        // Test readonly iterators for comparison
+        yyjson::Document doc3("[1, 2, 3]");
+        auto iter3 = doc3.root().arrayIter();
+
+        while (iter3.isValid()) {
+            ++iter3;
+        }
+
+        COUT(iter3.c_val() == nullptr, true);
+
+        yyjson::Document doc4("{\"a\":1, \"b\":2}");
+        auto iter4 = doc4.root().objectIter();
+
+        while (iter4.isValid()) {
+            ++iter4;
+        }
+
+        COUT(iter4.c_key() == nullptr, true);
+        COUT(iter4.c_val() == nullptr, true);
+    }
+
 }
 
 DEF_TAST(iterator_begin_end, "test begin/end pattern")
@@ -892,10 +941,9 @@ DEF_TAST(iterator_fast_seek, "test fast seek functionality with / operator")
         
         COUT(iter.isValid(), false); // Iterator should remain invalid
     }
-
 }
 
-DEF_TAST(iterator_mutable_array, "mutable array iterator insert functionality")
+DEF_TAST(iterator_array_insert, "mutable array iterator insert functionality")
 {
     DESC("basic insert operation");
     {
@@ -989,9 +1037,9 @@ DEF_TAST(iterator_mutable_array, "mutable array iterator insert functionality")
         auto iter4 = root % 0;
         iter4 += 5;
         COUT(!iter4, true);
-        COUT(iter4->toString());
+        COUT(iter4->toString(), "");
         ++iter4;
-        COUT(iter4->toString());
+        COUT(iter4->toString(), "");
     }
     
     DESC("insert different types");

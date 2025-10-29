@@ -944,7 +944,7 @@ public:
     // Get underlying C API iterator and value structure pointer
     yyjson_arr_iter* c_iter() { return &m_iter; }
     const yyjson_arr_iter* c_iter() const { return &m_iter; }
-    yyjson_val* c_val() const { return m_iter.cur; }
+    yyjson_val* c_val() const { return isValid() ? m_iter.cur : nullptr; }
 
     // Get current Proxy Value
     Value value() const { return Value(c_val()); }
@@ -1011,8 +1011,8 @@ public:
     // Get underlying C API iterator and key/val structure pointer
     yyjson_obj_iter* c_iter() { return &m_iter; }
     const yyjson_obj_iter* c_iter() const { return &m_iter; }
-    yyjson_val* c_key() const { return m_iter.cur; }
-    yyjson_val* c_val() const { return m_iter.cur ? (m_iter.cur + 1) : nullptr; }
+    yyjson_val* c_key() const { return isValid() ? m_iter.cur : nullptr; }
+    yyjson_val* c_val() const { return isValid() && m_iter.cur ? (m_iter.cur + 1) : nullptr; }
 
     // Get current key/val Proxy Value
     Value key() const { return Value(c_key()); }
@@ -1085,7 +1085,7 @@ public:
     // Get underlying C API iterator and value structure pointer
     yyjson_mut_arr_iter* c_iter() { return &m_iter; }
     const yyjson_mut_arr_iter* c_iter() const { return &m_iter; }
-    yyjson_mut_val* c_val() const { return m_iter.cur ? m_iter.cur->next : nullptr; }
+    yyjson_mut_val* c_val() const { return isValid() && m_iter.cur ? m_iter.cur->next : nullptr; }
 
     // Get current Proxy Value
     MutableValue value() const { return MutableValue(c_val(), m_doc); }
@@ -1158,7 +1158,7 @@ public:
     yyjson_mut_obj_iter* c_iter() { return &m_iter; }
     const yyjson_mut_obj_iter* c_iter() const { return &m_iter; }
     yyjson_mut_val* c_key() const {
-        return m_iter.cur && m_iter.cur->next ? m_iter.cur->next->next : nullptr;
+        return isValid() && m_iter.cur && m_iter.cur->next ? m_iter.cur->next->next : nullptr;
     }
     yyjson_mut_val* c_val() const { return yyjson_mut_obj_iter_get_val(c_key()); }
 
