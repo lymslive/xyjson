@@ -1230,7 +1230,9 @@ object | K0 | V0 | K1 | V1 ... | Kn | Vn
 - 增加 MutableArrayIterator::remove 方法，删除当前结点，返回 MutableValue
 - 增加 MutableArrayIterator >> MutableValue 操作符，将删除的结点保存在右侧参数
   中，返回原迭代器，支持链式删除。在Section 5.6 定义为非类方法。
-- 增加 `iterator_array_insert` 单元测试用例。
+- 增加 `iterator_array_remove` 单元测试用例。
+
+### DONE: 20251030-001318
 
 ## TODO: 可写对象迭代支持插入功能
 ## TODO: 可写对象迭代支持删除功能

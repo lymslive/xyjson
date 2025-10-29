@@ -1074,3 +1074,125 @@ DEF_TAST(iterator_array_insert, "mutable array iterator insert functionality")
     }
 }
 
+DEF_TAST(iterator_array_remove, "mutable array iterator remove functionality")
+{
+    DESC("basic remove operation");
+    {
+        yyjson::MutableDocument doc("[1, 2, 3, 4, 5]");
+        auto root = doc.root();
+        
+        // Test removing element at position 2 (value 3)
+        auto iter = root.arrayIter();
+        iter.advance(2); // Move to position 2
+        
+        // Remove current element
+        auto removed = iter.remove();
+        COUT(removed.isValid(), true);
+        COUT(removed.toInteger(), 3);
+        
+        // Verify array content after removal
+        COUT(root.toString(), "[1,2,4,5]");
+        
+        // Verify iterator is still valid after removal
+        COUT(iter.isValid(), true);
+        COUT(iter.value().toInteger(), 4); // Now points to next element
+    }
+    
+    DESC("remove operator >>");
+    {
+        yyjson::MutableDocument doc("[1, 2, 3, 4, 5]");
+        auto root = doc.root();
+        
+        auto iter = root.arrayIter();
+        iter.advance(1); // Move to position 1 (value 2)
+        
+        // Test >> operator
+        yyjson::MutableValue removed;
+        iter >> removed;
+        
+        COUT(removed.isValid(), true);
+        COUT(removed.toInteger(), 2);
+        
+        // Verify array content
+        COUT(root.toString(), "[1,3,4,5]");
+        
+        // Verify iterator points to next element
+        COUT(iter.value().toInteger(), 3);
+    }
+    
+    DESC("chained remove operations");
+    {
+        yyjson::MutableDocument doc("[1, 2, 3, 4, 5]");
+        auto root = doc.root();
+        
+        auto iter = root.arrayIter();
+        iter.advance(1); // Move to position 1 (value 2)
+        
+        // Remove two elements in sequence
+        yyjson::MutableValue removed1, removed2;
+        iter >> removed1 >> removed2;
+        
+        COUT(removed1.toInteger(), 2);
+        COUT(removed2.toInteger(), 3);
+        
+        // Verify array content
+        COUT(root.toString(), "[1,4,5]");
+        
+        // Verify iterator points to next element
+        COUT(iter.value().toInteger(), 4);
+    }
+    
+    DESC("remove edge cases");
+    {
+        yyjson::MutableDocument doc("[1, 2, 3]");
+        auto root = doc.root();
+        
+        // Test removing first element
+        auto iter1 = root.arrayIter(); // Position 0
+        yyjson::MutableValue removed1;
+        iter1 >> removed1;
+        COUT(removed1.toInteger(), 1);
+        COUT(root.toString(), "[2,3]");
+        
+        // Test removing last element
+        auto iter2 = root.arrayIter();
+        iter2.advance(1); // Move to position 1 (value 3)
+        yyjson::MutableValue removed2;
+        iter2 >> removed2;
+        COUT(removed2.toInteger(), 3);
+        COUT(root.toString(), "[2]");
+        
+        // Test removing the only element
+        auto iter3 = root.arrayIter();
+        yyjson::MutableValue removed3;
+        iter3 >> removed3;
+        COUT(removed3.toInteger(), 2);
+        COUT(root.toString(), "[]");
+        
+        // Test removing from empty array
+        yyjson::MutableValue removed4;
+        iter3 >> removed4;
+        COUT(removed4.isValid(), false);
+    }
+    
+    DESC("remove and insert combination");
+    {
+        yyjson::MutableDocument doc("[1, 2, 3, 4, 5]");
+        auto root = doc.root();
+        
+        auto iter = root.arrayIter();
+        iter.advance(2); // Move to position 2 (value 3)
+        
+        // Remove current element
+        yyjson::MutableValue removed;
+        iter >> removed;
+        COUT(removed.toInteger(), 3);
+        
+        // Insert new element at current position
+        iter << "replacement";
+        
+        // Verify final array content
+        COUT(root.toString(), "[1,2,\"replacement\",4,5]");
+    }
+}
+

@@ -1109,6 +1109,9 @@ public:
     bool insert(yyjson_mut_val* value); // Insert raw pointer, return success status
     template<typename T>
     bool insert(T&& value); // Insert various types, return success status
+    
+    // Remove method
+    MutableValue remove(); // Remove current element and return it
 
 private:
     /// Native yyjson mutable array iterator (mutable for const methods)
@@ -2693,6 +2696,20 @@ inline bool MutableArrayIterator::insert(T&& value)
     return insert(val);
 }
 
+/// Remove current element and return it
+inline MutableValue MutableArrayIterator::remove()
+{
+    // Note: yyjson's remove function works on current position, but our iterator
+    // is one step ahead due to c_val() returning m_iter.cur->next
+    // We need to first move to the next element to align with yyjson's semantics
+    yyjson_mut_val* removed_val = nullptr;
+    if (isValid()) {
+        next();
+        removed_val = yyjson_mut_arr_iter_remove(&m_iter);
+    }
+    return MutableValue(removed_val, m_doc);
+}
+
 
 /* @Section 4.8: MutableObjectIterator Methods */
 /* ------------------------------------------------------------------------ */
@@ -3145,6 +3162,20 @@ inline MutableArrayIterator& operator<<(MutableArrayIterator& iter, T&& value)
 {
     iter.insert(std::forward<T>(value));
     iter.next(); // for chained insertion.
+    return iter;
+}
+
+// Iterator remove operator: iter >> value (calls iter.remove() and stores removed value)
+inline MutableArrayIterator& operator>>(MutableArrayIterator& iter, MutableValue& value)
+{
+    value = iter.remove();
+    return iter;
+}
+
+inline MutableArrayIterator& operator>>(MutableArrayIterator& iter, yyjson_mut_val*& value)
+{
+    auto removed = iter.remove();
+    value = removed.c_val();
     return iter;
 }
 
