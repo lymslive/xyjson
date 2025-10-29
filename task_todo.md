@@ -1189,6 +1189,8 @@ MutableArrayIterator << MutableValue << {Basic Scalar Type}
 
 ### DONE: 20251029-164149
 
+根据迭代器状态原位插入维护环形链表的工作，AI 居然没搞定，得手动上。
+
 ## TODO: 迭代器增删结点功能
 ## TODO: 迭代器接口标准化
 

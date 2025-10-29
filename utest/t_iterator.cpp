@@ -906,14 +906,23 @@ DEF_TAST(iterator_mutable_array, "mutable array iterator insert functionality")
         auto iter = root.arrayIter();
         iter.advance(2); // Move to position 2 (value 4)
         
+        // before insert
+        COUT(iter.index(), 2);
+        COUT(iter->toInteger(), 4);
+
         // Insert value at current position
         iter.insert(3);
-        
+
+        // after insert
+        COUT(iter.index(), 2);
+        COUT(iter->toInteger(), 3);
+
         // Verify the array content
         std::vector<int> values;
         for (auto it = root.arrayIter(); it.isValid(); ++it) {
             values.push_back(*it | 0);
         }
+        COUT(root);
         COUT(values.size(), 5);
         COUT(values[0], 1);
         COUT(values[1], 2);
@@ -979,6 +988,7 @@ DEF_TAST(iterator_mutable_array, "mutable array iterator insert functionality")
 
         auto iter4 = root % 0;
         iter4 += 5;
+        COUT(!iter4, true);
         COUT(iter4->toString());
         ++iter4;
         COUT(iter4->toString());
@@ -1004,6 +1014,15 @@ DEF_TAST(iterator_mutable_array, "mutable array iterator insert functionality")
         COUT((*iter2 | false), true);
         ++iter2;
         COUT(iter2.value().isNull(), true);
+    }
+
+    DESC("insert to empty array");
+    {
+        yyjson::MutableDocument doc("[]");
+        auto it = doc % 0;
+        // 1 2 int and MutableValue(3), raw yyjson_mut_val*(4)
+        it << 1 << 2 << doc*3 << (doc*4).get();
+        COUT(-doc, "[1,2,3,4]");
     }
 }
 

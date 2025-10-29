@@ -2640,21 +2640,49 @@ inline MutableArrayIterator& MutableArrayIterator::advance(size_t steps)
     return *this;
 }
 
-inline bool MutableArrayIterator::insert(yyjson_mut_val* value)
+inline bool MutableArrayIterator::insert(yyjson_mut_val* val)
 {
-    if (!value || !m_iter.arr) {
+    // alow idx == max to insert at the end.
+    if (!val || !m_iter.arr || m_iter.idx > m_iter.max) {
         return false;
     }
-    
+#if 0    
+    // Slow version: two linear scan
     // Save current index before insertion
     size_t current_idx = m_iter.idx;
-    if (yyjson_mut_arr_insert(m_iter.arr, value, current_idx)) {
+    if (yyjson_mut_arr_insert(m_iter.arr, val, current_idx)) {
         rewind();
         // keep interator point to newly inserted element
         advance(current_idx);
         return true;
     }
     return false;
+#else
+    // refer to: yyjson_mut_arr_insert Implementation
+
+    if (m_iter.max == 0) {
+        // first element in circle link
+        val->next = val;
+        m_iter.cur = val;
+        m_iter.arr->uni.ptr = val;
+    }
+    else {
+        // C++ iterator `c_key` is `m_iter.cur->next`, so insert new val as:
+        // m_iter.cur->next -> (new val) -> origianl next
+        // m_iter.cur not changed
+        yyjson_mut_val *prev = m_iter.cur;
+        yyjson_mut_val *next = m_iter.cur->next;
+        prev->next = val;
+        val->next = next;
+
+        // insert to the end, update arr point to end
+        if (m_iter.idx == m_iter.max) {
+            m_iter.arr->uni.ptr = val;
+        }
+    }
+    unsafe_yyjson_set_len(m_iter.arr, ++m_iter.max);
+    return true;
+#endif
 }
 
 template<typename T>
@@ -3144,9 +3172,17 @@ operator/(const docT& doc, const T& path)
 }
 
 // `doc % path` : create iterator for root
-template <typename docT, typename T>
-inline typename std::enable_if<trait::is_document<docT>::value, typename docT::value_type>::type
-operator%(const docT& doc, const T& path)
+//template <typename docT, typename T>
+//inline typename std::enable_if<trait::is_document<docT>::value, typename docT::value_type>::type
+//operator%(const docT& doc, const T& path)
+//{
+//    return doc.root() % path;
+//}
+
+template <typename docT, typename T, typename ifT =
+    typename std::enable_if<trait::is_document<docT>::value>::type
+>
+inline auto operator%(const docT& doc, const T& path)
 {
     return doc.root() % path;
 }
