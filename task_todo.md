@@ -1156,6 +1156,39 @@ yyjson 的对象迭代器有两个特殊的查找 API `yyjson_obj_iter_getn` 与
 
 ### DONE: 20251029-004424
 
+## TODO:2025-10-29/1 可写数组迭代器支持插入
+
+目前 MutableValue 表示的 Json 数组支持在末尾添加元素，append 方法或 `<<` 操作
+符。现在希望利用迭代器 MutableArrayIterator 在中间定点插入。
+
+预期支持的用法：
+MutableArrayIterator << MutableValue << {Basic Scalar Type}
+
+- 支持插入一个 MutableValue, 默认复制，右值移动
+- 支持插入原生指针 `yyjson_mut_val*`
+- 其他 MutableValue::append 支持的各种标量，尤其是基本类型的数字与字符串
+- 支持链式插入
+- 插入后自动更新迭代器状态
+
+实施要求：
+- 在 MutableArrayIterator 类中声明 insert 方法，应该有多个重载，除必要特例外，
+  尽量用模板支持多种相同逻辑的类型；可参考 append 的模式
+- 在 Section 4.7 实现 insert 方法，除非一行能在类内写下的简单实现
+- 操作符 `<<` 定义为非类成员函数，放在 Section 5.6
+
+单元测试：在 `t_iterator.cpp` 末尾添加新用例。
+可以采用 TDD 开发流程，先添加基本用法再保证编译通过，再完善用例。
+
+底层 API 技术参考：
+`yyjson_mut_arr_insert` 没有用到迭代器，所以给定 idx 要线性先定位该位置。迭代已
+保存索引与 prev 指针，应该在 O(1) 中完成插入，但要将迭代状态更新到有效状态。
+插入后迭代器当前状态具体指向哪个元素，根据实现便利与效率都可以，只要给出注释说
+明且符合直觉。
+
+我没有找到直接根据 `yyjson_mut_arr_iter` 进行插入的 api ，但你可以再检查一下。
+
+### DONE: 20251029-164149
+
 ## TODO: 迭代器增删结点功能
 ## TODO: 迭代器接口标准化
 
@@ -1193,7 +1226,20 @@ using reference = ValueProxy;
 
 ## TODO: 考虑条件编译宏过滤不用的功能
 
-## TODO: 不支持功能联想
+## TODO: Bug Fix 迭代器到达末尾取值问题
+
+在调试  `iterator_mutable_array` 单元测试时发现的 bug 。
+
+可写数组迭代器移至末尾后，取值得到第一个元素。
+因为内部是环形链接。
+但迭代器到末尾应该失效，外部接口 `c_val` 应该返回 nullptr.
+另一个方案是每次 next 时判断是否到末尾，将 cur 指针置空。
+
+请评估这两个方案，个人觉得改 `c_val` 接口更好些。
+
+可写对象迭代器也是环形链接，可能也有类似问题。需要修改 `c_key` 或 next 方法。
+
+只读数组与对象是线性结构，但也要再检查迭代器到末尾解引用取值的问题。
 
 ---
 

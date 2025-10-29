@@ -892,5 +892,118 @@ DEF_TAST(iterator_fast_seek, "test fast seek functionality with / operator")
         
         COUT(iter.isValid(), false); // Iterator should remain invalid
     }
+
+}
+
+DEF_TAST(iterator_mutable_array, "mutable array iterator insert functionality")
+{
+    DESC("basic insert operation");
+    {
+        yyjson::MutableDocument doc("[1, 2, 4, 5]");
+        auto root = doc.root();
+        
+        // Test basic insert at position 2 (insert 3 between 2 and 4)
+        auto iter = root.arrayIter();
+        iter.advance(2); // Move to position 2 (value 4)
+        
+        // Insert value at current position
+        iter.insert(3);
+        
+        // Verify the array content
+        std::vector<int> values;
+        for (auto it = root.arrayIter(); it.isValid(); ++it) {
+            values.push_back(*it | 0);
+        }
+        COUT(values.size(), 5);
+        COUT(values[0], 1);
+        COUT(values[1], 2);
+        COUT(values[2], 3); // Newly inserted value
+        COUT(values[3], 4);
+        COUT(values[4], 5);
+    }
+    
+    DESC("operator << chained insertion");
+    {
+        yyjson::MutableDocument doc("[1, 2, 3]");
+        auto root = doc.root();
+        
+        // Test operator << for chained insertion
+        auto iter = root.arrayIter();
+        iter.advance(1); // Move to position 1 (value 2)
+        
+        // Insert multiple values using operator <<
+        iter << "A" << "B" << "C";
+        
+        // First, let's debug by printing the actual array content
+        COUT(root.toString());
+        
+        // Verify the array content after chained insertion
+        std::vector<std::string> values;
+        for (auto it = root.arrayIter(); it.isValid(); ++it) {
+            values.push_back(it->toString());
+        }
+        
+        COUT(values.size(), 6);
+        COUT(values[0], "1");
+        COUT(values[1], "A"); // Newly inserted values
+        COUT(values[2], "B");
+        COUT(values[3], "C");
+        COUT(values[4], "2");
+        COUT(values[5], "3");
+    }
+    
+    DESC("insert at beginning and end");
+    {
+        yyjson::MutableDocument doc("[1, 2, 3]");
+        auto root = doc.root();
+        
+        // Test insertion at the beginning
+        auto iter1 = root.arrayIter(); // Position 0
+        iter1 << "start";
+        
+        // Verify insertion at beginning
+        COUT((*root.arrayIter() | ""), "start");
+        
+        // Test insertion at the end
+        auto iter2 = root.arrayIter();
+        iter2.over(); // Move to end
+        iter2 << "end";
+        
+        // Verify last element
+        auto iter3 = root.arrayIter();
+        iter3.advance(4); // Move to last position (array has 5 elements: indices 0-4)
+        COUT((*iter3 | ""), "end");
+        //^ to fix: advance(5) would rewind to "start"??
+
+        COUT(root);
+
+        auto iter4 = root % 0;
+        iter4 += 5;
+        COUT(iter4->toString());
+        ++iter4;
+        COUT(iter4->toString());
+    }
+    
+    DESC("insert different types");
+    {
+        yyjson::MutableDocument doc("[1, 2, 3]");
+        auto root = doc.root();
+        
+        // Test insertion with different types
+        auto iter = root.arrayIter();
+        iter.advance(1);
+        iter << 3.14 << true << nullptr;
+        
+        COUT(root);
+
+        // Verify mixed types insertion
+        auto iter2 = root.arrayIter();
+        iter2.advance(1);
+        COUT((*iter2 | 0.0), 3.14);
+        ++iter2;
+        COUT((*iter2 | false), true);
+        ++iter2;
+        COUT(iter2.value().isNull(), true);
+    }
 }
 

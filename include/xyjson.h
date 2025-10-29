@@ -1105,6 +1105,11 @@ public:
     MutableArrayIterator& advance(const char* key) { return over(); } // No-op for array iterator
     MutableArrayIterator& rewind(); // Reset iterator to beginning
 
+    // Insert methods
+    bool insert(yyjson_mut_val* value); // Insert raw pointer, return success status
+    template<typename T>
+    bool insert(T&& value); // Insert various types, return success status
+
 private:
     /// Native yyjson mutable array iterator (mutable for const methods)
     mutable yyjson_mut_arr_iter m_iter;
@@ -2635,6 +2640,31 @@ inline MutableArrayIterator& MutableArrayIterator::advance(size_t steps)
     return *this;
 }
 
+inline bool MutableArrayIterator::insert(yyjson_mut_val* value)
+{
+    if (!value || !m_iter.arr) {
+        return false;
+    }
+    
+    // Save current index before insertion
+    size_t current_idx = m_iter.idx;
+    if (yyjson_mut_arr_insert(m_iter.arr, value, current_idx)) {
+        rewind();
+        // keep interator point to newly inserted element
+        advance(current_idx);
+        return true;
+    }
+    return false;
+}
+
+template<typename T>
+inline bool MutableArrayIterator::insert(T&& value)
+{
+    // Create value from template type and forward to native insert
+    yyjson_mut_val* val = util::create(m_doc, std::forward<T>(value));
+    return insert(val);
+}
+
 
 /* @Section 4.8: MutableObjectIterator Methods */
 /* ------------------------------------------------------------------------ */
@@ -3078,6 +3108,16 @@ inline typename std::enable_if<trait::is_iterator<iteratorT>::value, typename it
 operator~(const iteratorT& iter)
 {
     return iter.key();
+}
+
+// Iterator insert operator: iter << value (calls iter.insert(value))
+// For MutableArrayIterator only
+template<typename T>
+inline MutableArrayIterator& operator<<(MutableArrayIterator& iter, T&& value)
+{
+    iter.insert(std::forward<T>(value));
+    iter.next(); // for chained insertion.
+    return iter;
 }
 
 // Iterator fast seek operator: iter / key (calls iter.seek(key))
