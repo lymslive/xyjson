@@ -30,44 +30,44 @@
 /*   Section 2.2: Mutable Json Model                              Line: 489 */
 /*   Section 2.3: Helper Class for Mutable Json                   Line: 860 */
 /*   Section 2.4: Iterator Json                                   Line: 905 */
-/* Part 3: Non-Class Functions                                   Line: 1197 */
-/*   Section 3.1: Underlying mut_val Creation                    Line: 1203 */
-/*   Section 3.2: Conversion Helper Functions                    Line: 1395 */
-/* Part 4: Class Implementations                                 Line: 1506 */
-/*   Section 4.1: Value Methods                                  Line: 1509 */
-/*     Group 4.1.1: get and getor                                Line: 1512 */
-/*     Group 4.1.2: size and index/path                          Line: 1608 */
-/*     Group 4.1.3: create iterator                              Line: 1641 */
-/*     Group 4.1.4: others                                       Line: 1688 */
-/*   Section 4.2: Document Methods                               Line: 1738 */
-/*     Group 4.2.1: primary manage                               Line: 1741 */
-/*     Group 4.2.2: read and write                               Line: 1773 */
-/*   Section 4.3: MutableValue Methods                           Line: 1858 */
-/*     Group 4.3.1: get and getor                                Line: 1861 */
-/*     Group 4.3.2: size and index/path                          Line: 1963 */
-/*     Group 4.3.3: assignment set                               Line: 2015 */
-/*     Group 4.3.4: array and object add                         Line: 2137 */
-/*     Group 4.3.5: smart input and tag                          Line: 2190 */
-/*     Group 4.3.6: create iterator                              Line: 2268 */
-/*     Group 4.3.7: others                                       Line: 2315 */
-/*   Section 4.4: MutableDocument Methods                        Line: 2365 */
-/*     Group 4.4.1: primary manage                               Line: 2368 */
-/*     Group 4.4.2: read and write                               Line: 2415 */
-/*     Group 4.4.3: create mutable value                         Line: 2512 */
-/*   Section 4.5: ArrayIterator Methods                          Line: 2535 */
-/*   Section 4.6: ObjectIterator Methods                         Line: 2574 */
-/*   Section 4.7: MutableArrayIterator Methods                   Line: 2620 */
-/*   Section 4.8: MutableObjectIterator Methods                  Line: 2659 */
-/* Part 5: Operator Interface                                    Line: 2706 */
-/*   Section 5.1: Primary Path Access                            Line: 2709 */
-/*   Section 5.2: Conversion Unary Operator                      Line: 2793 */
-/*   Section 5.3: Comparison Operator                            Line: 2839 */
-/*   Section 5.4: Create and Bind KeyValue                       Line: 2925 */
-/*   Section 5.5: Stream and Input Operator                      Line: 2954 */
-/*   Section 5.6: Iterator Creation and Operation                Line: 2996 */
-/*   Section 5.7: Document Forward Root Operator                 Line: 3071 */
-/*   Section 5.8: User-defined Literal Operator                  Line: 3136 */
-/* Part 6: Last Definitions                                      Line: 3153 */
+/* Part 3: Non-Class Functions                                   Line: 1194 */
+/*   Section 3.1: Underlying mut_val Creation                    Line: 1200 */
+/*   Section 3.2: Conversion Helper Functions                    Line: 1392 */
+/* Part 4: Class Implementations                                 Line: 1503 */
+/*   Section 4.1: Value Methods                                  Line: 1506 */
+/*     Group 4.1.1: get and getor                                Line: 1509 */
+/*     Group 4.1.2: size and index/path                          Line: 1605 */
+/*     Group 4.1.3: create iterator                              Line: 1638 */
+/*     Group 4.1.4: others                                       Line: 1679 */
+/*   Section 4.2: Document Methods                               Line: 1729 */
+/*     Group 4.2.1: primary manage                               Line: 1732 */
+/*     Group 4.2.2: read and write                               Line: 1764 */
+/*   Section 4.3: MutableValue Methods                           Line: 1849 */
+/*     Group 4.3.1: get and getor                                Line: 1852 */
+/*     Group 4.3.2: size and index/path                          Line: 1954 */
+/*     Group 4.3.3: assignment set                               Line: 2006 */
+/*     Group 4.3.4: array and object add                         Line: 2128 */
+/*     Group 4.3.5: smart input and tag                          Line: 2181 */
+/*     Group 4.3.6: create iterator                              Line: 2259 */
+/*     Group 4.3.7: others                                       Line: 2300 */
+/*   Section 4.4: MutableDocument Methods                        Line: 2350 */
+/*     Group 4.4.1: primary manage                               Line: 2353 */
+/*     Group 4.4.2: read and write                               Line: 2400 */
+/*     Group 4.4.3: create mutable value                         Line: 2497 */
+/*   Section 4.5: ArrayIterator Methods                          Line: 2520 */
+/*   Section 4.6: ObjectIterator Methods                         Line: 2553 */
+/*   Section 4.7: MutableArrayIterator Methods                   Line: 2606 */
+/*   Section 4.8: MutableObjectIterator Methods                  Line: 2639 */
+/* Part 5: Operator Interface                                    Line: 2692 */
+/*   Section 5.1: Primary Path Access                            Line: 2695 */
+/*   Section 5.2: Conversion Unary Operator                      Line: 2779 */
+/*   Section 5.3: Comparison Operator                            Line: 2825 */
+/*   Section 5.4: Create and Bind KeyValue                       Line: 2911 */
+/*   Section 5.5: Stream and Input Operator                      Line: 2940 */
+/*   Section 5.6: Iterator Creation and Operation                Line: 2982 */
+/*   Section 5.7: Document Forward Root Operator                 Line: 3095 */
+/*   Section 5.8: User-defined Literal Operator                  Line: 3160 */
+/* Part 6: Last Definitions                                      Line: 3177 */
 /* ======================================================================== */
 
 namespace yyjson
@@ -911,7 +911,7 @@ struct KeyValue
  * 
  * Supported operators:
  * - Dereference: *iter, iter-> (access current item)
- * - Increment: ++iter (calls next()), iter++ (calls Next())
+ * - Increment: ++iter, iter++ (calls next())
  * - Advance: iter + n, iter += n (calls advance(n))
  * - Position: iter % n , iter %= n (calls advance(n))
  * - Unary: +iter (get current index), -iter (no-op), ~iter (no-op)
@@ -958,14 +958,11 @@ public:
     Value operator*()  const { return value(); }
     Value operator->() const { return value(); }
 
-    // Move to next element
-    ArrayIterator& next(); // prefix ++
-    ArrayIterator  Next(); // postfix ++
-    
     // Position manipulation
-    ArrayIterator& rewind(); // Reset iterator to beginning
-    ArrayIterator& advance(size_t steps = 1);
+    ArrayIterator& next(); // prefix ++, move to nexe element
+    ArrayIterator& advance(size_t steps = 1); // +n, move n steps
     ArrayIterator& advance(const char* key) { return over(); } // No-op for array iterator
+    ArrayIterator& rewind(); // Reset iterator to beginning
 
 private:
     /// Native yyjson array iterator (mutable for const methods)
@@ -980,7 +977,7 @@ private:
  * 
  * Supported operators:
  * - Dereference: *iter, iter-> (access value node)
- * - Increment: ++iter (calls next()), iter++ (calls Next())
+ * - Increment: ++iter, iter++ (calls next())
  * - Advance: iter + n, iter += n (calls advance(n))
  * - Position: iter % key , iter %= key (calls advance(key))
  * - Fast Seek: / (sequential static seek)
@@ -1029,14 +1026,11 @@ public:
     Value operator*()  const { return value(); }
     Value operator->() const { return value(); }
 
-    // Move to next key-value pair
-    ObjectIterator& next(); // prefix ++
-    ObjectIterator  Next(); // postfix ++
-
     // Position manipulation  
-    ObjectIterator& rewind(); // Reset iterator to beginning
-    ObjectIterator& advance(size_t steps = 1);
+    ObjectIterator& next(); // prefix ++
+    ObjectIterator& advance(size_t steps = 1); // +n
     ObjectIterator& advance(const char* key); // Jump to specific key
+    ObjectIterator& rewind(); // Reset iterator to beginning
 
     // Seek to specific key using fast yyjson API and return Value
     Value seek(const char* key, size_t key_len);
@@ -1058,7 +1052,7 @@ private:
  * 
  * Supported operators:
  * - Dereference: *iter, iter-> (access current mutable item)
- * - Increment: ++iter (calls next()), iter++ (calls Next())
+ * - Increment: ++iter, iter++ (calls next())
  * - Advance: iter + n, iter += n (calls advance(n))
  * - Position: iter % n , iter %= n (calls advance(n))
  * - Unary: +iter (get current index), -iter (no-op), ~iter (no-op)
@@ -1101,18 +1095,15 @@ public:
     MutableValue key() const { return MutableValue(); } // Empty value for array iterators
     const char* name() const { return nullptr; } // nullptr for array iterators
 
-    // Move to next element
-    MutableArrayIterator& next(); // prefix ++
-    MutableArrayIterator  Next(); // postfix ++
-    
     // Get current value (for dereference/array operator)
     MutableValue operator*()  const { return value(); }
     MutableValue operator->() const { return value(); }
     
     // Position manipulation
-    MutableArrayIterator& rewind(); // Reset iterator to beginning
-    MutableArrayIterator& advance(size_t steps = 1);
+    MutableArrayIterator& next(); // prefix ++
+    MutableArrayIterator& advance(size_t steps = 1); // +n
     MutableArrayIterator& advance(const char* key) { return over(); } // No-op for array iterator
+    MutableArrayIterator& rewind(); // Reset iterator to beginning
 
 private:
     /// Native yyjson mutable array iterator (mutable for const methods)
@@ -1127,7 +1118,7 @@ private:
  * 
  * Supported operators:
  * - Dereference: *iter, iter-> (access current mutable key-value pair)
- * - Increment: ++iter (calls next()), iter++ (calls Next())
+ * - Increment: ++iter, iter++ (calls next())
  * - Advance: iter + n, iter += n (calls advance(n))
  * - Position: iter % key , iter %= key (calls advance(key))
  * - Fast Seek: / (sequential static seek)
@@ -1178,14 +1169,11 @@ public:
     MutableValue operator*()  const { return value(); }
     MutableValue operator->() const { return value(); }
 
-    // Move to next key-value pair
-    MutableObjectIterator& next(); // prefix ++
-    MutableObjectIterator  Next(); // postfix ++
-    
     // Position manipulation  
-    MutableObjectIterator& rewind(); // Reset iterator to beginning
-    MutableObjectIterator& advance(size_t steps = 1);
+    MutableObjectIterator& next(); // prefix ++, move to next key-value pair
+    MutableObjectIterator& advance(size_t steps = 1); // +n to next n pairs
     MutableObjectIterator& advance(const char* key); // jump to specific key
+    MutableObjectIterator& rewind(); // Reset iterator to beginning
 
     // Seek to specific key using fast yyjson API and return MutableValue
     MutableValue seek(const char* key, size_t key_len);
@@ -2545,13 +2533,6 @@ inline ArrayIterator& ArrayIterator::next()
     return *this;
 }
 
-inline ArrayIterator ArrayIterator::Next()
-{
-    ArrayIterator old = *this;
-    next();
-    return old;
-}
-
 inline ArrayIterator& ArrayIterator::rewind()
 {
     if (m_arr) {
@@ -2583,13 +2564,6 @@ inline ObjectIterator& ObjectIterator::next()
 {
     yyjson_obj_iter_next(const_cast<yyjson_obj_iter*>(&m_iter));
     return *this;
-}
-
-inline ObjectIterator ObjectIterator::Next()
-{
-    ObjectIterator old = *this;
-    next();
-    return old;
 }
 
 inline ObjectIterator& ObjectIterator::rewind()
@@ -2645,13 +2619,6 @@ inline MutableArrayIterator& MutableArrayIterator::next()
     return *this;
 }
 
-inline MutableArrayIterator MutableArrayIterator::Next()
-{
-    MutableArrayIterator old = *this;
-    next();
-    return old;
-}
-
 inline MutableArrayIterator& MutableArrayIterator::rewind()
 {
     if (m_iter.arr) {
@@ -2683,13 +2650,6 @@ inline MutableObjectIterator& MutableObjectIterator::next()
 {
     yyjson_mut_obj_iter_next(const_cast<yyjson_mut_obj_iter*>(&m_iter));
     return *this;
-}
-
-inline MutableObjectIterator MutableObjectIterator::Next()
-{
-    MutableObjectIterator old = *this;
-    next();
-    return old;
 }
 
 inline MutableObjectIterator& MutableObjectIterator::rewind()
@@ -3050,12 +3010,14 @@ operator++(iteratorT& iter)
 }
 
 // Postfix increment operator (iter++)
-// `iter++` --> `iter.Next()`
+// `iter++` --> `iter.next()` (return old copy)
 template<typename iteratorT>
 inline typename std::enable_if<trait::is_iterator<iteratorT>::value, iteratorT>::type
 operator++(iteratorT& iter, int)
 {
-    return iter.Next();
+    iteratorT old = iter;
+    iter.next();
+    return old;
 }
 
 // Iterator advance operator (+= +)
