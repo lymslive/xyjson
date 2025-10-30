@@ -1211,3 +1211,169 @@ DEF_TAST(iterator_array_remove, "mutable array iterator remove functionality")
     }
 }
 
+DEF_TAST(iterator_object_insert, "mutable object iterator insert functionality")
+{
+    DESC("basic insert operation with key-value parameters");
+    {
+        yyjson::MutableDocument doc("{}");
+        auto root = doc.root();
+        
+        auto iter = root.objectIter();
+        
+        // Insert key-value pair using insert method
+        bool success = iter.insert("name", "Alice");
+        COUT(success, true);
+        
+        // Verify insertion
+        COUT(root.toString(), "{\"name\":\"Alice\"}");
+        
+        // Iterator should point to the inserted element
+        COUT(iter.isValid(), true);
+        COUT(std::string(-iter ? -iter : ""), "name");
+        COUT(std::string(iter.value() | ""), "Alice");
+    }
+    
+    DESC("insert with KeyValue parameter");
+    {
+        yyjson::MutableDocument doc("{}");
+        auto root = doc.root();
+        
+        // Create a KeyValue pair
+        auto kv = (doc * "age") * (doc * 25);
+        
+        auto iter = root.objectIter();
+        bool success = iter.insert(std::move(kv));
+        COUT(success, true);
+        
+        COUT(root.toString(), "{\"age\":25}");
+    }
+    
+    DESC("chained insertion using << operator");
+    {
+        yyjson::MutableDocument doc("{}");
+        auto root = doc.root();
+        
+        auto iter = root.objectIter();
+        
+        // Chain insertions using << operator
+        iter << ((doc * "name") * (doc * "Bob")) 
+             << ((doc * "age") * (doc * 30))
+             << ((doc * "city") * (doc * "Shanghai"));
+        
+        COUT(root.toString(), "{\"name\":\"Bob\",\"age\":30,\"city\":\"Shanghai\"}");
+        
+        // Iterator should be invalid after chained insertions (<< advances past last element)
+        COUT(iter.isValid(), false);
+    }
+    
+    DESC("insert at specific position");
+    {
+        yyjson::MutableDocument doc("{\"x\":1, \"z\":3}");
+        auto root = doc.root();
+        
+        auto iter = root.objectIter();
+        // Move to second position (after "x")
+        iter.advance("z");
+        
+        // Insert "y" at position 1
+        bool success = iter.insert("y", 2);
+        COUT(success, true);
+        
+        COUT(root.toString(), "{\"x\":1,\"y\":2,\"z\":3}");
+    }
+}
+
+DEF_TAST(iterator_object_remove, "mutable object iterator remove functionality")
+{
+    DESC("basic remove operation");
+    {
+        yyjson::MutableDocument doc("{\"name\":\"Alice\",\"age\":25,\"city\":\"Beijing\"}");
+        auto root = doc.root();
+        
+        auto iter = root.objectIter();
+        // Move to "age" key
+        iter.advance("age");
+        
+        // Remove the current element
+        auto removed = iter.remove();
+        
+        COUT(removed.key != nullptr, true);
+        COUT(removed.value != nullptr, true);
+        COUT(std::string(yyjson_mut_get_str(removed.key)), "age");
+        COUT(yyjson_mut_get_int(removed.value), 25);
+        
+        COUT(root.toString(), "{\"name\":\"Alice\",\"city\":\"Beijing\"}");
+        
+        // Iterator should point to next element after removal
+        COUT(iter.isValid(), true);
+        COUT(std::string(-iter ? -iter : ""), "city");
+    }
+    
+    DESC("remove using >> operator");
+    {
+        yyjson::MutableDocument doc("{\"a\":1,\"b\":2,\"c\":3}");
+        auto root = doc.root();
+        
+        auto iter = root.objectIter();
+        // Move to "b" key
+        iter.advance("b");
+        
+        // Remove using >> operator
+        yyjson::KeyValue removed;
+        iter >> removed;
+        
+        COUT(std::string(yyjson_mut_get_str(removed.key)), "b");
+        COUT(yyjson_mut_get_int(removed.value), 2);
+        
+        COUT(root.toString(), "{\"a\":1,\"c\":3}");
+    }
+    
+    DESC("chained remove operations");
+    {
+        yyjson::MutableDocument doc("{\"x\":10,\"y\":20,\"z\":30}");
+        auto root = doc.root();
+        
+        auto iter = root.objectIter();
+        // Start at "x"
+        
+        // Remove two elements in sequence
+        yyjson::KeyValue kv1, kv2;
+        iter >> kv1 >> kv2;
+        
+        COUT(std::string(yyjson_mut_get_str(kv1.key)), "x");
+        COUT(yyjson_mut_get_int(kv1.value), 10);
+        COUT(std::string(yyjson_mut_get_str(kv2.key)), "y");
+        COUT(yyjson_mut_get_int(kv2.value), 20);
+        
+        COUT(root.toString(), "{\"z\":30}");
+        
+        // Iterator should point to last remaining element
+        COUT(iter.isValid(), true);
+        COUT(std::string(-iter ? -iter : ""), "z");
+    }
+    
+    DESC("remove edge cases");
+    {
+        yyjson::MutableDocument doc("{\"single\":42}");
+        auto root = doc.root();
+        
+        auto iter = root.objectIter();
+        
+        // Remove the only element
+        yyjson::KeyValue removed;
+        iter >> removed;
+        
+        COUT(std::string(yyjson_mut_get_str(removed.key)), "single");
+        COUT(yyjson_mut_get_int(removed.value), 42);
+        
+        COUT(root.toString(), "{}");
+        COUT(iter.isValid(), false); // Iterator should be invalid after removing last element
+        
+        // Try to remove from empty object
+        yyjson::KeyValue empty;
+        iter >> empty;
+        COUT(empty.key == nullptr, true);
+        COUT(empty.value == nullptr, true);
+    }
+}
+

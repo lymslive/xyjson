@@ -1192,6 +1192,15 @@ public:
     typename std::enable_if<trait::is_cstr_type<T>(), MutableValue>::type
     seek(T key) { return seek(key, key ? ::strlen(key) : 0); }
     
+    // Insertion methods
+    bool insert(yyjson_mut_val* key, yyjson_mut_val* val);
+    template<typename K, typename V>
+    bool insert(K&& key, V&& value);
+    bool insert(KeyValue&& kv_pair);
+    
+    // Remove current key-value pair and return it
+    KeyValue remove();
+    
 private:
     /// Native yyjson mutable object iterator (mutable for const methods)
     mutable yyjson_mut_obj_iter m_iter;
@@ -2764,6 +2773,68 @@ inline MutableValue MutableObjectIterator::seek(const char* key, size_t key_len)
     return MutableValue(val, m_doc);
 }
 
+// MutableObjectIterator insert implementation
+inline bool MutableObjectIterator::insert(yyjson_mut_val* key, yyjson_mut_val* val)
+{
+    if (!key || !val || !m_iter.obj) {
+        return false;
+    }
+    
+    // Slow version: use index-based insertion
+    // Store the current insertion index
+    size_t idx = m_iter.idx;
+    bool result = yyjson_mut_obj_insert(m_iter.obj, key, val, idx);
+    
+    // Update iterator state after insertion
+    if (result) {
+        rewind();
+        advance(idx);
+    }
+    
+    return result;
+}
+
+template<typename K, typename V>
+inline bool MutableObjectIterator::insert(K&& key, V&& value)
+{
+    // Create key and value from template types
+    yyjson_mut_val* key_val = util::create(m_doc, std::forward<K>(key));
+    yyjson_mut_val* value_val = util::create(m_doc, std::forward<V>(value));
+    return insert(key_val, value_val);
+}
+
+inline bool MutableObjectIterator::insert(KeyValue&& kv_pair)
+{
+    bool result = insert(kv_pair.key, kv_pair.value);
+    if (result)
+    {
+        kv_pair.key = nullptr;
+        kv_pair.value = nullptr;
+    }
+    return result;
+}
+
+// MutableObjectIterator remove implementation
+inline KeyValue MutableObjectIterator::remove()
+{
+    if (!isValid()) {
+        return KeyValue();
+    }
+    
+    // Save current key and value before removal
+    yyjson_mut_val* current_key = c_key();
+    yyjson_mut_val* current_val = c_val();
+    
+    // Move to next before removal (yyjson API requirement)
+    next();
+    
+    // Use yyjson's remove function
+    yyjson_mut_obj_iter_remove(&m_iter);
+    
+    // Return the removed key-value pair
+    return KeyValue(current_key, current_val);
+}
+
 /* @Part 5: Operator Interface */
 /* ======================================================================== */
 
@@ -3156,12 +3227,11 @@ operator~(const iteratorT& iter)
 }
 
 // Iterator insert operator: iter << value (calls iter.insert(value))
-// For MutableArrayIterator only
 template<typename T>
 inline MutableArrayIterator& operator<<(MutableArrayIterator& iter, T&& value)
 {
-    iter.insert(std::forward<T>(value));
-    iter.next(); // for chained insertion.
+    // for chained insertion, need next after insert.
+    bool result = iter.insert(std::forward<T>(value)) && iter.next();
     return iter;
 }
 
@@ -3172,10 +3242,18 @@ inline MutableArrayIterator& operator>>(MutableArrayIterator& iter, MutableValue
     return iter;
 }
 
-inline MutableArrayIterator& operator>>(MutableArrayIterator& iter, yyjson_mut_val*& value)
+// Iterator insert operator: iter << kv_pair (calls iter.insert(kv_pair))
+inline MutableObjectIterator& operator<<(MutableObjectIterator& iter, KeyValue&& kv_pair)
 {
-    auto removed = iter.remove();
-    value = removed.c_val();
+    // for chained insertion, need next after insert.
+    bool result = iter.insert(std::forward<KeyValue>(kv_pair)) && iter.next();
+    return iter;
+}
+
+// Iterator remove operator: iter >> kv_pair (calls iter.remove() and stores removed key-value pair)
+inline MutableObjectIterator& operator>>(MutableObjectIterator& iter, KeyValue& kv_pair)
+{
+    kv_pair = iter.remove();
     return iter;
 }
 
