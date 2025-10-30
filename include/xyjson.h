@@ -2779,19 +2779,34 @@ inline bool MutableObjectIterator::insert(yyjson_mut_val* key, yyjson_mut_val* v
     if (!key || !val || !m_iter.obj) {
         return false;
     }
-    
-    // Slow version: use index-based insertion
-    // Store the current insertion index
-    size_t idx = m_iter.idx;
-    bool result = yyjson_mut_obj_insert(m_iter.obj, key, val, idx);
-    
-    // Update iterator state after insertion
-    if (result) {
-        rewind();
-        advance(idx);
+
+    // O(1) insertion: direct circular linked list manipulation
+    // Insert new key-value pair at current iterator position
+    // The structure is: ... -> pre_key -> pre_val -> (key -> val) -> cur_key -> cur_val -> ...
+    // pre_key is actual m_iter.cur in C++ iterator.
+
+    if (m_iter.max == 0) { // insert the first kv
+        key->next = val;
+        val->next = key;  // Close the circle: key -> val -> key
+        m_iter.cur = key;
+        m_iter.obj->uni.ptr = key;  // Update object tail pointer (last key)
     }
-    
-    return result;
+    else {
+        yyjson_mut_val* prev_key = m_iter.cur;
+        yyjson_mut_val* prev_val = prev_key->next;
+        yyjson_mut_val* next_key = prev_val->next;
+        prev_val->next = key;
+        key->next = val;
+        val->next = next_key;
+
+        if (m_iter.idx == m_iter.max) { // insert at the end
+            m_iter.obj->uni.ptr = key;  // keep obj point to end key
+        }
+    }
+
+    m_iter.max++;
+    unsafe_yyjson_set_len(m_iter.obj, m_iter.max);
+    return true;
 }
 
 template<typename K, typename V>
