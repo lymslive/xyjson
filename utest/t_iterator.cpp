@@ -1030,10 +1030,10 @@ DEF_TAST(iterator_array_insert, "mutable array iterator insert functionality")
         auto iter3 = root.arrayIter();
         iter3.advance(4); // Move to last position (array has 5 elements: indices 0-4)
         COUT((*iter3 | ""), "end");
-        //^ to fix: advance(5) would rewind to "start"??
 
         COUT(root);
 
+        // move beyond the end.
         auto iter4 = root % 0;
         iter4 += 5;
         COUT(!iter4, true);
@@ -1193,6 +1193,21 @@ DEF_TAST(iterator_array_remove, "mutable array iterator remove functionality")
         
         // Verify final array content
         COUT(root.toString(), "[1,2,\"replacement\",4,5]");
+
+        // Re-insert to the end.
+        // iter.over();  //! not true end state
+        iter.advance(20); // 2 is enough
+        iter << removed; // copy into
+        COUT(root.toString(), "[1,2,\"replacement\",4,5,3]");
+        COUT(removed.isValid(), true);
+
+        iter << std::move(removed); // move into
+        COUT(root.toString(), "[1,2,\"replacement\",4,5,3,3]");
+        COUT(removed.isValid(), false);
+
+        iter << removed; // invalid node, should no effect any more
+        COUT(root.toString(), "[1,2,\"replacement\",4,5,3,3]");
+        COUT(removed.isValid(), false);
     }
 }
 

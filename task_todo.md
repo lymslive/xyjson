@@ -1234,8 +1234,53 @@ object | K0 | V0 | K1 | V1 ... | Kn | Vn
 
 ### DONE: 20251030-001318
 
-## TODO: 可写对象迭代支持插入功能
+## TODO: 可写对象迭代支持插入功能与删除功能
 ## TODO: 可写对象迭代支持删除功能
+
+可写数组迭代器已经支持结点增删功能，insert/remove 方法与 `<<` `>>` 操作符。
+需要再为可写对象迭代器也支持类型功能。另外 MutableValue::add 方法支持在末必添
+加键值对的实现也可参考。
+
+实现要求：
+- MutableObjectIterator::insert(key, val) 方法，支持两个 `yyjson_mut_va*` 参数，
+  及各种类型的模板重载，也支持一个 KeyValue 键值对参数。参数类型参考 add 方法，
+  但返回值 bool 。
+- 非类方法操作符 MutableObjectIterator << 先实现只支持 KeyValue 参数，返回迭代
+  器本身引用，支持链式插入。
+- MutableObjectIterator::remove() 方法返回 KeyValue ，无参数.
+- 非类方法操作符 MutableObjectIterator >> 也只支持 Keyalue ，返回迭代器本身，
+  支持链式删除
+
+技术参考：
+- yyjson 有 `yyjson_mut_obj_iter_remove` api 函数按迭代删除
+- 但没有直接按迭代器插入的 api ，只有 `yyjson_mut_obj_insert` 指定索引插入
+- MutableArrayIterator::insert 已实现自己用迭代器插入
+
+yyjson 可写数据结构的环形链表参考：
+可变数组：array --> Vn --> V0 --> V1 --> V2 ... --> Vn
+可变对象：object --> Kn -> Vn --> K0 -> V0 --> K1 -> V1 ... --> Kn -> Vn
+
+其中头指针指向尾结点，迭代器初化 cur 也是根据头指针指向尾结点。
+所以 C api 要先 next 返回当前结点。
+而 C++ 迭代器直接解引用时位于当前结点的前一个结点，++ 才移动指针。
+所以有一个当前概念的错位，调用 C api 时要先 next 。
+
+对象迭代器的 next 其实是移动指针两步，到下一个 key 的结点位置。
+
+单元测试，在 `t_iterator.cpp` 末尾增加两个用全：
+- `iterator_object_insert` 测试插入功能
+- `iterator_object_remove` 测试删除功能
+
+## TODO: 迭代器实现定点 replace 功能
+
+## TODO: bug fix: over 状态
+
+iter.over 之后能否再插入，在末尾插入。
+
+考虑方法重命名：
+- rewind 改名 begin
+- over 改名 end
+- 加个 end(true) 重载版本，循环移到真正的末尾
 
 ## TODO: 迭代器接口标准化
 
@@ -1272,6 +1317,23 @@ using reference = ValueProxy;
   拷回文档
 
 ## TODO: 考虑条件编译宏过滤不用的功能
+
+- 是否开启对象链式输入
+- 是否需要可写功能
+- 再建一个 miniut 小测试目标，开启宏测试些基本功能
+
+## TODO: v1.0.0 封版
+
+- 完善迭代器功能
+- 完善文档及注释
+- 增加一些 example ，不依赖测试框架
+- 增加性能测试，与 yyjson 原生写法对比
+
+yyjson 其他高级功能如 pointer 封装，放在后续版本。
+增加 changelog/v1.0 子目录，
+将根目录的 `task_todo.md` 与 `task_log.md` 移至版本子目录存档。
+
+新版功能重开这两个 task 文档。
 
 ---
 
