@@ -799,7 +799,7 @@ DEF_TAST(iterator_fast_seek, "test fast seek functionality with / operator")
         COUT(iter.isValid(), false); // Iterator remains beyond end
         
         // Reset iterator to test from beginning
-        iter.rewind();
+        iter.begin();
         COUT(iter.isValid(), true);
         COUT(std::string(-iter ? -iter : ""), "name"); // Back to first key
         
@@ -858,7 +858,7 @@ DEF_TAST(iterator_fast_seek, "test fast seek functionality with / operator")
         COUT(iter.isValid(), false); // Iterator remains beyond end
         
         // Reset iterator to test from beginning
-        iter.rewind();
+        iter.begin();
         COUT(iter.isValid(), true);
         COUT(std::string(-iter ? -iter : ""), "id"); // Back to first key
     }
@@ -1023,7 +1023,7 @@ DEF_TAST(iterator_array_insert, "mutable array iterator insert functionality")
         
         // Test insertion at the end
         auto iter2 = root.arrayIter();
-        iter2.over(); // Move to end
+        iter2.end(); // Move to end
         iter2 << "end";
         
         // Verify last element
@@ -1195,7 +1195,7 @@ DEF_TAST(iterator_array_remove, "mutable array iterator remove functionality")
         COUT(root.toString(), "[1,2,\"replacement\",4,5]");
 
         // Re-insert to the end.
-        // iter.over();  //! not true end state
+        // iter.end(true);  // traverse to true end state
         iter.advance(20); // 2 is enough
         iter << removed; // copy into
         COUT(root.toString(), "[1,2,\"replacement\",4,5,3]");
@@ -1289,91 +1289,251 @@ DEF_TAST(iterator_object_remove, "mutable object iterator remove functionality")
     {
         yyjson::MutableDocument doc("{\"name\":\"Alice\",\"age\":25,\"city\":\"Beijing\"}");
         auto root = doc.root();
-        
+
         auto iter = root.objectIter();
         // Move to "age" key
         iter.advance("age");
-        
+
         // Remove the current element
         auto removed = iter.remove();
-        
+
         COUT(removed.key != nullptr, true);
         COUT(removed.value != nullptr, true);
         COUT(std::string(yyjson_mut_get_str(removed.key)), "age");
         COUT(yyjson_mut_get_int(removed.value), 25);
-        
+
         COUT(root.toString(), "{\"name\":\"Alice\",\"city\":\"Beijing\"}");
-        
+
         // Iterator should point to next element after removal
         COUT(iter.isValid(), true);
         COUT(std::string(-iter ? -iter : ""), "city");
     }
-    
+
     DESC("remove using >> operator");
     {
         yyjson::MutableDocument doc("{\"a\":1,\"b\":2,\"c\":3}");
         auto root = doc.root();
-        
+
         auto iter = root.objectIter();
         // Move to "b" key
         iter.advance("b");
-        
+
         // Remove using >> operator
         yyjson::KeyValue removed;
         iter >> removed;
-        
+
         COUT(std::string(yyjson_mut_get_str(removed.key)), "b");
         COUT(yyjson_mut_get_int(removed.value), 2);
-        
+
         COUT(root.toString(), "{\"a\":1,\"c\":3}");
     }
-    
+
     DESC("chained remove operations");
     {
         yyjson::MutableDocument doc("{\"x\":10,\"y\":20,\"z\":30}");
         auto root = doc.root();
-        
+
         auto iter = root.objectIter();
         // Start at "x"
-        
+
         // Remove two elements in sequence
         yyjson::KeyValue kv1, kv2;
         iter >> kv1 >> kv2;
-        
+
         COUT(std::string(yyjson_mut_get_str(kv1.key)), "x");
         COUT(yyjson_mut_get_int(kv1.value), 10);
         COUT(std::string(yyjson_mut_get_str(kv2.key)), "y");
         COUT(yyjson_mut_get_int(kv2.value), 20);
-        
+
         COUT(root.toString(), "{\"z\":30}");
-        
+
         // Iterator should point to last remaining element
         COUT(iter.isValid(), true);
         COUT(std::string(-iter ? -iter : ""), "z");
     }
-    
+
     DESC("remove edge cases");
     {
         yyjson::MutableDocument doc("{\"single\":42}");
         auto root = doc.root();
-        
+
         auto iter = root.objectIter();
-        
+
         // Remove the only element
         yyjson::KeyValue removed;
         iter >> removed;
-        
+
         COUT(std::string(yyjson_mut_get_str(removed.key)), "single");
         COUT(yyjson_mut_get_int(removed.value), 42);
-        
+
         COUT(root.toString(), "{}");
         COUT(iter.isValid(), false); // Iterator should be invalid after removing last element
-        
+
         // Try to remove from empty object
         yyjson::KeyValue empty;
         iter >> empty;
         COUT(empty.key == nullptr, true);
         COUT(empty.value == nullptr, true);
+    }
+}
+
+DEF_TAST(iterator_over_state, "test over method and iterator end state")
+{
+    DESC("mutable array iterator: test over state and insert");
+    {
+        yyjson::MutableDocument doc("[1, 2, 3]");
+        auto root = doc.root();
+
+        // Create iterator and move to end using over()
+        auto iter = root.endArray();
+
+        // Check iterator state at end
+        COUT(iter.isValid(), false);
+        COUT(iter.c_val() == nullptr, true);
+        COUT(+iter, root.size()); // Index should be at size (end)
+
+        // Try to insert at end position: OK
+        iter << 999;
+
+        // Verify insertion
+        std::vector<int> values;
+        for (auto it = root.arrayIter(); it.isValid(); ++it) {
+            values.push_back(*it | 0);
+        }
+
+        COUT(root.toString(), "[1,2,3,999]");
+        COUT(values.size(), 4);
+        COUT(values[3], 999); // Should be inserted at end
+    }
+
+    DESC("mutable object iterator: test over state and insert");
+    {
+        yyjson::MutableDocument doc("{\"a\":1, \"b\":2}");
+        auto root = doc.root();
+
+        // Create iterator and move to end using over()
+        auto iter = root.endObject();
+
+        // Check iterator state at end
+        COUT(iter.isValid(), false);
+        COUT(iter.c_key() == nullptr, true);
+        COUT(iter.c_val() == nullptr, true);
+        COUT(+iter, root.size()); // Index should be at size (end)
+
+        // Try to insert at end position: OK
+        bool success = iter.insert("c", 3);
+
+        COUT(success, true);
+
+        // Verify insertion
+        COUT(root.toString(), "{\"a\":1,\"b\":2,\"c\":3}");
+    }
+
+    DESC("readonly array iterator: test over state");
+    {
+        yyjson::Document doc("[10, 20, 30]");
+        auto root = doc.root();
+
+        // Create iterator and move to end using over()
+        auto iter = root.endArray();
+
+        // Check iterator state at end
+        COUT(iter.isValid(), false);
+        COUT(iter.c_val() == nullptr, true);
+        COUT(+iter, root.size()); // Index should be at size (end)
+
+        // Check internal iteration state
+        const auto* c_iter = iter.c_iter();
+        COUT(c_iter->idx, root.size());
+        COUT(c_iter->cur == nullptr, false); // not clear cur pointer
+    }
+
+    DESC("readonly object iterator: test over state");
+    {
+        yyjson::Document doc("{\"x\":100, \"y\":200}");
+        auto root = doc.root();
+
+        // Create iterator and move to end using over()
+        auto iter = root.endObject();
+
+        // Check iterator state at end
+        COUT(iter.isValid(), false);
+        COUT(iter.c_key() == nullptr, true);
+        COUT(iter.c_val() == nullptr, true);
+        COUT(+iter, root.size()); // Index should be at size (end)
+
+        // Check internal iteration state
+        const auto* c_iter = iter.c_iter();
+        COUT(c_iter->idx, root.size());
+        COUT(c_iter->cur == nullptr, false); // not clear cur pointer
+    }
+
+    DESC("test over state after multiple operations");
+    {
+        yyjson::MutableDocument doc("[1, 2, 3, 4, 5]");
+        auto root = doc.root();
+
+        auto iter = root.arrayIter();
+
+        // Move to position 2
+        iter.advance(2);
+        COUT(iter->toInteger(), 3);
+
+        // Move to end using end()
+        iter.end();
+        COUT(iter.isValid(), false);
+
+        // Try to insert at end
+        iter << 999;
+        COUT(root.toString()); // [3,4,5,1,2,999]
+        COUT(root.toString() != "[1,2,3,4,5,999]", true);
+        //^ jump to end from middle position, insert incorrect
+    }
+
+    DESC("test end(true) with cycle to true end");
+    {
+        yyjson::MutableDocument doc("[1, 2, 3, 4, 5]");
+        auto root = doc.root();
+
+        // Create iterator at middle position
+        auto iter = root.arrayIter();
+        iter.advance(2); // Position at index 2 (value 3)
+
+        // Use end(true) to cycle to actual end
+        iter.end(true);
+        COUT(iter.isValid(), false);
+        COUT(+iter, root.size()); // Should be at size (end)
+
+        // Try to insert at end after end(true)
+        iter << 999;
+        COUT(root.toString(), "[1,2,3,4,5,999]");
+    }
+
+    DESC("analysis: end method behavior comparison");
+    {
+        yyjson::MutableDocument doc("[1, 2, 3]");
+        auto root = doc.root();
+
+        // Method 1: use end()
+        auto iter1 = root.arrayIter();
+        iter1.end();
+        COUT(+iter1, root.size()); // Index should be at size (end)
+        COUT(iter1.isValid(), false);
+
+        // Method 2: advance beyond end
+        auto iter2 = root.arrayIter();
+        iter2.advance(10);
+        COUT(+iter2, root.size()); // Index should be at size (end)
+        COUT(iter2.isValid(), false);
+
+        // Both should be in same end state
+        COUT(iter1.equal(iter2), true);
+
+        // Method 3: use endArray()
+        auto iter3 = root.endArray();
+        COUT(+iter3, root.size()); // Index should be at size (end)
+        COUT(iter3.isValid(), false);
+        COUT(iter1.equal(iter3), true);
     }
 }
 

@@ -1532,3 +1532,68 @@ cd build && make -j4
 - 添加完整的单元测试 iterator_object_insert 和 iterator_object_remove
 - 修复实现中的关键问题（idx计算、remove前next调用、移动语义支持）
 - 所有测试通过，完整测试套件53个测试全部通过
+
+## 任务ID: 20251030-182957
+- **任务类型**: 重构
+- **任务状态**: 已完成
+- **执行AI**: DeepSeek-V3.1
+- **关联需求**: TODO:2025-10-30/2
+
+### 任务需求
+迭代器瞬移终点 over 状态的读写问题：
+1. 在 `t_iterator.cpp` 新增单元测试用例，研究测试直接使用 `iter.over` 移到最后后能否再插入
+2. 测试只读迭代器使用 over 方法的影响
+3. 考虑方法重命名：`rewind` → `begin`，`over` → `end`，增加 `end(true)` 重载版本
+
+### 执行过程
+**1. 研究 over() 方法行为**
+- 在 `utest/t_iterator.cpp` 中添加 `iterator_over_state` 测试用例
+- 测试从 begin 调用 `over()` 后插入的行为
+- 测试从中间位置调用 `over()` 后插入的行为
+- 验证只读迭代器和可写迭代器的 `over()` 状态
+
+**2. 发现问题并修复**
+- 发现从中间位置调用 `over()` 后再插入可能插入到错误位置
+- 这是因为 `over()` 只设置了 idx，没有正确维护底层环形链表的 `cur` 指针状态
+
+**3. 实施重命名方案**
+- 将所有四个迭代器类的 `over()` 方法改名为 `end()`
+- 将所有四个迭代器类的 `rewind()` 方法改名为 `begin()`
+- 添加 `end(bool cycle)` 重载版本：
+  - `end()`：默认快速到末尾（只设置 idx），性能最优
+  - `end(true)`：循环遍历到真正末尾（维护 cur 指针），确保插入操作正确
+
+**4. 更新所有调用处**
+- 修改 `Value::endArray()` / `Value::endObject()` 的实现
+- 修改 `MutableValue::endArray()` / `MutableValue::endObject()` 的实现
+- 修改迭代器实现中的 `begin()` 方法
+- 修改 `operator%=` 和 `operator%` 中对 `begin()` 的调用
+- 更新所有测试用例中的 `.over()` 和 `.rewind()` 调用
+
+**5. 测试用例完善**
+- 在 `iterator_over_state` 测试中添加 `test end(true) with cycle to true end` 用例
+- 验证 `end(true)` 能够正确维护底层指针状态
+- 确保所有回归测试通过
+
+### 完成成果
+**重命名实现**：
+- ✅ `over()` → `end()`：所有四个迭代器类（ArrayIterator、ObjectIterator、MutableArrayIterator、MutableObjectIterator）
+- ✅ `rewind()` → `begin()`：所有四个迭代器类
+- ✅ `end(bool cycle)` 重载：默认快速，end(true) 循环遍历
+
+**功能优化**：
+- ✅ 更符合 C++ 标准库迭代器命名规范（`begin()`/`end()`）
+- ✅ 提供性能与正确性的平衡选择（快速 vs 准确）
+- ✅ `beginArray()`/`endArray()`（容器方法）与 `begin()`/`end()`（迭代器方法）形成清晰对比
+
+**测试验证**：
+- ✅ 编译成功，无错误
+- ✅ 所有测试用例通过
+- ✅ 新增 `iterator_over_state` 测试全面覆盖 over/end 状态行为
+- ✅ `end(true)` 功能验证正确
+
+**设计特点**：
+- **性能优先**：默认 `end()` 保持 O(1) 时间复杂度
+- **语义清晰**：`begin()`/`end()` 符合 C++ 迭代器惯例
+- **灵活选择**：用户可根据需要选择快速或准确的 end 定位
+- **向后兼容**：虽然方法名改变，但 xyjson 尚未正式发布，不存在兼容性问题

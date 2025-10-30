@@ -932,15 +932,21 @@ public:
     bool isValid() const { return m_iter.idx < m_iter.max; }
     explicit operator bool() const { return isValid(); }
     bool operator!() const { return !isValid(); }
-    
-    // Set to end state
-    ArrayIterator& over() { m_iter.idx = m_iter.max; return *this; }
+
+    // Set to end state (default: fast to end)
+    ArrayIterator& end() { m_iter.idx = m_iter.max; return *this; }
+    // Cycle to true end (traverse to the actual end)
+    ArrayIterator& end(bool cycle) {
+        if (!cycle) return end();
+        while (isValid()) next();
+        return *this;
+    }
 
     // Check if two iterators are equal
     bool equal(const ArrayIterator& other) const {
         return m_arr == other.m_arr && m_iter.idx == other.m_iter.idx;
     }
-    
+
     // Get underlying C API iterator and value structure pointer
     yyjson_arr_iter* c_iter() { return &m_iter; }
     const yyjson_arr_iter* c_iter() const { return &m_iter; }
@@ -961,8 +967,8 @@ public:
     // Position manipulation
     ArrayIterator& next(); // prefix ++, move to nexe element
     ArrayIterator& advance(size_t steps = 1); // +n, move n steps
-    ArrayIterator& advance(const char* key) { return over(); } // No-op for array iterator
-    ArrayIterator& rewind(); // Reset iterator to beginning
+    ArrayIterator& advance(const char* key) { return end(); } // No-op for array iterator
+    ArrayIterator& begin(); // Reset iterator to beginning
 
 private:
     /// Native yyjson array iterator (mutable for const methods)
@@ -999,9 +1005,15 @@ public:
     bool isValid() const { return m_iter.idx < m_iter.max; }
     explicit operator bool() const { return isValid(); }
     bool operator!() const { return !isValid(); }
-    
-    // Set to end state
-    ObjectIterator& over() { m_iter.idx = m_iter.max; return *this; }
+
+    // Set to end state (default: fast to end)
+    ObjectIterator& end() { m_iter.idx = m_iter.max; return *this; }
+    // Cycle to true end (traverse to the actual end)
+    ObjectIterator& end(bool cycle) {
+        if (!cycle) return end();
+        while (isValid()) next();
+        return *this;
+    }
 
     // Check if two iterators are equal
     bool equal(const ObjectIterator& other) const {
@@ -1021,16 +1033,16 @@ public:
     // Get current index and key name
     size_t index() const { return m_iter.idx; }
     const char* name() const { return yyjson_get_str(c_key()); }
-    
+
     // Get current value (for dereference/array operator)
     Value operator*()  const { return value(); }
     Value operator->() const { return value(); }
 
-    // Position manipulation  
+    // Position manipulation
     ObjectIterator& next(); // prefix ++
     ObjectIterator& advance(size_t steps = 1); // +n
     ObjectIterator& advance(const char* key); // Jump to specific key
-    ObjectIterator& rewind(); // Reset iterator to beginning
+    ObjectIterator& begin(); // Reset iterator to beginning
 
     // Seek to specific key using fast yyjson API and return Value
     Value seek(const char* key, size_t key_len);
@@ -1073,9 +1085,15 @@ public:
     bool isValid() const { return m_iter.idx < m_iter.max; }
     explicit operator bool() const { return isValid(); }
     bool operator!() const { return !isValid(); }
-    
-    // Set to end state
-    MutableArrayIterator& over() { m_iter.idx = m_iter.max; return *this; }
+
+    // Set to end state (default: fast to end)
+    MutableArrayIterator& end() { m_iter.idx = m_iter.max; return *this; }
+    // Cycle to true end (traverse to the actual end)
+    MutableArrayIterator& end(bool cycle) {
+        if (!cycle) return end();
+        while (isValid()) next();
+        return *this;
+    }
 
     // Check if two iterators are equal
     bool equal(const MutableArrayIterator& other) const {
@@ -1098,12 +1116,12 @@ public:
     // Get current value (for dereference/array operator)
     MutableValue operator*()  const { return value(); }
     MutableValue operator->() const { return value(); }
-    
+
     // Position manipulation
     MutableArrayIterator& next(); // prefix ++
     MutableArrayIterator& advance(size_t steps = 1); // +n
-    MutableArrayIterator& advance(const char* key) { return over(); } // No-op for array iterator
-    MutableArrayIterator& rewind(); // Reset iterator to beginning
+    MutableArrayIterator& advance(const char* key) { return end(); } // No-op for array iterator
+    MutableArrayIterator& begin(); // Reset iterator to beginning
 
     // Insert methods
     bool insert(yyjson_mut_val* value); // Insert raw pointer, return success status
@@ -1148,9 +1166,15 @@ public:
     bool isValid() const { return m_iter.idx < m_iter.max; }
     explicit operator bool() const { return isValid(); }
     bool operator!() const { return !isValid(); }
-    
-    // Set to end state
-    MutableObjectIterator& over() { m_iter.idx = m_iter.max; return *this; }
+
+    // Set to end state (default: fast to end)
+    MutableObjectIterator& end() { m_iter.idx = m_iter.max; return *this; }
+    // Cycle to true end (traverse to the actual end)
+    MutableObjectIterator& end(bool cycle) {
+        if (!cycle) return end();
+        while (isValid()) next();
+        return *this;
+    }
 
     // Check if two iterators are equal
     bool equal(const MutableObjectIterator& other) const {
@@ -1177,11 +1201,11 @@ public:
     MutableValue operator*()  const { return value(); }
     MutableValue operator->() const { return value(); }
 
-    // Position manipulation  
+    // Position manipulation
     MutableObjectIterator& next(); // prefix ++, move to next key-value pair
     MutableObjectIterator& advance(size_t steps = 1); // +n to next n pairs
     MutableObjectIterator& advance(const char* key); // jump to specific key
-    MutableObjectIterator& rewind(); // Reset iterator to beginning
+    MutableObjectIterator& begin(); // Reset iterator to beginning
 
     // Seek to specific key using fast yyjson API and return MutableValue
     MutableValue seek(const char* key, size_t key_len);
@@ -1680,7 +1704,7 @@ inline ArrayIterator Value::beginArray() const
 
 inline ArrayIterator Value::endArray() const
 {
-    return beginArray().over();
+    return beginArray().end();
 }
 
 inline ObjectIterator Value::beginObject() const
@@ -1690,7 +1714,7 @@ inline ObjectIterator Value::beginObject() const
 
 inline ObjectIterator Value::endObject() const
 {
-    return beginObject().over();
+    return beginObject().end();
 }
 
 /* @Group 4.1.4: others */
@@ -2301,7 +2325,7 @@ inline MutableArrayIterator MutableValue::beginArray() const
 
 inline MutableArrayIterator MutableValue::endArray() const
 {
-    return beginArray().over();
+    return beginArray().end();
 }
 
 inline MutableObjectIterator MutableValue::beginObject() const
@@ -2311,7 +2335,7 @@ inline MutableObjectIterator MutableValue::beginObject() const
 
 inline MutableObjectIterator MutableValue::endObject() const
 {
-    return beginObject().over();
+    return beginObject().end();
 }
 
 /* @Group 4.3.7: others */
@@ -2550,7 +2574,7 @@ inline ArrayIterator& ArrayIterator::next()
     return *this;
 }
 
-inline ArrayIterator& ArrayIterator::rewind()
+inline ArrayIterator& ArrayIterator::begin()
 {
     if (m_arr) {
         yyjson_arr_iter_init(m_arr, const_cast<yyjson_arr_iter*>(&m_iter));
@@ -2583,7 +2607,7 @@ inline ObjectIterator& ObjectIterator::next()
     return *this;
 }
 
-inline ObjectIterator& ObjectIterator::rewind()
+inline ObjectIterator& ObjectIterator::begin()
 {
     if (m_iter.obj) {
         yyjson_obj_iter_init(m_iter.obj, const_cast<yyjson_obj_iter*>(&m_iter));
@@ -2636,7 +2660,7 @@ inline MutableArrayIterator& MutableArrayIterator::next()
     return *this;
 }
 
-inline MutableArrayIterator& MutableArrayIterator::rewind()
+inline MutableArrayIterator& MutableArrayIterator::begin()
 {
     if (m_iter.arr) {
         yyjson_mut_arr_iter_init(m_iter.arr, const_cast<yyjson_mut_arr_iter*>(&m_iter));
@@ -2736,7 +2760,7 @@ inline MutableObjectIterator& MutableObjectIterator::next()
     return *this;
 }
 
-inline MutableObjectIterator& MutableObjectIterator::rewind()
+inline MutableObjectIterator& MutableObjectIterator::begin()
 {
     if (m_iter.obj) {
         yyjson_mut_obj_iter_init(m_iter.obj, const_cast<yyjson_mut_obj_iter*>(&m_iter));
@@ -3200,21 +3224,21 @@ operator+(iteratorT& iter, size_t step)
 }
 
 // Iterator seek operators (%= %)
-// `iter %= target` --> `iter.rewind().advance(target)` for position jump
+// `iter %= target` --> `iter.begin().advance(target)` for position jump
 template<typename iteratorT, typename T>
 inline typename std::enable_if<trait::is_iterator<iteratorT>::value, iteratorT&>::type
 operator%=(iteratorT& iter, const T& target)
 {
-    return iter.rewind().advance(target);
+    return iter.begin().advance(target);
 }
 
-// `iter % target` --> `copy iter.rewind().advance(target)` for position jump
+// `iter % target` --> `copy iter.begin().advance(target)` for position jump
 template<typename iteratorT, typename T>
 inline typename std::enable_if<trait::is_iterator<iteratorT>::value, iteratorT>::type
 operator%(iteratorT& iter, const T& target)
 {
     iteratorT copy = iter;
-    return copy.rewind().advance(target);
+    return copy.begin().advance(target);
 }
 
 // Iterator unary operator: +iter (get current index)
