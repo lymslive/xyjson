@@ -92,6 +92,12 @@ class MutableObjectIterator;
 class KeyValue;
 class StringRef;
 
+// Standard iterator support classes
+class ConstArray;
+class ConstObject;
+class MutableArray;
+class MutableObject;
+
 /* @Section 1.2: Type and Operator Constants */
 /* ------------------------------------------------------------------------ */
 
@@ -386,6 +392,10 @@ public:
     ArrayIterator endArray() const;
     ObjectIterator beginObject() const;
     ObjectIterator endObject() const;
+
+    // Container-specific wrapper methods for standard iteration
+    ConstArray array() const;
+    ConstObject object() const;
 
     // Match iterator method
     Value* operator->() { return this; }
@@ -736,6 +746,10 @@ public:
     MutableArrayIterator endArray() const;
     MutableObjectIterator beginObject() const;
     MutableObjectIterator endObject() const;
+
+    // Container-specific wrapper methods for standard iteration
+    MutableArray array() const;
+    MutableObject object() const;
     
     // Match iterator method
     MutableValue* operator->() { return this; }
@@ -926,6 +940,13 @@ public:
     static constexpr bool for_object = false;
     static constexpr bool for_mutable = false;
     using json_type = Value;
+    
+    // Standard iterator traits
+    using iterator_category = std::forward_iterator_tag;
+    using value_type = Value;
+    using difference_type = std::ptrdiff_t;
+    using pointer = Value;
+    using reference = Value;
 
     ArrayIterator() : m_arr(nullptr), m_iter({0}) {}
     explicit ArrayIterator(yyjson_val* root);
@@ -999,6 +1020,13 @@ public:
     static constexpr bool for_object = true;
     static constexpr bool for_mutable = false;
     using json_type = Value;
+    
+    // Standard iterator traits
+    using iterator_category = std::forward_iterator_tag;
+    using value_type = Value;
+    using difference_type = std::ptrdiff_t;
+    using pointer = Value;
+    using reference = Value;
     
     ObjectIterator() : m_iter({0}) {}
     explicit ObjectIterator(yyjson_val* root);
@@ -1079,6 +1107,13 @@ public:
     static constexpr bool for_object = false;
     static constexpr bool for_mutable = true;
     using json_type = MutableValue;
+    
+    // Standard iterator traits
+    using iterator_category = std::forward_iterator_tag;
+    using value_type = MutableValue;
+    using difference_type = std::ptrdiff_t;
+    using pointer = MutableValue;
+    using reference = MutableValue;
     
     MutableArrayIterator() : m_doc(nullptr), m_iter({0}) {}
     explicit MutableArrayIterator(yyjson_mut_val* root, yyjson_mut_doc* doc);
@@ -1161,6 +1196,13 @@ public:
     static constexpr bool for_mutable = true;
     using json_type = MutableValue;
     
+    // Standard iterator traits
+    using iterator_category = std::forward_iterator_tag;
+    using value_type = MutableValue;
+    using difference_type = std::ptrdiff_t;
+    using pointer = MutableValue;
+    using reference = MutableValue;
+    
     MutableObjectIterator() : m_doc(nullptr), m_iter({0}) {}
     explicit MutableObjectIterator(yyjson_mut_val* root, yyjson_mut_doc* doc);
     
@@ -1232,6 +1274,133 @@ private:
     mutable yyjson_mut_obj_iter m_iter;
     /// Document for context (needed for mutation)
     yyjson_mut_doc* m_doc = nullptr;
+};
+
+/* @Section 2.5: Container-specific Wrapper Classes */
+/* ------------------------------------------------------------------------ */
+
+/**
+ * @brief Array-specific wrapper for Value that provides standard iterator interface
+ * Provides begin() and end() methods for standard C++ iteration
+ */
+class ConstArray : public Value
+{
+public:
+    using iterator = ArrayIterator;
+    
+    ConstArray() : Value() {}
+    explicit ConstArray(const Value& val) : Value(val) 
+    {
+        if (!val.isArray()) {
+            set(nullptr); // Invalidate if not an array
+        }
+    }
+    
+    // Standard iterator interface
+    iterator begin() const 
+    { 
+        if (!isArray()) return iterator();
+        return Value::beginArray(); 
+    }
+    
+    iterator end() const 
+    { 
+        if (!isArray()) return iterator();
+        return Value::endArray(); 
+    }
+};
+
+/**
+ * @brief Object-specific wrapper for Value that provides standard iterator interface
+ * Provides begin() and end() methods for standard C++ iteration
+ */
+class ConstObject : public Value
+{
+public:
+    using iterator = ObjectIterator;
+    
+    ConstObject() : Value() {}
+    explicit ConstObject(const Value& val) : Value(val) 
+    {
+        if (!val.isObject()) {
+            set(nullptr); // Invalidate if not an object
+        }
+    }
+    
+    // Standard iterator interface
+    iterator begin() const 
+    { 
+        if (!isObject()) return iterator();
+        return Value::beginObject(); 
+    }
+    
+    iterator end() const 
+    { 
+        if (!isObject()) return iterator();
+        return Value::endObject(); 
+    }
+};
+
+/**
+ * @brief Array-specific wrapper for MutableValue that provides standard iterator interface
+ * Provides begin() and end() methods for standard C++ iteration
+ */
+class MutableArray : public MutableValue
+{
+public:
+    using iterator = MutableArrayIterator;
+    
+    MutableArray() : MutableValue() {}
+    explicit MutableArray(const MutableValue& val) : MutableValue(val) 
+    {
+        if (!val.isArray()) {
+            set(nullptr); // Invalidate if not an array
+        }
+    }
+    
+    // Standard iterator interface
+    iterator begin() const 
+    { 
+        if (!isArray()) return iterator();
+        return MutableValue::beginArray(); 
+    }
+    
+    iterator end() const 
+    { 
+        if (!isArray()) return iterator();
+        return MutableValue::endArray(); 
+    }
+};
+
+/**
+ * @brief Object-specific wrapper for MutableValue that provides standard iterator interface
+ * Provides begin() and end() methods for standard C++ iteration
+ */
+class MutableObject : public MutableValue
+{
+public:
+    using iterator = MutableObjectIterator;
+    
+    MutableObject() : MutableValue() {}
+    explicit MutableObject(const MutableValue& val) : MutableValue(val) 
+    {
+        if (!val.isObject()) {
+            set(nullptr); // Invalidate if not an object
+        }
+    }
+    
+    // Standard iterator interface
+    iterator begin() const 
+    { 
+        if (!isObject()) return iterator();
+        return MutableValue::beginObject(); 
+    }
+    
+    iterator end() const 
+    { 
+        if (!isObject()) return iterator();
+        return MutableValue::endObject(); 
+    }
 };
 
 /* @Part 3: Non-Class Functions */
@@ -1722,6 +1891,16 @@ inline ObjectIterator Value::beginObject() const
 inline ObjectIterator Value::endObject() const
 {
     return beginObject().end();
+}
+
+inline ConstArray Value::array() const 
+{
+    return ConstArray(*this);
+}
+
+inline ConstObject Value::object() const 
+{
+    return ConstObject(*this);
 }
 
 /* @Group 4.1.4: others */
@@ -2348,6 +2527,16 @@ inline MutableObjectIterator MutableValue::beginObject() const
 inline MutableObjectIterator MutableValue::endObject() const
 {
     return beginObject().end();
+}
+
+inline MutableArray MutableValue::array() const
+{
+    return MutableArray(*this);
+}
+
+inline MutableObject MutableValue::object() const
+{
+    return MutableObject(*this);
 }
 
 /* @Group 4.3.7: others */

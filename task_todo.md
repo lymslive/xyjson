@@ -1324,7 +1324,31 @@ yyjson api: yyjson_mut_arr_replace yyjson_mut_obj_replace
 
 ### DONE: 20251103-114014
 
-## TODO: 迭代器接口标准化
+## TODO:2025-11-03/2 迭代器接口标准支持度测试
+
+根据目前迭代器的功能设计，考虑如果尽可能符合 C++ 迭代器标准。
+首先赋予合适的 iterator_category value_type difference_type pointer reference
+类型定义。注意我们的解引用 `*` 与 `->` 都返回 Value/MutableValue 值类型。
+
+其次，由于 Value 能表达两种容器，所以没法直接提供 begin/end 方法。但是我想可以
+从 Value 通用类中派生两个类，分别表示 Json 数组与对象，在子类中就能直接定义
+begin/end 方法创建迭代器了。
+
+初步设想的继承关系：
+- ConstArray: public Value if isArray
+- ConstObject: public Value if isObject
+- MutableArray: public MutableValue if isArray
+- MutableObject: public MutableValue if isObject
+
+或者你若有更好的命名建议也可。
+
+子类仅为满足标准接口额外增加 begin/end 创建迭代器的方法，其他功能应该都可在原
+Value/MutableValue 父类中实现。父类中再增加 array()/object() 方法分别创建对应
+的子类。
+
+在这之后，在测试文件中增加几个测试用例，看能否用上标准算法库的常用算法。
+
+### DONE: 20251103-184215
 
 ## TODO: 分析迭代器优化方案
 

@@ -7,6 +7,7 @@
 #include "couttast/couttast.h"
 #include "xyjson.h"
 #include <set>
+#include <numeric>
 
 /**
  * @brief Infinite loop detection macro
@@ -1534,6 +1535,164 @@ DEF_TAST(iterator_over_state, "test over method and iterator end state")
         COUT(+iter3, root.size()); // Index should be at size (end)
         COUT(iter3.isValid(), false);
         COUT(iter1.equal(iter3), true);
+    }
+}
+
+DEF_TAST(iterator_standard_interface, "standard iterator interface and algorithm compatibility")
+{
+    DESC("standard iterator type definitions");
+    {
+        // Test iterator_category
+        static_assert(std::is_same_v<yyjson::ArrayIterator::iterator_category, std::forward_iterator_tag>, 
+                     "ArrayIterator should have forward_iterator_tag");
+        static_assert(std::is_same_v<yyjson::ObjectIterator::iterator_category, std::forward_iterator_tag>,
+                     "ObjectIterator should have forward_iterator_tag");
+        static_assert(std::is_same_v<yyjson::MutableArrayIterator::iterator_category, std::forward_iterator_tag>,
+                     "MutableArrayIterator should have forward_iterator_tag");
+        static_assert(std::is_same_v<yyjson::MutableObjectIterator::iterator_category, std::forward_iterator_tag>,
+                     "MutableObjectIterator should have forward_iterator_tag");
+        
+        // Test value_type
+        static_assert(std::is_same_v<yyjson::ArrayIterator::value_type, yyjson::Value>,
+                     "ArrayIterator value_type should be Value");
+        static_assert(std::is_same_v<yyjson::MutableArrayIterator::value_type, yyjson::MutableValue>,
+                     "MutableArrayIterator value_type should be MutableValue");
+        
+        DESC("standard iterator type definitions OK");
+    }
+
+    DESC("container-specific wrapper classes");
+    {
+        std::string jsonArray = "[10, 20, 30, 40, 50]";
+        std::string jsonObject = "{\"x\": 100, \"y\": 200, \"z\": 300}";
+        
+        {
+            yyjson::Document doc(jsonArray);
+            COUT(doc.hasError(), false);
+            
+            // Test ConstArray wrapper
+            yyjson::Value root = doc.root();
+            COUT(root.isArray(), true);
+            
+            yyjson::ConstArray array = root.array();
+            COUT(array.isValid(), true);
+            COUT(array.isArray(), true);
+            
+            // Test standard iteration
+            int sum = 0;
+            for (auto it = array.begin(); it != array.end(); ++it) {
+                int value = *it | 0;
+                sum += value;
+            }
+            COUT(sum, 150); // 10+20+30+40+50 = 150
+        }
+        
+        {
+            yyjson::Document doc(jsonObject);
+            COUT(doc.hasError(), false);
+            
+            // Test ConstObject wrapper
+            yyjson::Value root = doc.root();
+            COUT(root.isObject(), true);
+            
+            yyjson::ConstObject object = root.object();
+            COUT(object.isValid(), true);
+            COUT(object.isObject(), true);
+            
+            // Test standard iteration
+            int sum = 0;
+            for (auto it = object.begin(); it != object.end(); ++it) {
+                int value = *it | 0;
+                sum += value;
+            }
+            COUT(sum, 600); // 100+200+300 = 600
+        }
+    }
+
+    DESC("mutable container wrappers");
+    {
+        std::string jsonArray = "[1, 2, 3]";
+        std::string jsonObject = "{\"a\": 10, \"b\": 20}";
+        
+        {
+            yyjson::Document doc(jsonArray);
+            auto mutableDoc = ~doc;
+            
+            yyjson::MutableValue root = mutableDoc.root();
+            yyjson::MutableArray array = root.array();
+            COUT(array.isValid(), true);
+            
+            // Test mutable iteration
+            int product = 1;
+            for (auto it = array.begin(); it != array.end(); ++it) {
+                int value = *it | 1;
+                product *= value;
+            }
+            COUT(product, 6); // 1*2*3 = 6
+        }
+        
+        {
+            yyjson::Document doc(jsonObject);
+            auto mutableDoc = ~doc;
+            
+            yyjson::MutableValue root = mutableDoc.root();
+            yyjson::MutableObject object = root.object();
+            COUT(object.isValid(), true);
+            
+            // Test mutable object iteration
+            int sum = 0;
+            for (auto it = object.begin(); it != object.end(); ++it) {
+                int value = *it | 0;
+                sum += value;
+            }
+            COUT(sum, 30); // 10+20 = 30
+        }
+    }
+
+    DESC("standard algorithm compatibility");
+    {
+        std::string jsonArray = "[5, 3, 1, 4, 2]";
+        
+        yyjson::Document doc(jsonArray);
+        COUT(doc.hasError(), false);
+        
+        yyjson::ConstArray array = doc.root().array();
+        
+        // Test using std::accumulate
+        int sum = std::accumulate(array.begin(), array.end(), 0,
+            [](int acc, const yyjson::Value& val) {
+                return acc + (val | 0);
+            });
+        COUT(sum, 15); // 5+3+1+4+2 = 15
+        
+        // Test using std::count_if
+        int countEven = std::count_if(array.begin(), array.end(),
+            [](const yyjson::Value& val) {
+                int num = val | 0;
+                return num % 2 == 0;
+            });
+        COUT(countEven, 2); // 4 and 2 are even
+    }
+
+    DESC("invalid container wrappers");
+    {
+        std::string jsonString = "\"hello\"";
+        
+        yyjson::Document doc(jsonString);
+        COUT(doc.hasError(), false);
+        
+        yyjson::Value root = doc.root();
+        COUT(root.isString(), true);
+        
+        // Array wrapper on non-array should be invalid
+        yyjson::ConstArray array = root.array();
+        COUT(array.isValid(), false);
+        COUT(array.begin() == array.end(), true);
+        
+        // Object wrapper on non-object should be invalid
+        yyjson::ConstObject object = root.object();
+        COUT(object.isValid(), false);
+        COUT(object.begin() == object.end(), true);
     }
 }
 
