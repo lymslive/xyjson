@@ -34,7 +34,7 @@ DEF_TAST(iterator_basic_loop, "basic loop with four iterator")
         auto arrayVal = doc.root();
         COUT(arrayVal.isArray(), true);
 
-        auto iter = arrayVal.arrayIter();
+        auto iter = arrayVal.iterator(0);
         COUT(iter.isValid(), true);
 
         int count = 0;
@@ -62,7 +62,7 @@ DEF_TAST(iterator_basic_loop, "basic loop with four iterator")
         auto objVal = doc.root();
         COUT(objVal.isObject(), true);
 
-        auto iter = objVal.objectIter();
+        auto iter = objVal.iterator("");
         COUT(iter.isValid(), true);
 
         int count = 0;
@@ -103,7 +103,7 @@ DEF_TAST(iterator_basic_loop, "basic loop with four iterator")
         auto arrayVal = mutableDoc.root();
         COUT(arrayVal.isArray(), true);
 
-        auto iter = arrayVal.arrayIter();
+        auto iter = arrayVal.iterator(0);
         COUT(iter.isValid(), true);
 
         int count = 0;
@@ -132,7 +132,7 @@ DEF_TAST(iterator_basic_loop, "basic loop with four iterator")
         auto objVal = mutableDoc.root();
         COUT(objVal.isObject(), true);
 
-        auto iter = objVal.objectIter();
+        auto iter = objVal.iterator(nullptr);
         COUT(iter.isValid(), true);
 
         int count = 0;
@@ -200,7 +200,7 @@ DEF_TAST(iterator_copy_ctor, "iterator basic constructor, copying and assignment
         std::string jsonText = "[1, 2, 3]";
         yyjson::Document doc(jsonText);
 
-        auto iter1 = doc.root().arrayIter();
+        auto iter1 = doc.root().iterator(0);
         COUT(iter1->toInteger(), 1);
 
         // Test copy constructor
@@ -208,7 +208,7 @@ DEF_TAST(iterator_copy_ctor, "iterator basic constructor, copying and assignment
         COUT(iter2->toInteger(), 1);
 
         // Test assignment
-        auto iter3 = doc.root().arrayIter();
+        auto iter3 = doc.root().iterator(0);
         ++iter3; // Move to second element
         iter1 = iter3;
         COUT(iter1->toInteger(), 2);
@@ -224,7 +224,7 @@ DEF_TAST(iterator_operators, "test iterator operators and methods")
         yyjson::Document doc(jsonText);
 
         // Test dereference operator
-        auto iter = doc.root().arrayIter();
+        auto iter = doc.root().iterator(0);
         COUT((*iter).toInteger(), 10);
 
         // Test arrow operator
@@ -240,17 +240,17 @@ DEF_TAST(iterator_operators, "test iterator operators and methods")
         COUT(iter->toInteger(), 30);
 
         // Test equality
-        auto iter2 = doc.root().arrayIter();
+        auto iter2 = doc.root().iterator(0);
         ++iter2;
         COUT(iter.equal(iter2), false);
         COUT(iter2.equal(iter), false);
 
-        auto iter3 = doc.root().arrayIter();
+        auto iter3 = doc.root().iterator(0);
         ++iter3; ++iter3;
         COUT(iter.equal(iter3), true);
         COUT(iter3.equal(iter), true);
 
-        auto iter4 = doc.root().arrayIter();
+        auto iter4 = doc.root().iterator(0);
         COUT(+iter4, (size_t)0); // Get current index
         COUT(-iter4, nullptr); // No-op for array iterator
         COUT(!~iter4, true); // No-op for array iterator
@@ -261,7 +261,7 @@ DEF_TAST(iterator_operators, "test iterator operators and methods")
         std::string jsonText = "{\"name\": \"test\", \"value\": 42.5}";
         yyjson::Document doc(jsonText);
 
-        auto iter = doc.root().objectIter();
+        auto iter = doc.root().iterator("");
 
         // Test name() method
         COUT(std::string(iter.name() ? iter.name() : ""), "name");
@@ -271,7 +271,7 @@ DEF_TAST(iterator_operators, "test iterator operators and methods")
         COUT(std::string(iter.name() ? iter.name() : ""), "value");
         COUT(iter->toNumber(), 42.5);
 
-        auto iter2 = doc.root().objectIter();
+        auto iter2 = doc.root().iterator("");
         COUT(+iter2, (size_t)0); // Get current index
         COUT(std::string(-iter2 ? -iter2 : ""), "name"); // Get current key name
         COUT(!~iter2, false); // Get current key node
@@ -286,7 +286,7 @@ DEF_TAST(iterator_operators, "test iterator operators and methods")
         std::string jsonText = "[100, 200, 300]";
         yyjson::MutableDocument doc(jsonText);
 
-        auto iter = doc.root().arrayIter();
+        auto iter = doc.root().iterator(0);
 
         // Test dereference operator
         COUT((*iter).toInteger(), 100);
@@ -302,7 +302,7 @@ DEF_TAST(iterator_operators, "test iterator operators and methods")
         COUT(old->toInteger(), 200);
         COUT(iter->toInteger(), 300);
 
-        auto iter2 = doc.root().arrayIter();
+        auto iter2 = doc.root().iterator(0);
         COUT(+iter2, (size_t)0); // Get current index
         COUT(-iter2, nullptr); // No-op for array iterator
         COUT(!~iter2, true); // No-op for array iterator
@@ -313,7 +313,7 @@ DEF_TAST(iterator_operators, "test iterator operators and methods")
         std::string jsonText = "{\"key1\": \"value1\", \"key2\": 999}";
         yyjson::MutableDocument doc(jsonText);
 
-        auto iter = doc.root().objectIter();
+        auto iter = doc.root().iterator("");
 
         // Test basic functionality
         COUT(std::string(iter.name() ? iter.name() : ""), "key1");
@@ -323,7 +323,7 @@ DEF_TAST(iterator_operators, "test iterator operators and methods")
         COUT(std::string(iter.name() ? iter.name() : ""), "key2");
         COUT(iter->toInteger(), 999);
 
-        auto iter2 = doc.root().objectIter();
+        auto iter2 = doc.root().iterator("");
         COUT(+iter2, (size_t)0); // Get current index
         COUT(std::string(-iter2 ? -iter2 : ""), "key1"); // Get current key name
         COUT((~iter2).toString(), "key1"); // Get current key node value
@@ -342,7 +342,7 @@ DEF_TAST(iterator_edge_cases, "test iterator edge cases")
         std::string single = "[999]";
         yyjson::Document doc1(single);
 
-        auto iter1 = doc1.root().arrayIter();
+        auto iter1 = doc1.root().iterator(0);
         COUT(iter1.isValid(), true);
         COUT(iter1.value().toInteger(), 999);
         ++iter1;
@@ -352,7 +352,7 @@ DEF_TAST(iterator_edge_cases, "test iterator edge cases")
         std::string singleObj = "{\"only\": true}";
         yyjson::Document doc2(singleObj);
 
-        auto iter2 = doc2.root().objectIter();
+        auto iter2 = doc2.root().iterator(nullptr);
         COUT(iter2.isValid(), true);
         COUT(std::string(iter2.name() ? iter2.name() : ""), "only");
         COUT(*iter2 | false, true);
@@ -361,7 +361,7 @@ DEF_TAST(iterator_edge_cases, "test iterator edge cases")
 
         // Test Mutable single element array
         auto doc3 = ~doc1;
-        auto iter3 = doc3.root().arrayIter();
+        auto iter3 = doc3.root().iterator(0);
         COUT(iter3.isValid(), true);
         COUT(iter3.value().toInteger(), 999);
         ++iter3;
@@ -369,7 +369,7 @@ DEF_TAST(iterator_edge_cases, "test iterator edge cases")
 
         // Test Mutable single element object
         auto doc4 = ~doc2;
-        auto iter4 = doc4.root().objectIter();
+        auto iter4 = doc4.root().iterator(nullptr);
         COUT(iter4.isValid(), true);
         COUT(std::string(iter4.name() ? iter4.name() : ""), "only");
         COUT(*iter4 | false, true);
@@ -383,7 +383,7 @@ DEF_TAST(iterator_edge_cases, "test iterator edge cases")
         std::string emptyArray = "[]";
         yyjson::Document doc1(emptyArray);
 
-        auto iter1 = doc1.root().arrayIter();
+        auto iter1 = doc1.root().iterator(0);
         COUT(iter1.isValid(), false);
 
         int count1 = 0;
@@ -398,7 +398,7 @@ DEF_TAST(iterator_edge_cases, "test iterator edge cases")
         std::string emptyObject = "{}";
         yyjson::Document doc2(emptyObject);
 
-        auto iter2 = doc2.root().objectIter();
+        auto iter2 = doc2.root().iterator(nullptr);
         COUT(iter2.isValid(), false);
 
         int count2 = 0;
@@ -411,7 +411,7 @@ DEF_TAST(iterator_edge_cases, "test iterator edge cases")
 
         // Test Mutable single empty array
         auto doc3 = ~doc1;
-        auto iter3 = doc3.root().arrayIter();
+        auto iter3 = doc3.root().iterator(0);
         COUT(iter3.isValid(), false);
 
         int count3 = 0;
@@ -424,7 +424,7 @@ DEF_TAST(iterator_edge_cases, "test iterator edge cases")
 
         // Test Mutable single empty object
         auto doc4 = ~doc2;
-        auto iter4 = doc4.root().objectIter();
+        auto iter4 = doc4.root().iterator(nullptr);
         COUT(iter4.isValid(), false);
 
         int count4 = 0;
@@ -440,7 +440,7 @@ DEF_TAST(iterator_edge_cases, "test iterator edge cases")
     {
         // Test MutableArrayIterator c_val() at end
         yyjson::MutableDocument doc1("[1, 2, 3]");
-        auto iter1 = doc1.root().arrayIter();
+        auto iter1 = doc1.root().iterator(0);
 
         // Iterate to end
         while (iter1.isValid()) {
@@ -452,7 +452,7 @@ DEF_TAST(iterator_edge_cases, "test iterator edge cases")
 
         // Test MutableObjectIterator c_key() at end
         yyjson::MutableDocument doc2("{\"a\":1, \"b\":2}");
-        auto iter2 = doc2.root().objectIter();
+        auto iter2 = doc2.root().iterator("");
 
         // Iterate to end
         while (iter2.isValid()) {
@@ -465,7 +465,7 @@ DEF_TAST(iterator_edge_cases, "test iterator edge cases")
 
         // Test readonly iterators for comparison
         yyjson::Document doc3("[1, 2, 3]");
-        auto iter3 = doc3.root().arrayIter();
+        auto iter3 = doc3.root().iterator(0);
 
         while (iter3.isValid()) {
             ++iter3;
@@ -474,7 +474,7 @@ DEF_TAST(iterator_edge_cases, "test iterator edge cases")
         COUT(iter3.c_val() == nullptr, true);
 
         yyjson::Document doc4("{\"a\":1, \"b\":2}");
-        auto iter4 = doc4.root().objectIter();
+        auto iter4 = doc4.root().iterator(nullptr);
 
         while (iter4.isValid()) {
             ++iter4;
@@ -762,7 +762,7 @@ DEF_TAST(iterator_fast_seek, "test fast seek functionality with / operator")
         std::string jsonText = "{\"name\": \"Alice\", \"age\": 25, \"city\": \"Beijing\"}";
         yyjson::Document doc(jsonText);
         
-        auto iter = doc.root().objectIter();
+        auto iter = doc.root().iterator("");
         
         // Test fast seek with string literal
         auto nameValue = iter.seek("name");
@@ -823,7 +823,7 @@ DEF_TAST(iterator_fast_seek, "test fast seek functionality with / operator")
     {
         yyjson::MutableDocument doc("{\"id\": 123, \"status\": \"active\", \"score\": 95.5}");
         
-        auto iter = doc.root().objectIter();
+        auto iter = doc.root().iterator(nullptr);
         
         // Test fast seek with string literal
         auto idValue = iter.seek("id");
@@ -866,7 +866,7 @@ DEF_TAST(iterator_fast_seek, "test fast seek functionality with / operator")
     DESC("test array iterator doesn't support fast seek");
     {
         yyjson::Document doc("[10, 20, 30]");
-        auto iter = doc.root().arrayIter();
+        auto iter = doc.root().iterator(0);
         // Note: Array iterators don't have seek method for keys
         //! auto first = iter / 0;
         //! auto val = iter / "key";
@@ -875,7 +875,7 @@ DEF_TAST(iterator_fast_seek, "test fast seek functionality with / operator")
     DESC("test seek on empty object iterator");
     {
         yyjson::Document doc("{}");
-        auto iter = doc.root().objectIter();
+        auto iter = doc.root().iterator((const char*)nullptr);
         
         // Test seek on empty object
         COUT(iter.isValid(), false); // Empty object iterator starts invalid
@@ -910,7 +910,7 @@ DEF_TAST(iterator_fast_seek, "test fast seek functionality with / operator")
     DESC("test seek on empty mutable object iterator");
     {
         yyjson::MutableDocument doc("{}");
-        auto iter = doc.root().objectIter();
+        auto iter = doc.root().iterator((const char*)nullptr);
         
         // Test seek on empty mutable object
         COUT(iter.isValid(), false); // Empty object iterator starts invalid
@@ -951,7 +951,7 @@ DEF_TAST(iterator_array_insert, "mutable array iterator insert functionality")
         auto root = doc.root();
         
         // Test basic insert at position 2 (insert 3 between 2 and 4)
-        auto iter = root.arrayIter();
+        auto iter = root.iterator(0);
         iter.advance(2); // Move to position 2 (value 4)
         
         // before insert
@@ -967,7 +967,7 @@ DEF_TAST(iterator_array_insert, "mutable array iterator insert functionality")
 
         // Verify the array content
         std::vector<int> values;
-        for (auto it = root.arrayIter(); it.isValid(); ++it) {
+        for (auto it = root.iterator(0); it.isValid(); ++it) {
             values.push_back(*it | 0);
         }
         COUT(root);
@@ -985,7 +985,7 @@ DEF_TAST(iterator_array_insert, "mutable array iterator insert functionality")
         auto root = doc.root();
         
         // Test operator << for chained insertion
-        auto iter = root.arrayIter();
+        auto iter = root.iterator(0);
         iter.advance(1); // Move to position 1 (value 2)
         
         // Insert multiple values using operator <<
@@ -996,7 +996,7 @@ DEF_TAST(iterator_array_insert, "mutable array iterator insert functionality")
         
         // Verify the array content after chained insertion
         std::vector<std::string> values;
-        for (auto it = root.arrayIter(); it.isValid(); ++it) {
+        for (auto it = root.iterator(0); it.isValid(); ++it) {
             values.push_back(it->toString());
         }
         
@@ -1015,19 +1015,19 @@ DEF_TAST(iterator_array_insert, "mutable array iterator insert functionality")
         auto root = doc.root();
         
         // Test insertion at the beginning
-        auto iter1 = root.arrayIter(); // Position 0
+        auto iter1 = root.iterator(0); // Position 0
         iter1 << "start";
         
         // Verify insertion at beginning
-        COUT((*root.arrayIter() | ""), "start");
+        COUT((*root.iterator(0) | ""), "start");
         
         // Test insertion at the end
-        auto iter2 = root.arrayIter();
+        auto iter2 = root.iterator(0);
         iter2.end(); // Move to end
         iter2 << "end";
         
         // Verify last element
-        auto iter3 = root.arrayIter();
+        auto iter3 = root.iterator(0);
         iter3.advance(4); // Move to last position (array has 5 elements: indices 0-4)
         COUT((*iter3 | ""), "end");
 
@@ -1048,14 +1048,14 @@ DEF_TAST(iterator_array_insert, "mutable array iterator insert functionality")
         auto root = doc.root();
         
         // Test insertion with different types
-        auto iter = root.arrayIter();
+        auto iter = root.iterator(0);
         iter.advance(1);
         iter << 3.14 << true << nullptr;
         
         COUT(root);
 
         // Verify mixed types insertion
-        auto iter2 = root.arrayIter();
+        auto iter2 = root.iterator(0);
         iter2.advance(1);
         COUT((*iter2 | 0.0), 3.14);
         ++iter2;
@@ -1082,7 +1082,7 @@ DEF_TAST(iterator_array_remove, "mutable array iterator remove functionality")
         auto root = doc.root();
         
         // Test removing element at position 2 (value 3)
-        auto iter = root.arrayIter();
+        auto iter = root.iterator(0);
         iter.advance(2); // Move to position 2
         
         // Remove current element
@@ -1103,7 +1103,7 @@ DEF_TAST(iterator_array_remove, "mutable array iterator remove functionality")
         yyjson::MutableDocument doc("[1, 2, 3, 4, 5]");
         auto root = doc.root();
         
-        auto iter = root.arrayIter();
+        auto iter = root.iterator(0);
         iter.advance(1); // Move to position 1 (value 2)
         
         // Test >> operator
@@ -1125,7 +1125,7 @@ DEF_TAST(iterator_array_remove, "mutable array iterator remove functionality")
         yyjson::MutableDocument doc("[1, 2, 3, 4, 5]");
         auto root = doc.root();
         
-        auto iter = root.arrayIter();
+        auto iter = root.iterator(0);
         iter.advance(1); // Move to position 1 (value 2)
         
         // Remove two elements in sequence
@@ -1148,14 +1148,14 @@ DEF_TAST(iterator_array_remove, "mutable array iterator remove functionality")
         auto root = doc.root();
         
         // Test removing first element
-        auto iter1 = root.arrayIter(); // Position 0
+        auto iter1 = root.iterator(0); // Position 0
         yyjson::MutableValue removed1;
         iter1 >> removed1;
         COUT(removed1.toInteger(), 1);
         COUT(root.toString(), "[2,3]");
         
         // Test removing last element
-        auto iter2 = root.arrayIter();
+        auto iter2 = root.iterator(0);
         iter2.advance(1); // Move to position 1 (value 3)
         yyjson::MutableValue removed2;
         iter2 >> removed2;
@@ -1163,7 +1163,7 @@ DEF_TAST(iterator_array_remove, "mutable array iterator remove functionality")
         COUT(root.toString(), "[2]");
         
         // Test removing the only element
-        auto iter3 = root.arrayIter();
+        auto iter3 = root.iterator(0);
         yyjson::MutableValue removed3;
         iter3 >> removed3;
         COUT(removed3.toInteger(), 2);
@@ -1180,7 +1180,7 @@ DEF_TAST(iterator_array_remove, "mutable array iterator remove functionality")
         yyjson::MutableDocument doc("[1, 2, 3, 4, 5]");
         auto root = doc.root();
         
-        auto iter = root.arrayIter();
+        auto iter = root.iterator(0);
         iter.advance(2); // Move to position 2 (value 3)
         
         // Remove current element
@@ -1218,7 +1218,7 @@ DEF_TAST(iterator_object_insert, "mutable object iterator insert functionality")
         yyjson::MutableDocument doc("{}");
         auto root = doc.root();
         
-        auto iter = root.objectIter();
+        auto iter = root.iterator(nullptr);
         
         // Insert key-value pair using insert method
         bool success = iter.insert("name", "Alice");
@@ -1241,7 +1241,7 @@ DEF_TAST(iterator_object_insert, "mutable object iterator insert functionality")
         // Create a KeyValue pair
         auto kv = (doc * "age") * (doc * 25);
         
-        auto iter = root.objectIter();
+        auto iter = root.iterator((const char*)nullptr);
         bool success = iter.insert(std::move(kv));
         COUT(success, true);
         
@@ -1253,7 +1253,7 @@ DEF_TAST(iterator_object_insert, "mutable object iterator insert functionality")
         yyjson::MutableDocument doc("{}");
         auto root = doc.root();
         
-        auto iter = root.objectIter();
+        auto iter = root.iterator((const char*)nullptr);
         
         // Chain insertions using << operator
         iter << ((doc * "name") * (doc * "Bob")) 
@@ -1271,7 +1271,7 @@ DEF_TAST(iterator_object_insert, "mutable object iterator insert functionality")
         yyjson::MutableDocument doc("{\"x\":1, \"z\":3}");
         auto root = doc.root();
         
-        auto iter = root.objectIter();
+        auto iter = root.iterator((const char*)nullptr);
         // Move to second position (after "x")
         iter.advance("z");
         
@@ -1290,7 +1290,7 @@ DEF_TAST(iterator_object_remove, "mutable object iterator remove functionality")
         yyjson::MutableDocument doc("{\"name\":\"Alice\",\"age\":25,\"city\":\"Beijing\"}");
         auto root = doc.root();
 
-        auto iter = root.objectIter();
+        auto iter = root.iterator((const char*)nullptr);
         // Move to "age" key
         iter.advance("age");
 
@@ -1314,7 +1314,7 @@ DEF_TAST(iterator_object_remove, "mutable object iterator remove functionality")
         yyjson::MutableDocument doc("{\"a\":1,\"b\":2,\"c\":3}");
         auto root = doc.root();
 
-        auto iter = root.objectIter();
+        auto iter = root.iterator((const char*)nullptr);
         // Move to "b" key
         iter.advance("b");
 
@@ -1333,7 +1333,7 @@ DEF_TAST(iterator_object_remove, "mutable object iterator remove functionality")
         yyjson::MutableDocument doc("{\"x\":10,\"y\":20,\"z\":30}");
         auto root = doc.root();
 
-        auto iter = root.objectIter();
+        auto iter = root.iterator((const char*)nullptr);
         // Start at "x"
 
         // Remove two elements in sequence
@@ -1357,7 +1357,7 @@ DEF_TAST(iterator_object_remove, "mutable object iterator remove functionality")
         yyjson::MutableDocument doc("{\"single\":42}");
         auto root = doc.root();
 
-        auto iter = root.objectIter();
+        auto iter = root.iterator((const char*)nullptr);
 
         // Remove the only element
         yyjson::KeyValue removed;
@@ -1397,7 +1397,7 @@ DEF_TAST(iterator_over_state, "test over method and iterator end state")
 
         // Verify insertion
         std::vector<int> values;
-        for (auto it = root.arrayIter(); it.isValid(); ++it) {
+        for (auto it = root.iterator(0); it.isValid(); ++it) {
             values.push_back(*it | 0);
         }
 
@@ -1473,7 +1473,7 @@ DEF_TAST(iterator_over_state, "test over method and iterator end state")
         yyjson::MutableDocument doc("[1, 2, 3, 4, 5]");
         auto root = doc.root();
 
-        auto iter = root.arrayIter();
+        auto iter = root.iterator(0);
 
         // Move to position 2
         iter.advance(2);
@@ -1496,7 +1496,7 @@ DEF_TAST(iterator_over_state, "test over method and iterator end state")
         auto root = doc.root();
 
         // Create iterator at middle position
-        auto iter = root.arrayIter();
+        auto iter = root.iterator(0);
         iter.advance(2); // Position at index 2 (value 3)
 
         // Use end(true) to cycle to actual end
@@ -1515,13 +1515,13 @@ DEF_TAST(iterator_over_state, "test over method and iterator end state")
         auto root = doc.root();
 
         // Method 1: use end()
-        auto iter1 = root.arrayIter();
+        auto iter1 = root.iterator(0);
         iter1.end();
         COUT(+iter1, root.size()); // Index should be at size (end)
         COUT(iter1.isValid(), false);
 
         // Method 2: advance beyond end
-        auto iter2 = root.arrayIter();
+        auto iter2 = root.iterator(0);
         iter2.advance(10);
         COUT(+iter2, root.size()); // Index should be at size (end)
         COUT(iter2.isValid(), false);

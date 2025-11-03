@@ -16,6 +16,7 @@ compile_commands.json
 .idea/
 *.swp
 *.swo
+.clangd/
 
 # Temporary files
 *.tmp

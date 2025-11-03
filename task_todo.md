@@ -1295,6 +1295,35 @@ iter.over 移到最后能否再插入，会发生什么情况。
 
 ## TODO: 迭代器实现定点 replace 功能
 
+yyjson api: yyjson_mut_arr_replace yyjson_mut_obj_replace
+操作符：=
+用法: it = anthor_val;
+
+### UNDO:
+
+不打算支持该功能。替换可用删除+插入两步合成，仅多几次指针操作，但是能保存被替
+换的原结点。以较复杂的操作步骤表示该操作需谨慎、不鼓励。
+
+## TODO:2025-11-03/1 迭代器创建方法名优化
+
+现在两个 Value 类创建四种迭代器的方法名是 arrayIter 与 objectIter .
+缩写别扭，命名不统一。要表明迭代器类型时更有 beginArray 与 beginObject 可用。
+所以想将创建迭代器的基本方法统一命名为 iterator ，用参数类型表达欲创建的迭代器
+类型。
+
+重构要求：
+- arrayIter 与 objectIter 方法或都改为 iterator，但参数不能省略，传整数表示
+  创建数组迭代器，传字符串表示创建对象迭代器。
+- 同步调用 `t_iterator.cpp` 的方法调用。arrayIter() 改为 iterator(0) 或
+  beginArray()，objectIter() 改为 iterator("") 或 iterator(nullptr) 或
+  beginObject()。为了测试覆盖而广一点，可在 `iterator_begin_end` 用例之前改成
+  iterator 方法，之后用 beginArray beginObject 风格。
+- Value 操作符 % 实现，可简化合并为一次转发。但注意返回值类型不一样了，
+  可用 auto 自动返回类型，`std::enable_if` 限定不要放在返回值位置，
+  改为放在有默认值的模板类型参数 ifT 中。
+
+### DONE: 20251103-114014
+
 ## TODO: 迭代器接口标准化
 
 ## TODO: 分析迭代器优化方案

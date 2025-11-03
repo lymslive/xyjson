@@ -376,9 +376,10 @@ public:
         return pathto(path, path ? ::strlen(path) : 0);
     }
     
-    // Iterator creation methods
-    ArrayIterator arrayIter(size_t startIndex = 0) const;
-    ObjectIterator objectIter(const char* startKey = nullptr) const;
+    // Unified iterator creation method
+    ArrayIterator iterator(size_t startIndex) const;
+    ArrayIterator iterator(int startIndex) const;
+    ObjectIterator iterator(const char* startKey) const;
     
     // Standard iterator pattern methods
     ArrayIterator beginArray() const;
@@ -725,9 +726,10 @@ public:
     template <typename T>
     bool inputValue(T&& value);
 
-    // Iterator creation methods
-    MutableArrayIterator arrayIter(size_t startIndex = 0) const;
-    MutableObjectIterator objectIter(const char* startKey = nullptr) const;
+    // Unified iterator creation method
+    MutableArrayIterator iterator(size_t startIndex) const;
+    MutableArrayIterator iterator(int startIndex) const;
+    MutableObjectIterator iterator(const char* startKey) const;
     
     // Standard iterator pattern methods
     MutableArrayIterator beginArray() const;
@@ -1679,7 +1681,7 @@ inline Value Value::pathto(const char* path, size_t len) const
 /* @Group 4.1.3: create iterator */
 /* ************************************************************************ */
 
-inline ArrayIterator Value::arrayIter(size_t startIndex) const
+inline ArrayIterator Value::iterator(size_t startIndex) const
 {
     if (isArray()) {
         ArrayIterator iter(m_val);
@@ -1688,7 +1690,12 @@ inline ArrayIterator Value::arrayIter(size_t startIndex) const
     return ArrayIterator();
 }
 
-inline ObjectIterator Value::objectIter(const char* startKey) const
+inline ArrayIterator Value::iterator(int startIndex) const
+{
+    return iterator(static_cast<size_t>(startIndex));
+}
+
+inline ObjectIterator Value::iterator(const char* startKey) const
 {
     if (isObject()) {
         ObjectIterator iter(m_val);
@@ -1699,7 +1706,7 @@ inline ObjectIterator Value::objectIter(const char* startKey) const
 
 inline ArrayIterator Value::beginArray() const
 {
-    return arrayIter(0);
+    return iterator(size_t(0));
 }
 
 inline ArrayIterator Value::endArray() const
@@ -1709,7 +1716,7 @@ inline ArrayIterator Value::endArray() const
 
 inline ObjectIterator Value::beginObject() const
 {
-    return objectIter(nullptr);
+    return iterator((const char*)nullptr);
 }
 
 inline ObjectIterator Value::endObject() const
@@ -2300,7 +2307,7 @@ inline MutableValue& MutableValue::input(T&& value)
 /* @Group 4.3.6: create iterator */
 /* ************************************************************************ */
 
-inline MutableArrayIterator MutableValue::arrayIter(size_t startIndex) const
+inline MutableArrayIterator MutableValue::iterator(size_t startIndex) const
 {
     if (isArray()) {
         MutableArrayIterator iter(m_val, m_doc);
@@ -2309,7 +2316,12 @@ inline MutableArrayIterator MutableValue::arrayIter(size_t startIndex) const
     return MutableArrayIterator();
 }
 
-inline MutableObjectIterator MutableValue::objectIter(const char* startKey) const
+inline MutableArrayIterator MutableValue::iterator(int startIndex) const
+{
+    return iterator(static_cast<size_t>(startIndex));
+}
+
+inline MutableObjectIterator MutableValue::iterator(const char* startKey) const
 {
     if (isObject()) {
         MutableObjectIterator iter(m_val, m_doc);
@@ -2320,7 +2332,7 @@ inline MutableObjectIterator MutableValue::objectIter(const char* startKey) cons
 
 inline MutableArrayIterator MutableValue::beginArray() const
 {
-    return arrayIter(0);
+    return iterator(size_t(0));
 }
 
 inline MutableArrayIterator MutableValue::endArray() const
@@ -2330,7 +2342,7 @@ inline MutableArrayIterator MutableValue::endArray() const
 
 inline MutableObjectIterator MutableValue::beginObject() const
 {
-    return objectIter(nullptr);
+    return iterator((const char*)nullptr);
 }
 
 inline MutableObjectIterator MutableValue::endObject() const
@@ -3167,22 +3179,13 @@ inline MutableValue& operator<<(MutableValue&& json, T&& value)
 /* @Section 5.6: Iterator Creation and Operation */
 /* ------------------------------------------------------------------------ */
 
-// Array iterator creation (json % int)
-// `json % index` --> `json.arrayIter(index)`
-template<typename jsonT>
-inline typename std::enable_if<trait::is_value<jsonT>::value, typename jsonT::array_iterator>::type
-operator%(const jsonT& json, int offset)
+// Iterator creation operator (json % index_or_key)
+// `json % index` --> `json.iterator(index)` for array
+// `json % key` --> `json.iterator(key)` for object
+template<typename jsonT, typename ArgT, typename ifT = std::enable_if_t<trait::is_value<jsonT>::value>>
+inline auto operator%(const jsonT& json, ArgT&& arg)
 {
-    return json.arrayIter(offset);
-}
-
-// Object iterator creation (json % const char*)
-// `json % key` --> `json.objectIter(key)`
-template<typename jsonT>
-inline typename std::enable_if<trait::is_value<jsonT>::value, typename jsonT::object_iterator>::type
-operator%(const jsonT& json, const char* key)
-{
-    return json.objectIter(key);
+    return json.iterator(std::forward<ArgT>(arg));
 }
 
 // Prefix increment operator (++iter)
