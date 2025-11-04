@@ -21,53 +21,54 @@
 
 /* Table of Content (TOC) */
 /* ======================================================================== */
-/* Part 1: Front Definitions                                       Line: 78 */
-/*   Section 1.1: Forward Class Declarations                       Line: 81 */
-/*   Section 1.2: Type and Operator Constants                      Line: 95 */
-/*   Section 1.3: Type Traits                                     Line: 138 */
-/* Part 2: Class Definitions                                      Line: 240 */
-/*   Section 2.1: Read-only Json Model                            Line: 243 */
-/*   Section 2.2: Mutable Json Model                              Line: 489 */
-/*   Section 2.3: Helper Class for Mutable Json                   Line: 860 */
-/*   Section 2.4: Iterator Json                                   Line: 905 */
-/* Part 3: Non-Class Functions                                   Line: 1194 */
-/*   Section 3.1: Underlying mut_val Creation                    Line: 1200 */
-/*   Section 3.2: Conversion Helper Functions                    Line: 1392 */
-/* Part 4: Class Implementations                                 Line: 1503 */
-/*   Section 4.1: Value Methods                                  Line: 1506 */
-/*     Group 4.1.1: get and getor                                Line: 1509 */
-/*     Group 4.1.2: size and index/path                          Line: 1605 */
-/*     Group 4.1.3: create iterator                              Line: 1638 */
-/*     Group 4.1.4: others                                       Line: 1679 */
-/*   Section 4.2: Document Methods                               Line: 1729 */
-/*     Group 4.2.1: primary manage                               Line: 1732 */
-/*     Group 4.2.2: read and write                               Line: 1764 */
-/*   Section 4.3: MutableValue Methods                           Line: 1849 */
-/*     Group 4.3.1: get and getor                                Line: 1852 */
-/*     Group 4.3.2: size and index/path                          Line: 1954 */
-/*     Group 4.3.3: assignment set                               Line: 2006 */
-/*     Group 4.3.4: array and object add                         Line: 2128 */
-/*     Group 4.3.5: smart input and tag                          Line: 2181 */
-/*     Group 4.3.6: create iterator                              Line: 2259 */
-/*     Group 4.3.7: others                                       Line: 2300 */
-/*   Section 4.4: MutableDocument Methods                        Line: 2350 */
-/*     Group 4.4.1: primary manage                               Line: 2353 */
-/*     Group 4.4.2: read and write                               Line: 2400 */
-/*     Group 4.4.3: create mutable value                         Line: 2497 */
-/*   Section 4.5: ArrayIterator Methods                          Line: 2520 */
-/*   Section 4.6: ObjectIterator Methods                         Line: 2553 */
-/*   Section 4.7: MutableArrayIterator Methods                   Line: 2606 */
-/*   Section 4.8: MutableObjectIterator Methods                  Line: 2639 */
-/* Part 5: Operator Interface                                    Line: 2692 */
-/*   Section 5.1: Primary Path Access                            Line: 2695 */
-/*   Section 5.2: Conversion Unary Operator                      Line: 2779 */
-/*   Section 5.3: Comparison Operator                            Line: 2825 */
-/*   Section 5.4: Create and Bind KeyValue                       Line: 2911 */
-/*   Section 5.5: Stream and Input Operator                      Line: 2940 */
-/*   Section 5.6: Iterator Creation and Operation                Line: 2982 */
-/*   Section 5.7: Document Forward Root Operator                 Line: 3095 */
-/*   Section 5.8: User-defined Literal Operator                  Line: 3160 */
-/* Part 6: Last Definitions                                      Line: 3177 */
+/* Part 1: Front Definitions                                       Line: 79 */
+/*   Section 1.1: Forward Class Declarations                       Line: 82 */
+/*   Section 1.2: Type and Operator Constants                     Line: 102 */
+/*   Section 1.3: Type Traits                                     Line: 145 */
+/* Part 2: Class Definitions                                      Line: 247 */
+/*   Section 2.1: Read-only Json Model                            Line: 250 */
+/*   Section 2.2: Mutable Json Model                              Line: 501 */
+/*   Section 2.3: Helper Class for Mutable Json                   Line: 877 */
+/*   Section 2.4: Iterator Json                                   Line: 922 */
+/*   Section 2.5: Container-specific Wrapper Classes             Line: 1280 */
+/* Part 3: Non-Class Functions                                   Line: 1371 */
+/*   Section 3.1: Underlying mut_val Creation                    Line: 1377 */
+/*   Section 3.2: Conversion Helper Functions                    Line: 1569 */
+/* Part 4: Class Implementations                                 Line: 1680 */
+/*   Section 4.1: Value Methods                                  Line: 1683 */
+/*     Group 4.1.1: get and getor                                Line: 1686 */
+/*     Group 4.1.2: size and index/path                          Line: 1782 */
+/*     Group 4.1.3: create iterator                              Line: 1815 */
+/*     Group 4.1.4: others                                       Line: 1871 */
+/*   Section 4.2: Document Methods                               Line: 1921 */
+/*     Group 4.2.1: primary manage                               Line: 1924 */
+/*     Group 4.2.2: read and write                               Line: 1956 */
+/*   Section 4.3: MutableValue Methods                           Line: 2041 */
+/*     Group 4.3.1: get and getor                                Line: 2044 */
+/*     Group 4.3.2: size and index/path                          Line: 2146 */
+/*     Group 4.3.3: assignment set                               Line: 2198 */
+/*     Group 4.3.4: array and object add                         Line: 2320 */
+/*     Group 4.3.5: smart input and tag                          Line: 2373 */
+/*     Group 4.3.6: create iterator                              Line: 2451 */
+/*     Group 4.3.7: others                                       Line: 2507 */
+/*   Section 4.4: MutableDocument Methods                        Line: 2557 */
+/*     Group 4.4.1: primary manage                               Line: 2560 */
+/*     Group 4.4.2: read and write                               Line: 2607 */
+/*     Group 4.4.3: create mutable value                         Line: 2704 */
+/*   Section 4.5: ArrayIterator Methods                          Line: 2727 */
+/*   Section 4.6: ObjectIterator Methods                         Line: 2760 */
+/*   Section 4.7: MutableArrayIterator Methods                   Line: 2813 */
+/*   Section 4.8: MutableObjectIterator Methods                  Line: 2913 */
+/* Part 5: Operator Interface                                    Line: 3043 */
+/*   Section 5.1: Primary Path Access                            Line: 3046 */
+/*   Section 5.2: Conversion Unary Operator                      Line: 3130 */
+/*   Section 5.3: Comparison Operator                            Line: 3176 */
+/*   Section 5.4: Create and Bind KeyValue                       Line: 3262 */
+/*   Section 5.5: Stream and Input Operator                      Line: 3291 */
+/*   Section 5.6: Iterator Creation and Operation                Line: 3333 */
+/*   Section 5.7: Document Forward Root Operator                 Line: 3468 */
+/*   Section 5.8: User-defined Literal Operator                  Line: 3533 */
+/* Part 6: Last Definitions                                      Line: 3550 */
 /* ======================================================================== */
 
 namespace yyjson
@@ -1297,17 +1298,8 @@ public:
     }
     
     // Standard iterator interface
-    iterator begin() const 
-    { 
-        if (!isArray()) return iterator();
-        return Value::beginArray(); 
-    }
-    
-    iterator end() const 
-    { 
-        if (!isArray()) return iterator();
-        return Value::endArray(); 
-    }
+    iterator begin() const { return Value::beginArray(); }
+    iterator end() const { return Value::endArray(); }
 };
 
 /**
@@ -1328,17 +1320,8 @@ public:
     }
     
     // Standard iterator interface
-    iterator begin() const 
-    { 
-        if (!isObject()) return iterator();
-        return Value::beginObject(); 
-    }
-    
-    iterator end() const 
-    { 
-        if (!isObject()) return iterator();
-        return Value::endObject(); 
-    }
+    iterator begin() const { return Value::beginObject(); }
+    iterator end() const { return Value::endObject(); }
 };
 
 /**
@@ -1359,17 +1342,8 @@ public:
     }
     
     // Standard iterator interface
-    iterator begin() const 
-    { 
-        if (!isArray()) return iterator();
-        return MutableValue::beginArray(); 
-    }
-    
-    iterator end() const 
-    { 
-        if (!isArray()) return iterator();
-        return MutableValue::endArray(); 
-    }
+    iterator begin() const { return MutableValue::beginArray(); }
+    iterator end() const { return MutableValue::endArray(); }
 };
 
 /**
@@ -1390,17 +1364,8 @@ public:
     }
     
     // Standard iterator interface
-    iterator begin() const 
-    { 
-        if (!isObject()) return iterator();
-        return MutableValue::beginObject(); 
-    }
-    
-    iterator end() const 
-    { 
-        if (!isObject()) return iterator();
-        return MutableValue::endObject(); 
-    }
+    iterator begin() const { return MutableValue::beginObject(); }
+    iterator end() const { return MutableValue::endObject(); }
 };
 
 /* @Part 3: Non-Class Functions */
@@ -3510,14 +3475,6 @@ operator/(const docT& doc, const T& path)
 {
     return doc.root() / path;
 }
-
-// `doc % path` : create iterator for root
-//template <typename docT, typename T>
-//inline typename std::enable_if<trait::is_document<docT>::value, typename docT::value_type>::type
-//operator%(const docT& doc, const T& path)
-//{
-//    return doc.root() % path;
-//}
 
 template <typename docT, typename T, typename ifT =
     typename std::enable_if<trait::is_document<docT>::value>::type
