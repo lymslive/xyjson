@@ -1699,3 +1699,39 @@ cd build && make -j4
 - **容器包装**：通过派生类提供标准 begin()/end() 接口
 - **算法支持**：兼容 `std::accumulate`, `std::count_if` 等标准算法
 - **类型安全**：保持 const-correctness 和类型安全
+
+---
+
+## 任务ID: 20251104-122951
+- **需求ID**: 2025-11-04/1
+- **任务类型**: 开发
+- **任务状态**: 已完成
+- **执行AI**: DeepSeek-V3.1
+
+### 任务概要
+扩展两个 Value 类的 getor 方法与 | 操作符，参数为 kArray 时相当于调用 array() 方法返回数组容器，参数为 kObject 时相当于调用 object() 方法返回对象容器。
+
+### 主要修改内容
+- include/xyjson.h:
+  - 在 enable_getor 特性中添加 EmptyArray 和 EmptyObject 标志类
+  - 为 Value 和 MutableValue 添加 getor(EmptyArray) 和 getor(EmptyObject) 重载方法
+  - 扩展 operator| 支持 EmptyArray 和 EmptyObject，分别为 Value/MutableValue 返回不同容器类型
+  - 添加四个简单的非模板 operator| 重载函数，专门处理 kArray 和 kObject
+
+### 测试增强
+- utest/t_basic.cpp:
+  - 添加 kArray 和 kObject 哨兵测试用例
+  - 测试显式 begin/end 迭代器和范围 for 循环，验证容器功能
+  - 验证通过 | kArray 获取的值可当作标准容器使用
+
+### 构建与测试
+- 构建：cmake -S . -B build && cmake --build build -j
+- 测试：./build/utxyjson --cout=silent
+- 结果：55/55 全部通过
+
+### 影响与兼容性
+- 新增 EmptyArray/EmptyObject 哨兵与 getor 特化配合，写法简洁：json | kArray, json | kObject
+- 返回的容器支持标准迭代器接口和范围 for 循环
+- 完全向后兼容，不影响现有功能
+
+---

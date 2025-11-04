@@ -1350,21 +1350,30 @@ Value/MutableValue 父类中实现。父类中再增加 array()/object() 方法�
 
 ### DONE: 20251103-184215
 
-## TODO: 分析迭代器优化方案
+## TODO:2025-11-04/1 getor 方法与 | 操作支持 kArray kObject
 
-经过与几个 AI 问答，有些初步优化概念。
-Value 是代理类，Document 是智能指针。
+扩展两个 Value 类的 getor 方法与 | 操作符，参数为 kArray 时相当于调用 array()
+方法返回数组容器，参数为 kObject 时相当于调用 object() 方法返回对象容器。
 
-Iterator 的解引用 `*` 返回 Value 临时值，Value 实现 `->` 返回自身 this ；于是
-Iterator 的 `->` 也返回 Value 临时值，可满足 `it->method` 等效 `(*it).method`
+基本修改要求：
+- `enable_getor` 特性添加匹配 EmptyArray 与 EmptyObject 两个标志类
+- Value 与 MutableValue 添加 getor 重载方法，支持 EmptyArray 与 EmptyObject 参数
+- operator| 添加 EmptyArray 与 EmptyObject 与支持
+- 以上三点的修改位置可参考 EmptyString 与 ZeroNumber
+- 在 `t_basic.cpp` 测试文件中增加单元测试用例，展示通过 `| kArray` 获取的值可
+  当作标准容器使用，比如显式的 begin/end 或隐匿的范围 for
 
-```cpp
-using iterator_category = std::forward_iterator_tag;
-using value_type = ValueProxy;      // 代理作为值类型
-using difference_type = std::ptrdiff_t;
-using pointer = ValueProxy*;
-using reference = ValueProxy;
-```
+进阶修改要求：
+- 尝试将 Section 5.1 中所有 operator| 调用 getor 的重载（包括新加的两个）
+  合并为一个，返回值用 auto ，`std::enable_if` 限定改写在默认模板参数 ifT 中。
+- 在 Section 5.7 的 opertor% 前面增加 operator| 用于两个 document ，转调
+  doc.root 的 | 操作，返回值用 auto 匹配不同返回值类型。
+- 在 `t_basic.cpp` 测试文件中增加 `doc|` 操作符的测试。
+
+
+### DONE: 20251104-122951
+
+合并 operator| 重载还是挺困难，doc | 转 root | 也不好实现，实冲突。
 
 ## TODO: 考虑实现 MutableValue 删除功能
 

@@ -208,7 +208,9 @@ struct enable_getor : std::bool_constant<
     std::is_same<std::decay_t<T>, yyjson_mut_doc*>::value ||
     std::is_same<std::decay_t<T>, std::nullptr_t>::value ||
     std::is_same<std::decay_t<T>, EmptyString>::value ||
-    std::is_same<std::decay_t<T>, ZeroNumber>::value
+    std::is_same<std::decay_t<T>, ZeroNumber>::value ||
+    std::is_same<std::decay_t<T>, EmptyArray>::value ||
+    std::is_same<std::decay_t<T>, EmptyObject>::value
 > {};
 
 template<typename T>
@@ -341,6 +343,8 @@ public:
     // Special overloads for sentinels
     const char* getor(EmptyString) const;
     double getor(ZeroNumber) const;
+    ConstArray getor(EmptyArray) const;
+    ConstObject getor(EmptyObject) const;
     
     // Pipe function for custom transformations
     template<typename funcT>
@@ -603,6 +607,8 @@ public:
     // Special overloads for sentinels
     const char* getor(EmptyString) const;
     double getor(ZeroNumber) const;
+    MutableArray getor(EmptyArray) const;
+    MutableObject getor(EmptyObject) const;
     
     // Pipe function for custom transformations
     template<typename funcT>
@@ -1773,6 +1779,16 @@ inline double Value::getor(ZeroNumber) const
     return toNumber();
 }
 
+inline ConstArray Value::getor(EmptyArray) const
+{
+    return array();
+}
+
+inline ConstObject Value::getor(EmptyObject) const
+{
+    return object();
+}
+
 template<typename funcT>
 inline auto Value::pipe(funcT&& func) const
 {
@@ -2135,6 +2151,16 @@ inline const char* MutableValue::getor(EmptyString) const
 inline double MutableValue::getor(ZeroNumber) const
 {
     return toNumber();
+}
+
+inline MutableArray MutableValue::getor(EmptyArray) const
+{
+    return array();
+}
+
+inline MutableObject MutableValue::getor(EmptyObject) const
+{
+    return object();
 }
 
 template<typename funcT>
@@ -3081,6 +3107,27 @@ inline typename std::enable_if<trait::is_value<jsonT>::value, double>::type
 operator|(const jsonT& json, ZeroNumber)
 {
     return json.getor(kNumber);
+}
+
+// Simple overloads for kArray and kObject sentinels
+inline ConstArray operator|(const Value& json, EmptyArray)
+{
+    return json.getor(kArray);
+}
+
+inline ConstObject operator|(const Value& json, EmptyObject)
+{
+    return json.getor(kObject);
+}
+
+inline MutableArray operator|(const MutableValue& json, EmptyArray)
+{
+    return json.getor(kArray);
+}
+
+inline MutableObject operator|(const MutableValue& json, EmptyObject)
+{
+    return json.getor(kObject);
 }
 
 // `dest |= json` --> `dest = json | dest`;

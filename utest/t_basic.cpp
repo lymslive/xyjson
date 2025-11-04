@@ -584,6 +584,29 @@ DEF_TAST(basic_type_checking, "type checking with isType method and & operator")
     COUT((doc2 / "name") | yyjson::kString, "example");
     COUT((doc2 / "age") | yyjson::kNumber, 30.0);
 
+    // kArray and kObject sentinels
+    yyjson::Document doc3(R"({"array":[1,2,3],"object":{"key":"value"}})");
+    auto arrayVal = (doc3 / "array") | yyjson::kArray;
+    auto objectVal = (doc3 / "object") | yyjson::kObject;
+    COUT(arrayVal.size(), 3);
+    COUT(objectVal.size(), 1);
+    COUT(arrayVal[0] | 0, 1);
+    COUT(objectVal["key"] | "", "value");
+
+    // Test explicit begin/end iterators
+    int sum = 0;
+    for (auto it = arrayVal.begin(); it != arrayVal.end(); ++it) {
+        sum += *it | 0;
+    }
+    COUT(sum, 6);
+
+    // Test range-based for loop
+    sum = 0;
+    for (const auto& item : arrayVal) {
+        sum += item | 0;
+    }
+    COUT(sum, 6);
+
     // Test complex types (array and object) with special string constants
     COUT(doc["arrayVal"] & "[]", true);     // array type with "[]"
     COUT(doc["objectVal"] & "{}", true);    // object type with "{}"
@@ -608,6 +631,7 @@ DEF_TAST(basic_type_checking, "type checking with isType method and & operator")
     COUT(mutDoc["intVal"] & 0, true);
     COUT(mutDoc["strVal"].isType(""), true);
     COUT(mutDoc["strVal"] & "", true);
+
 
     // Test operator name constants are defined
     COUT(okExtract, std::string("|"));
