@@ -731,17 +731,22 @@ public:
 
     MutableValue& input(KeyValue&& kv);
 
-    // Smart input method, append for array, add for object, assign for scalar
+    // Smart push method, append for array, add for object
     template <typename T>
-    MutableValue& input(T&& value);
+    MutableValue& push(T&& value);
+    MutableValue& push(KeyValue&& kv);
 
-    // Input pending key, only support string type.
+    // Push pending key, only support string type.
     template <typename keyT>
-    bool inputKey(keyT&& key);
+    bool pushKey(keyT&& key);
 
-    // Input value after pending key.
+    // Push value after pending key.
     template <typename T>
-    bool inputValue(T&& value);
+    bool pushValue(T&& value);
+
+    // Pop methods for removing elements from containers
+    MutableValue& pop(MutableValue& result);
+    MutableValue& pop(KeyValue& result);
 
     // Unified iterator creation method
     MutableArrayIterator iterator(size_t startIndex) const;
@@ -2424,7 +2429,7 @@ inline KeyValue MutableValue::tag(keyT&& key) &&
 }
 
 // Specialization for KeyValue - can only be added to object
-inline MutableValue& MutableValue::input(KeyValue&& kv)
+inline MutableValue& MutableValue::push(KeyValue&& kv)
 {
     if (isObject())
     {
@@ -2434,7 +2439,7 @@ inline MutableValue& MutableValue::input(KeyValue&& kv)
 }
 
 template <typename keyT>
-inline bool MutableValue::inputKey(keyT&& key)
+inline bool MutableValue::pushKey(keyT&& key)
 {
     yyjson_mut_val* keyNode = util::create(m_doc, std::forward<keyT>(key));
     if (!yyjson_mut_is_str(keyNode)) {
@@ -2447,7 +2452,7 @@ inline bool MutableValue::inputKey(keyT&& key)
 }
 
 template <typename T>
-inline bool MutableValue::inputValue(T&& value)
+inline bool MutableValue::pushValue(T&& value)
 {
     if (m_pendingKey == nullptr)
     {
@@ -2461,7 +2466,7 @@ inline bool MutableValue::inputValue(T&& value)
 
 // General template for other types
 template <typename T>
-inline MutableValue& MutableValue::input(T&& value)
+inline MutableValue& MutableValue::push(T&& value)
 {
     if (isArray())
     {
@@ -2469,8 +2474,40 @@ inline MutableValue& MutableValue::input(T&& value)
     }
     else if (isObject())
     {
-        bool ok = inputValue(std::forward<T>(value)) || inputKey(std::forward<T>(value));
+        bool ok = pushValue(std::forward<T>(value)) || pushKey(std::forward<T>(value));
     }
+    return *this;
+}
+
+// Pop method for array: remove last element and return it
+inline MutableValue& MutableValue::pop(MutableValue& result)
+{
+    if (isArray()) {
+        size_t n = size();
+        if (n > 0) {
+            MutableArrayIterator iter = beginArray();
+            iter.advance(n - 1);
+            result = iter.remove();
+            return *this;
+        }
+    }
+    result = MutableValue(nullptr, m_doc);
+    return *this;
+}
+
+// Pop method for object: remove last key-value pair and return it
+inline MutableValue& MutableValue::pop(KeyValue& result)
+{
+    if (isObject()) {
+        size_t n = size();
+        if (n > 0) {
+            MutableObjectIterator iter = beginObject();
+            iter.advance(n - 1);
+            result = iter.remove();
+            return *this;
+        }
+    }
+    result = KeyValue(nullptr, nullptr);
     return *this;
 }
 
@@ -3363,18 +3400,43 @@ operator<<(std::ostream& os, const jsonT& json)
 }
 
 // MutableValue array/object input operators
-// `json << value` --> `json.input(value)`
+// `json << value` --> `json.push(value)`
 template <typename T>
 inline MutableValue& operator<<(MutableValue& json, T&& value)
 {
-    return json.input(std::forward<T>(value));
+    return json.push(std::forward<T>(value));
 }
 
 // Rvalue version for MutableValue, delegates to lvalue version
 template <typename T>
 inline MutableValue& operator<<(MutableValue&& json, T&& value)
 {
-    return json.input(std::forward<T>(value));
+    return json.push(std::forward<T>(value));
+}
+
+// MutableValue array/object output operators
+// `json >> value` --> `json.pop(value)` for array
+inline MutableValue& operator>>(MutableValue& json, MutableValue& result)
+{
+    return json.pop(result);
+}
+
+// `json >> kv` --> `json.pop(kv)` for object
+inline MutableValue& operator>>(MutableValue& json, KeyValue& result)
+{
+    return json.pop(result);
+}
+
+// Rvalue version for MutableValue, delegates to lvalue version
+inline MutableValue& operator>>(MutableValue&& json, MutableValue& result)
+{
+    return json.pop(result);
+}
+
+// Rvalue version for KeyValue, delegates to lvalue version
+inline MutableValue& operator>>(MutableValue&& json, KeyValue& result)
+{
+    return json.pop(result);
 }
 
 /* @Section 5.6: Iterator Creation and Operation */

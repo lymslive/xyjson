@@ -1375,7 +1375,21 @@ Value/MutableValue 父类中实现。父类中再增加 array()/object() 方法�
 
 合并 operator| 重载还是挺困难，doc | 转 root | 也不好实现，实冲突。
 
-## TODO: 考虑实现 MutableValue 删除功能
+## TODO:2025-11-04/2 实现 MutableValue 尾部删除功能
+
+目前已有在 Josn 容器末尾添加元素的方法 input 与 `<<` 操作符。
+现在希望实现对称的从容器末尾删除一个元素的方法 pop 与 `>>` 操作符。
+
+- 数组 pop: >> MutableValue& ，将删除的元素保存在右侧参数
+- 对象 pop: >> KeyValue&, 将删除的键值对保存在右侧参数
+- pop 与 >> 都支持链式调用，返回 *this
+- 操作符 >> 请在 Section 5.5 实现
+- pop 方法在原 inputValue 声明与实现后面添加
+- 在 `t_mutable.cpp` 增加新的测试用例覆盖新功能
+- 为了方法名对称性，将原来的 input inputKey inputValue 改名为 push pushKey
+  pushValue
+
+### DONE: 20251104-172500
 
 ## TODO: 优化文档示例代码管理同步单元测试
 

@@ -1735,3 +1735,43 @@ cd build && make -j4
 - 完全向后兼容，不影响现有功能
 
 ---
+
+## 任务ID: 20251104-172500
+- **需求ID**: 2025-11-04/2
+- **任务类型**: 开发
+- **任务状态**: 已完成
+- **执行AI**: DeepSeek-V3.1
+
+### 任务概要
+实现 MutableValue 尾部删除功能，包含 pop 方法和 `>>` 操作符，并为方法重命名保持对称性。
+
+### 主要修改内容
+- include/xyjson.h:
+  - MutableValue 类添加 pop 方法声明（数组和对象重载）
+  - 实现 pop 方法：利用迭代器进行 O(N) 效率的尾部删除
+  - 在 Section 5.5 实现 `>>` 操作符重载，支持数组和对象类型
+  - 将 input/inputKey/inputValue 改名为 push/pushKey/pushValue 保持对称性
+  - 更新 `<<` 操作符调用新的 push 方法
+
+### 功能特性
+- **数组 pop**: `json.pop(MutableValue&)` 删除并返回最后一个元素
+- **对象 pop**: `json.pop(KeyValue&)` 删除并返回最后一个键值对
+- **操作符支持**: `json >> result` 调用对应 pop 方法
+- **链式支持**: pop 和 `>>` 操作符都返回 `*this` 支持链式调用
+
+### 测试增强
+- utest/t_mutable.cpp:
+  - 添加 `mutable_pop_pop` 测试用例：验证 pop 方法基本功能
+  - 添加 `mutable_stream_operator` 测试用例：验证 `>>` 操作符功能
+  - 覆盖数组、对象、空容器等边界情况
+
+### 构建与测试
+- 构建：make build
+- 测试：make test
+- 结果：57/57 全部通过，包括新增测试用例
+
+### 影响与兼容性
+- 新增功能与现有 `<<` 操作符形成对称设计
+- push/pop 命名更符合容器操作语义
+- 完全向后兼容，不影响现有代码
+- 支持链式调用，提升代码表达能力

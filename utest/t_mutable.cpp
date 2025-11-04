@@ -1011,3 +1011,112 @@ DEF_TAST(mutable_move_semantics, "test move semantics for MutableValue insertion
         COUT(!valueNode, true);
     }
 }
+
+DEF_TAST(mutable_pop_pop, "test pop functionality for array and object")
+{
+    DESC("Test pop method for array");
+    {
+        yyjson::MutableDocument doc("[1, 2, 3, 4, 5]");
+        COUT(doc.hasError(), false);
+        COUT(doc.root().isArray(), true);
+        COUT(doc.root().size(), 5);
+        
+        yyjson::MutableValue lastElement(nullptr, nullptr);
+        doc.root().pop(lastElement);
+        COUT(lastElement | 0, 5);
+        COUT(doc.root().size(), 4);
+        
+        doc.root().pop(lastElement);
+        COUT(lastElement | 0, 4);
+        COUT(doc.root().size(), 3);
+    }
+    
+    DESC("Test pop method for object");
+    {
+        yyjson::MutableDocument doc("{\"a\": 1, \"b\": 2, \"c\": 3}");
+        COUT(doc.hasError(), false);
+        COUT(doc.root().isObject(), true);
+        COUT(doc.root().size(), 3);
+        
+        yyjson::KeyValue lastPair;
+        doc.root().pop(lastPair);
+        COUT(lastPair.isValid(), true);
+        COUT(yyjson::MutableValue(lastPair.key, doc.get()) | "", "c");
+        COUT(yyjson::MutableValue(lastPair.value, doc.get()) | 0, 3);
+        COUT(doc.root().size(), 2);
+        
+        doc.root().pop(lastPair);
+        COUT(lastPair.isValid(), true);
+        COUT(yyjson::MutableValue(lastPair.key, doc.get()) | "", "b");
+        COUT(yyjson::MutableValue(lastPair.value, doc.get()) | 0, 2);
+        COUT(doc.root().size(), 1);
+    }
+    
+    DESC("Test pop on empty containers");
+    {
+        yyjson::MutableDocument emptyArray("[]");
+        yyjson::MutableValue emptyResult(nullptr, nullptr);
+        emptyArray.root().pop(emptyResult);
+        COUT(!emptyResult, true);
+        
+        yyjson::MutableDocument emptyObject("{}");
+        yyjson::KeyValue emptyPair;
+        emptyObject.root().pop(emptyPair);
+        COUT(!emptyPair, true);
+    }
+}
+
+DEF_TAST(mutable_stream_operator, "test >> operator for pop functionality")
+{
+    DESC("Test >> operator for array");
+    {
+        yyjson::MutableDocument doc("[10, 20, 30]");
+        COUT(doc.hasError(), false);
+        
+        yyjson::MutableValue result(nullptr, nullptr);
+        doc.root() >> result;
+        COUT(result | 0, 30);
+        COUT(doc.root().size(), 2);
+        
+        doc.root() >> result;
+        COUT(result | 0, 20);
+        COUT(doc.root().size(), 1);
+        
+        doc.root() >> result;
+        COUT(result | 0, 10);
+        COUT(doc.root().size(), 0);
+        
+        // Pop from empty array
+        doc.root() >> result;
+        COUT(!result, true);
+    }
+    
+    DESC("Test >> operator for object");
+    {
+        yyjson::MutableDocument doc("{\"x\": 100, \"y\": 200, \"z\": 300}");
+        COUT(doc.hasError(), false);
+        
+        yyjson::KeyValue result;
+        doc.root() >> result;
+        COUT(result.isValid(), true);
+        COUT(yyjson::MutableValue(result.key, doc.get()) | "", "z");
+        COUT(yyjson::MutableValue(result.value, doc.get()) | 0, 300);
+        COUT(doc.root().size(), 2);
+        
+        doc.root() >> result;
+        COUT(result.isValid(), true);
+        COUT(yyjson::MutableValue(result.key, doc.get()) | "", "y");
+        COUT(yyjson::MutableValue(result.value, doc.get()) | 0, 200);
+        COUT(doc.root().size(), 1);
+        
+        doc.root() >> result;
+        COUT(result.isValid(), true);
+        COUT(yyjson::MutableValue(result.key, doc.get()) | "", "x");
+        COUT(yyjson::MutableValue(result.value, doc.get()) | 0, 100);
+        COUT(doc.root().size(), 0);
+        
+        // Pop from empty object
+        doc.root() >> result;
+        COUT(!result, true);
+    }
+}
