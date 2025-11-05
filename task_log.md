@@ -1775,3 +1775,46 @@ cd build && make -j4
 - push/pop 命名更符合容器操作语义
 - 完全向后兼容，不影响现有代码
 - 支持链式调用，提升代码表达能力
+
+---
+
+## 任务ID: 20251105-110233
+
+**需求ID**: 2025-11-05/1
+
+**任务内容**: 为 MutableValue 实现 clear 功能
+
+**实施步骤**:
+1. 查询 yyjson.h API，了解 clear 相关功能
+   - 发现 yyjson 提供 `yyjson_mut_arr_clear()` 和 `yyjson_mut_obj_clear()` 函数
+   - 其他类型需要通过 set 方法手动设置默认值
+
+2. 在 MutableValue 类内声明 clear() 方法
+   - 添加位置：include/xyjson.h 第 621 行
+
+3. 在类外实现 clear() 方法逻辑
+   - 数组：调用 yyjson_mut_arr_clear() 清空所有元素
+   - 对象：调用 yyjson_mut_obj_clear() 清空所有键值对
+   - 字符串：调用 set("") 设置为空字符串
+   - 整数类型：调用 set(0) 设置为 0
+   - 浮点数：调用 set(0.0) 设置为 0.0
+   - 不处理 null 和 bool 类型（无意义的"零"值）
+
+4. 添加单元测试验证功能
+   - 测试用例：mutable_clear
+   - 覆盖数组、对象、字符串、整数、浮点数、负数、大整数等类型
+   - 位置：utest/t_mutable.cpp 第 1124-1197 行
+
+5. 编译并测试
+   - 编译成功，无错误
+   - 运行 ./utxyjson --cout=silent，所有 58 个测试通过
+   - 单独运行 mutable_clear 测试，全部断言通过
+
+**完成状态**: ✅ 成功
+
+**相关文件**:
+- include/xyjson.h: 添加 clear() 方法声明和实现
+- utest/t_mutable.cpp: 添加 mutable_clear 测试用例
+
+---
+

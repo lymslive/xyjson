@@ -1120,3 +1120,78 @@ DEF_TAST(mutable_stream_operator, "test >> operator for pop functionality")
         COUT(!result, true);
     }
 }
+
+DEF_TAST(mutable_clear, "test clear functionality for MutableValue")
+{
+    DESC("Test clear for array");
+    {
+        yyjson::MutableDocument doc("[1, 2, 3, 4, 5]");
+        COUT(doc.hasError(), false);
+        COUT(doc.root().size(), 5);
+
+        doc.root().clear();
+        COUT(doc.root().size(), 0);
+        COUT(doc.root().toString(), "[]");
+    }
+
+    DESC("Test clear for object");
+    {
+        yyjson::MutableDocument doc("{\"a\": 1, \"b\": 2, \"c\": 3}");
+        COUT(doc.hasError(), false);
+        COUT(doc.root().size(), 3);
+
+        doc.root().clear();
+        COUT(doc.root().size(), 0);
+        COUT(doc.root().toString(), "{}");
+    }
+
+    DESC("Test clear for string");
+    {
+        yyjson::MutableDocument doc("\"hello world\"");
+        COUT(doc.hasError(), false);
+        COUT(doc.root() | "", "hello world");
+
+        doc.root().clear();
+        COUT(doc.root() | "", "");
+    }
+
+    DESC("Test clear for integer");
+    {
+        yyjson::MutableDocument doc("42");
+        COUT(doc.hasError(), false);
+        COUT(doc.root() | 0, 42);
+
+        doc.root().clear();
+        COUT(doc.root() | 0, 0);
+    }
+
+    DESC("Test clear for real number");
+    {
+        yyjson::MutableDocument doc("3.14159");
+        COUT(doc.hasError(), false);
+        COUT(doc.root() | 0.0, 3.14159);
+
+        doc.root().clear();
+        COUT(doc.root() | 0.0, 0.0);
+    }
+
+    DESC("Test clear for negative integer");
+    {
+        yyjson::MutableDocument doc("-100");
+        COUT(doc.hasError(), false);
+        COUT(doc.root() | 0, -100);
+
+        doc.root().clear();
+        COUT(doc.root() | 0, 0);
+    }
+
+    DESC("Test clear for large integer");
+    {
+        yyjson::MutableDocument doc("999999999999");
+        COUT(doc.hasError(), false);
+        COUT(doc.root() | 0UL, 999999999999UL);
+
+        doc.root().clear();
+        COUT(doc.root() | 0L, 0L);
+    }
+}

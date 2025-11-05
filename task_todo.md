@@ -1391,6 +1391,18 @@ Value/MutableValue 父类中实现。父类中再增加 array()/object() 方法�
 
 ### DONE: 20251104-172500
 
+## TODO:2025-11-05/1 MutableValue 实现 clear 功能
+
+请查询 yyjson.h api 实现对不同类型的 json 的 clear 逻辑:
+- 数组与对象，子结点清空，长度置 0
+- 字符串，等效于存空字符串
+- 整数，修改为 0
+- 浮点实数，修改为 0.0
+
+clear 方法在类内声明，类外实现.
+
+### DONE: 20251105-110233
+
 ## TODO: 优化文档示例代码管理同步单元测试
 
 - 针对文档：READE.md docs/usage.md

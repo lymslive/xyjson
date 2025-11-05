@@ -617,6 +617,9 @@ public:
     // Array/Object size and access by index or key
     size_t size() const;
 
+    // Clear content based on type
+    void clear();
+
     MutableValue index(size_t idx) const;
     MutableValue index(int idx) const { return index(static_cast<size_t>(idx)); }
 
@@ -2183,6 +2186,28 @@ inline size_t MutableValue::size() const
     if (yyjson_mut_is_arr(m_val)) return yyjson_mut_arr_size(m_val);
     if (yyjson_mut_is_obj(m_val)) return yyjson_mut_obj_size(m_val);
     return 0;
+}
+
+inline void MutableValue::clear()
+{
+    if (!m_val || !m_doc) return;
+
+    if (yyjson_mut_is_arr(m_val)) {
+        yyjson_mut_arr_clear(m_val);
+    }
+    else if (yyjson_mut_is_obj(m_val)) {
+        yyjson_mut_obj_clear(m_val);
+    }
+    else if (yyjson_mut_is_str(m_val)) {
+        set("");
+    }
+    else if (yyjson_mut_is_int(m_val) || yyjson_mut_is_sint(m_val) || yyjson_mut_is_uint(m_val)) {
+        set(0);
+    }
+    else if (yyjson_mut_is_real(m_val)) {
+        set(0.0);
+    }
+    // Note: null and bool types are not cleared as they have no meaningful "zero" value
 }
 
 inline MutableValue MutableValue::index(size_t idx) const
