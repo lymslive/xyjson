@@ -1129,10 +1129,10 @@ public:
     using difference_type = std::ptrdiff_t;
     using pointer = MutableValue;
     using reference = MutableValue;
-    
+
     MutableArrayIterator() : m_doc(nullptr), m_iter({0}) {}
     explicit MutableArrayIterator(yyjson_mut_val* root, yyjson_mut_doc* doc);
-    
+
     // Check if iterator is valid (current element exists)
     bool isValid() const { return m_iter.idx < m_iter.max; }
     explicit operator bool() const { return isValid(); }
@@ -1155,7 +1155,10 @@ public:
     // Get underlying C API iterator and value structure pointer
     yyjson_mut_arr_iter* c_iter() { return &m_iter; }
     const yyjson_mut_arr_iter* c_iter() const { return &m_iter; }
-    yyjson_mut_val* c_val() const { return isValid() && m_iter.cur ? m_iter.cur->next : nullptr; }
+    yyjson_mut_val* c_val() const {
+        // Rewrite: return cur directly (current element), not cur->next
+        return (m_iter.idx < m_iter.max && m_iter.cur) ? m_iter.cur : nullptr;
+    }
 
     // Get current Proxy Value
     MutableValue value() const { return MutableValue(c_val(), m_doc); }
@@ -2905,12 +2908,20 @@ inline MutableArrayIterator::MutableArrayIterator(yyjson_mut_val* root, yyjson_m
 {
     if (root) {
         yyjson_mut_arr_iter_init(root, &m_iter);
+        if (m_iter.idx < m_iter.max) {
+            m_iter.pre = (yyjson_mut_val*)m_iter.arr->uni.ptr;  // prev = tail element
+            m_iter.cur = m_iter.pre->next;                      // cur = first element
+        }
     }
 }
 
 inline MutableArrayIterator& MutableArrayIterator::next()
 {
-    yyjson_mut_arr_iter_next(const_cast<yyjson_mut_arr_iter*>(&m_iter));
+    if (m_iter.idx < m_iter.max) {
+        m_iter.pre = m_iter.cur;          // current element becomes previous
+        m_iter.cur = m_iter.cur->next;    // advance to next element
+        m_iter.idx++;                     // increment index
+    }
     return *this;
 }
 
@@ -2918,6 +2929,10 @@ inline MutableArrayIterator& MutableArrayIterator::begin()
 {
     if (m_iter.arr) {
         yyjson_mut_arr_iter_init(m_iter.arr, const_cast<yyjson_mut_arr_iter*>(&m_iter));
+        if (m_iter.idx < m_iter.max) {
+            m_iter.pre = (yyjson_mut_val*)m_iter.arr->uni.ptr;  // prev = tail element
+            m_iter.cur = m_iter.pre->next;                      // cur = first element
+        }
     }
     return *this;
 }
@@ -2932,47 +2947,33 @@ inline MutableArrayIterator& MutableArrayIterator::advance(size_t steps)
 
 inline bool MutableArrayIterator::insert(yyjson_mut_val* val)
 {
-    // alow idx == max to insert at the end.
+    // allow idx == max to insert at the end
     if (!val || !m_iter.arr || m_iter.idx > m_iter.max) {
         return false;
     }
-#if 0    
-    // Slow version: two linear scan
-    // Save current index before insertion
-    size_t current_idx = m_iter.idx;
-    if (yyjson_mut_arr_insert(m_iter.arr, val, current_idx)) {
-        rewind();
-        // keep interator point to newly inserted element
-        advance(current_idx);
-        return true;
-    }
-    return false;
-#else
-    // refer to: yyjson_mut_arr_insert Implementation
 
     if (m_iter.max == 0) {
-        // first element in circle link
+        // first element, form self-loop
         val->next = val;
+        m_iter.pre = val;
         m_iter.cur = val;
         m_iter.arr->uni.ptr = val;
     }
     else {
-        // C++ iterator `c_key` is `m_iter.cur->next`, so insert new val as:
-        // m_iter.cur->next -> (new val) -> origianl next
-        // m_iter.cur not changed
-        yyjson_mut_val *prev = m_iter.cur;
-        yyjson_mut_val *next = m_iter.cur->next;
+        // insert before current element (iterator points to new element)
+        yyjson_mut_val *prev = m_iter.pre;
+        yyjson_mut_val *next = m_iter.cur;
         prev->next = val;
         val->next = next;
+        m_iter.cur = val;
 
-        // insert to the end, update arr point to end
+        // if inserting at the end, update arr->uni.ptr
         if (m_iter.idx == m_iter.max) {
             m_iter.arr->uni.ptr = val;
         }
     }
     unsafe_yyjson_set_len(m_iter.arr, ++m_iter.max);
     return true;
-#endif
 }
 
 template<typename T>
@@ -2986,13 +2987,24 @@ inline bool MutableArrayIterator::insert(T&& value)
 /// Remove current element and return it
 inline MutableValue MutableArrayIterator::remove()
 {
-    // Note: yyjson's remove function works on current position, but our iterator
-    // is one step ahead due to c_val() returning m_iter.cur->next
-    // We need to first move to the next element to align with yyjson's semantics
     yyjson_mut_val* removed_val = nullptr;
-    if (isValid()) {
-        next();
-        removed_val = yyjson_mut_arr_iter_remove(&m_iter);
+    if (isValid() && m_iter.cur) {
+        removed_val = m_iter.cur;
+
+        if (m_iter.max == 1) {
+            // remove the last element
+            m_iter.cur = nullptr;
+            m_iter.pre = nullptr;
+            m_iter.arr->uni.ptr = nullptr;
+        }
+        else {
+            // remove current element, let cur point to next element
+            m_iter.pre->next = m_iter.cur->next;
+            m_iter.cur = m_iter.pre->next;
+        }
+
+        m_iter.max--;
+        unsafe_yyjson_set_len(m_iter.arr, m_iter.max);
     }
     return MutableValue(removed_val, m_doc);
 }
