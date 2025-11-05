@@ -107,3 +107,8 @@ set(TEST_SOURCES
 add_executable(utxyjson ${TEST_SOURCES})
 target_link_libraries(utxyjson PRIVATE xyjson couttast)
 
+# ------------------------------------------------------------ #
+# Examples:
+
+add_subdirectory(examples)
+

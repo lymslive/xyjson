@@ -1818,3 +1818,58 @@ cd build && make -j4
 
 ---
 
+## 任务ID: 20251105-140215
+
+**需求ID**: 2025-11-05/2
+
+**任务内容**: 增加一些 example 示例应用
+
+**实施步骤**:
+1. 分析 xyjson 核心特点和 API，设计第三个示例（JSON 数据转换器）
+
+2. 创建 examples/ 目录和 CMake 构建脚本
+   - examples/CMakeLists.txt：构建三个示例可执行文件
+   - examples/README.md：详细的示例说明文档
+
+3. 实现示例一：jp_jq.cpp（极简版 jq）
+   - 支持从文件或 stdin 读取 JSON
+   - 支持路径查询，如 `./jp file.json?/users[0]/name`
+   - 演示路径操作符（/）和类型提取（|）的使用
+
+4. 实现示例二：struct_map.cpp（结构体与 Json 映射）
+   - 定义 User 结构体，包含多种数据类型
+   - 实现 fromJson 和 toJson 方法
+   - 演示反序列化、业务处理、序列化完整流程
+   - 展示操作符重载的实际应用
+
+5. 实现示例三：json_transformer.cpp（JSON 数据转换器）
+   - 支持 JSON 结构转换和数据分析
+   - 支持路径过滤、摘要生成
+   - 演示迭代器使用和动态修改
+
+6. 更新根目录 CMakeLists.txt
+   - 添加 `add_subdirectory(examples)` 集成构建
+
+7. 修复编译问题
+   - 修正 toJson 方法中的 [] 操作符使用
+   - 修正字符串处理逻辑
+
+8. 编译并测试所有示例程序
+   - 所有示例编译成功
+   - 实际运行测试验证功能正常
+
+**完成状态**: ✅ 成功
+
+**相关文件**:
+- examples/jp_jq.cpp：jq 风格的 JSON 查询工具
+- examples/struct_map.cpp：结构体与 JSON 映射示例
+- examples/json_transformer.cpp：JSON 数据转换工具
+- examples/CMakeLists.txt：示例构建脚本
+- examples/README.md：详细使用说明
+- CMakeLists.txt：集成 examples 子目录
+
+**演示功能**:
+- jp：可以查询 JSON 并提取特定路径的值
+- struct_map：完整展示结构体序列化/反序列化
+- json_transformer：演示数据转换和分析功能
+
