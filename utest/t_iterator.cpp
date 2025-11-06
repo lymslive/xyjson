@@ -850,6 +850,7 @@ DEF_TAST(iterator_fast_seek, "test fast seek functionality with / operator")
         
         // Iterator moved beyond end after last key
         COUT(iter.isValid(), false); // Iterator is now beyond end
+        COUT(iter.index(), 3);
         
         // Test seek with non-existing key
         auto noneValue = iter.seek("missing");
@@ -857,11 +858,21 @@ DEF_TAST(iterator_fast_seek, "test fast seek functionality with / operator")
         
         // Test that iterator position is updated after seek
         COUT(iter.isValid(), false); // Iterator remains beyond end
+        COUT(iter.index(), 3);
         
         // Reset iterator to test from beginning
         iter.begin();
         COUT(iter.isValid(), true);
         COUT(std::string(-iter ? -iter : ""), "id"); // Back to first key
+
+        // Test seek with disordered key
+        statusValue = iter / statusKey;
+        COUT(std::string(statusValue | ""), "active");
+        COUT(std::string(-iter ? -iter : ""), "score");
+
+        idValue = iter / "id";
+        COUT(idValue.toInteger(), 123);
+        COUT(std::string(-iter ? -iter : ""), "status");
     }
     
     DESC("test array iterator doesn't support fast seek");

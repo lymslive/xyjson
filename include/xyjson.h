@@ -1156,8 +1156,7 @@ public:
     yyjson_mut_arr_iter* c_iter() { return &m_iter; }
     const yyjson_mut_arr_iter* c_iter() const { return &m_iter; }
     yyjson_mut_val* c_val() const {
-        // Rewrite: return cur directly (current element), not cur->next
-        return (m_iter.idx < m_iter.max && m_iter.cur) ? m_iter.cur : nullptr;
+        return isValid() ? m_iter.cur : nullptr;
     }
 
     // Get current Proxy Value
@@ -1247,9 +1246,11 @@ public:
     yyjson_mut_obj_iter* c_iter() { return &m_iter; }
     const yyjson_mut_obj_iter* c_iter() const { return &m_iter; }
     yyjson_mut_val* c_key() const {
-        return isValid() && m_iter.cur && m_iter.cur->next ? m_iter.cur->next->next : nullptr;
+        return isValid() ? m_iter.cur : nullptr;
     }
-    yyjson_mut_val* c_val() const { return yyjson_mut_obj_iter_get_val(c_key()); }
+    yyjson_mut_val* c_val() const {
+        return (isValid() && m_iter.cur) ? m_iter.cur->next : nullptr;
+    }
 
     // Get current key/val Proxy Value
     MutableValue key() const { return MutableValue(c_key(), m_doc); }
@@ -3017,12 +3018,21 @@ inline MutableObjectIterator::MutableObjectIterator(yyjson_mut_val* root, yyjson
 {
     if (root) {
         yyjson_mut_obj_iter_init(root, &m_iter);
+        if (m_iter.idx < m_iter.max) {
+            m_iter.pre = (yyjson_mut_val*)m_iter.obj->uni.ptr;  // prev = tail key
+            m_iter.cur = m_iter.pre->next->next;                // cur = first key
+        }
     }
 }
 
 inline MutableObjectIterator& MutableObjectIterator::next()
 {
-    yyjson_mut_obj_iter_next(const_cast<yyjson_mut_obj_iter*>(&m_iter));
+    // directly operate on pointers, advance by two steps (key->val->next key)
+    if (m_iter.idx < m_iter.max) {
+        m_iter.pre = m_iter.cur;                   // current key becomes previous
+        m_iter.cur = m_iter.cur->next->next;       // advance to next key (skip value)
+        m_iter.idx++;                              // increment index
+    }
     return *this;
 }
 
@@ -3030,6 +3040,10 @@ inline MutableObjectIterator& MutableObjectIterator::begin()
 {
     if (m_iter.obj) {
         yyjson_mut_obj_iter_init(m_iter.obj, const_cast<yyjson_mut_obj_iter*>(&m_iter));
+        if (m_iter.idx < m_iter.max) {
+            m_iter.pre = (yyjson_mut_val*)m_iter.obj->uni.ptr;  // prev = tail key
+            m_iter.cur = m_iter.pre->next->next;                // cur = first key
+        }
     }
     return *this;
 }
@@ -3059,8 +3073,29 @@ inline MutableObjectIterator& MutableObjectIterator::advance(const char* key)
 // MutableObjectIterator fast seek implementation using yyjson_mut_obj_iter_getn
 inline MutableValue MutableObjectIterator::seek(const char* key, size_t key_len)
 {
-    yyjson_mut_val* val = yyjson_mut_obj_iter_getn(&m_iter, key, key_len);
-    return MutableValue(val, m_doc);
+    // Rewrite: adapt from yyjson_mut_obj_iter_getn to our iterator semantics
+    if (!key || key_len == 0 || !m_iter.obj || m_iter.max == 0) {
+        return MutableValue();
+    }
+
+    yyjson_mut_val* cur = m_iter.cur;
+    yyjson_mut_val* pre = m_iter.pre;
+
+    for (size_t i = 0; i < m_iter.max; ++i) {
+        if (unsafe_yyjson_equals_strn(cur, key, key_len)) {
+            m_iter.pre = cur;
+            m_iter.cur = cur->next->next;
+            m_iter.idx += i + 1;
+            if (m_iter.idx > m_iter.max) {
+                m_iter.idx -= m_iter.max;  // wrap around
+            }
+            return MutableValue(cur->next, m_doc);
+        }
+        pre = cur;
+        cur = cur->next->next;
+    }
+
+    return MutableValue();  // not found
 }
 
 // MutableObjectIterator insert implementation
@@ -3070,10 +3105,8 @@ inline bool MutableObjectIterator::insert(yyjson_mut_val* key, yyjson_mut_val* v
         return false;
     }
 
-    // O(1) insertion: direct circular linked list manipulation
     // Insert new key-value pair at current iterator position
     // The structure is: ... -> pre_key -> pre_val -> (key -> val) -> cur_key -> cur_val -> ...
-    // pre_key is actual m_iter.cur in C++ iterator.
 
     if (m_iter.max == 0) { // insert the first kv
         key->next = val;
@@ -3082,12 +3115,12 @@ inline bool MutableObjectIterator::insert(yyjson_mut_val* key, yyjson_mut_val* v
         m_iter.obj->uni.ptr = key;  // Update object tail pointer (last key)
     }
     else {
-        yyjson_mut_val* prev_key = m_iter.cur;
+        yyjson_mut_val* prev_key = m_iter.pre;
         yyjson_mut_val* prev_val = prev_key->next;
-        yyjson_mut_val* next_key = prev_val->next;
         prev_val->next = key;
         key->next = val;
-        val->next = next_key;
+        val->next = m_iter.cur;
+        m_iter.cur = key;
 
         if (m_iter.idx == m_iter.max) { // insert at the end
             m_iter.obj->uni.ptr = key;  // keep obj point to end key
@@ -3103,7 +3136,7 @@ template<typename K, typename V>
 inline bool MutableObjectIterator::insert(K&& key, V&& value)
 {
     // Create key and value from template types
-    yyjson_mut_val* key_val = util::create(m_doc, std::forward<K>(key));
+    yyjson_mut_val* key_val = util::createKey(m_doc, std::forward<K>(key));
     yyjson_mut_val* value_val = util::create(m_doc, std::forward<V>(value));
     return insert(key_val, value_val);
 }
@@ -3122,22 +3155,36 @@ inline bool MutableObjectIterator::insert(KeyValue&& kv_pair)
 // MutableObjectIterator remove implementation
 inline KeyValue MutableObjectIterator::remove()
 {
-    if (!isValid()) {
-        return KeyValue();
+    yyjson_mut_val* removed_key = nullptr;
+    yyjson_mut_val* removed_val = nullptr;
+
+    if (isValid() && m_iter.cur) {
+        removed_key = m_iter.cur;
+        removed_val = m_iter.cur->next;
+
+        if (m_iter.max == 1) {
+            // remove the last key-value pair
+            m_iter.cur = nullptr;
+            m_iter.pre = nullptr;
+            m_iter.obj->uni.ptr = nullptr;
+        }
+        else {
+            // remove current key-value pair from circular linked list
+            // Kprev -> Vprev -> Kcur -> Vcur -> Knext -> Vnext -> ...
+            // becomes: Kprev -> Vprev -> Knext -> Vnext -> ...
+            yyjson_mut_val *key_prev = m_iter.pre;
+            yyjson_mut_val *val_prev = key_prev->next;
+            yyjson_mut_val *key_next = m_iter.cur->next->next;
+            val_prev->next = key_next;
+
+            // move iterator to next key
+            m_iter.cur = key_next;
+        }
+
+        m_iter.max--;
+        unsafe_yyjson_set_len(m_iter.obj, m_iter.max);
     }
-    
-    // Save current key and value before removal
-    yyjson_mut_val* current_key = c_key();
-    yyjson_mut_val* current_val = c_val();
-    
-    // Move to next before removal (yyjson API requirement)
-    next();
-    
-    // Use yyjson's remove function
-    yyjson_mut_obj_iter_remove(&m_iter);
-    
-    // Return the removed key-value pair
-    return KeyValue(current_key, current_val);
+    return KeyValue(removed_key, removed_val);
 }
 
 /* @Part 5: Operator Interface */

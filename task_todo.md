@@ -1468,6 +1468,18 @@ xyjson 调用的 C api 函数实现，在 yyjson.h 中都能找到，可深入�
 
 ### DONE: 20251105-155210
 
+## TODO:2025-11-06/1 可写对象迭代器优化 next 等方法
+
+### REF: 2025-11-05/3
+在上个任务中，制订了重写方案: doing_plan.tmp/2025-11-05-3-self-implement.md
+
+已完成 MutableArrayIterator 重构，请参考再完成 MutableObjectIterator 的重构。
+
+注意可写对象与可写数组的环形链表结构的区别，可写对象的键值对是交替链在一起的，
+初始头指针指向最后一个键，每次前进一步是沿 next 指针移动两次。
+
+### DONE: 20251106-084935
+
 ## TODO: 优化文档示例代码管理同步单元测试
 
 - 针对文档：READE.md docs/usage.md
