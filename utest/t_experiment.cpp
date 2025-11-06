@@ -136,11 +136,12 @@ DEF_TAST(experiment_docx, "test operator usage")
 {
     std::string jsonText = R"({"name": "Alice", "age": 30})";
     yyjson::Document doc(jsonText);
-    
+
     auto nameNode = doc["name"];
     COUT(nameNode | "", "Alice");
     COUT(doc["age"] | 0, 30);
 
+#ifndef XYJSON_DISABLE_MUTABLE
     auto mutDoc = ~doc;
     auto age = mutDoc / "age";
     COUT(age & 0, true);
@@ -151,6 +152,7 @@ DEF_TAST(experiment_docx, "test operator usage")
     COUT(age & 0, true);
     COUT(age & uint64_t(0), false);
     COUT(age & int64_t(0), true);
+#endif
 }
 
 #if 0

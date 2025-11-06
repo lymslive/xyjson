@@ -21,65 +21,76 @@
 
 /* Table of Content (TOC) */
 /* ======================================================================== */
-/* Part 1: Front Definitions                                       Line: 79 */
-/*   Section 1.1: Forward Class Declarations                       Line: 82 */
-/*   Section 1.2: Type and Operator Constants                     Line: 102 */
-/*   Section 1.3: Type Traits                                     Line: 145 */
-/* Part 2: Class Definitions                                      Line: 249 */
-/*   Section 2.1: Read-only Json Model                            Line: 252 */
-/*   Section 2.2: Mutable Json Model                              Line: 505 */
-/*   Section 2.3: Helper Class for Mutable Json                   Line: 891 */
-/*   Section 2.4: Iterator Json                                   Line: 936 */
-/*   Section 2.5: Container-specific Wrapper Classes             Line: 1298 */
-/* Part 3: Non-Class Functions                                   Line: 1389 */
-/*   Section 3.1: Underlying mut_val Creation                    Line: 1395 */
-/*   Section 3.2: Conversion Helper Functions                    Line: 1587 */
-/* Part 4: Class Implementations                                 Line: 1698 */
-/*   Section 4.1: Value Methods                                  Line: 1701 */
-/*     Group 4.1.1: get and getor                                Line: 1704 */
-/*     Group 4.1.2: size and index/path                          Line: 1810 */
-/*     Group 4.1.3: create iterator                              Line: 1843 */
-/*     Group 4.1.4: others                                       Line: 1899 */
-/*   Section 4.2: Document Methods                               Line: 1949 */
-/*     Group 4.2.1: primary manage                               Line: 1952 */
-/*     Group 4.2.2: read and write                               Line: 1984 */
-/*   Section 4.3: MutableValue Methods                           Line: 2069 */
-/*     Group 4.3.1: get and getor                                Line: 2072 */
-/*     Group 4.3.2: size and index/path                          Line: 2184 */
-/*     Group 4.3.3: assignment set                               Line: 2258 */
-/*     Group 4.3.4: array and object add                         Line: 2380 */
-/*     Group 4.3.5: smart input and tag                          Line: 2433 */
-/*     Group 4.3.6: create iterator                              Line: 2543 */
-/*     Group 4.3.7: others                                       Line: 2599 */
-/*   Section 4.4: MutableDocument Methods                        Line: 2649 */
-/*     Group 4.4.1: primary manage                               Line: 2652 */
-/*     Group 4.4.2: read and write                               Line: 2699 */
-/*     Group 4.4.3: create mutable value                         Line: 2796 */
-/*   Section 4.5: ArrayIterator Methods                          Line: 2819 */
-/*   Section 4.6: ObjectIterator Methods                         Line: 2852 */
-/*   Section 4.7: MutableArrayIterator Methods                   Line: 2905 */
-/*   Section 4.8: MutableObjectIterator Methods                  Line: 3014 */
-/* Part 5: Operator Interface                                    Line: 3190 */
-/*   Section 5.1: Primary Path Access                            Line: 3193 */
-/*   Section 5.2: Conversion Unary Operator                      Line: 3298 */
-/*   Section 5.3: Comparison Operator                            Line: 3344 */
-/*   Section 5.4: Create and Bind KeyValue                       Line: 3430 */
-/*   Section 5.5: Stream and Input Operator                      Line: 3459 */
-/*   Section 5.6: Iterator Creation and Operation                Line: 3526 */
-/*   Section 5.7: Document Forward Root Operator                 Line: 3661 */
-/*   Section 5.8: User-defined Literal Operator                  Line: 3726 */
-/* Part 6: Last Definitions                                      Line: 3743 */
+/* Part 1: Front Definitions                                       Line: 78 */
+/*   Section 1.1: Conditional Compilation Macros                   Line: 81 */
+/*   Section 1.2: Forward Class Declarations                       Line: 93 */
+/*   Section 1.2: Type and Operator Constants                     Line: 113 */
+/*   Section 1.3: Type Traits                                     Line: 156 */
+/* Part 2: Class Definitions                                      Line: 260 */
+/*   Section 2.1: Read-only Json Model                            Line: 263 */
+/*   Section 2.2: Mutable Json Model                              Line: 516 */
+/*   Section 2.3: Helper Class for Mutable Json                   Line: 908 */
+/*   Section 2.4: Iterator Json                                   Line: 955 */
+/*   Section 2.5: Container-specific Wrapper Classes             Line: 1320 */
+/* Part 3: Non-Class Functions                                   Line: 1405 */
+/*   Section 3.1: Underlying mut_val Creation                    Line: 1411 */
+/*   Section 3.2: Conversion Helper Functions                    Line: 1607 */
+/* Part 4: Class Implementations                                 Line: 1718 */
+/*   Section 4.1: Value Methods                                  Line: 1721 */
+/*     Group 4.1.1: get and getor                                Line: 1724 */
+/*     Group 4.1.2: size and index/path                          Line: 1830 */
+/*     Group 4.1.3: create iterator                              Line: 1863 */
+/*     Group 4.1.4: others                                       Line: 1919 */
+/*   Section 4.2: Document Methods                               Line: 1969 */
+/*     Group 4.2.1: primary manage                               Line: 1972 */
+/*     Group 4.2.2: read and write                               Line: 2006 */
+/*   Section 4.3: MutableValue Methods                           Line: 2092 */
+/*     Group 4.3.1: get and getor                                Line: 2095 */
+/*     Group 4.3.2: size and index/path                          Line: 2207 */
+/*     Group 4.3.3: assignment set                               Line: 2281 */
+/*     Group 4.3.4: array and object add                         Line: 2403 */
+/*     Group 4.3.5: smart input and tag                          Line: 2456 */
+/*     Group 4.3.6: create iterator                              Line: 2570 */
+/*     Group 4.3.7: others                                       Line: 2626 */
+/*   Section 4.4: MutableDocument Methods                        Line: 2676 */
+/*     Group 4.4.1: primary manage                               Line: 2679 */
+/*     Group 4.4.2: read and write                               Line: 2726 */
+/*     Group 4.4.3: create mutable value                         Line: 2823 */
+/*   Section 4.5: ArrayIterator Methods                          Line: 2848 */
+/*   Section 4.6: ObjectIterator Methods                         Line: 2881 */
+/*   Section 4.7: MutableArrayIterator Methods                   Line: 2935 */
+/*   Section 4.8: MutableObjectIterator Methods                  Line: 3044 */
+/* Part 5: Operator Interface                                    Line: 3222 */
+/*   Section 5.1: Primary Path Access                            Line: 3225 */
+/*   Section 5.2: Conversion Unary Operator                      Line: 3332 */
+/*   Section 5.3: Comparison Operator                            Line: 3380 */
+/*   Section 5.4: Create and Bind KeyValue                       Line: 3466 */
+/*   Section 5.5: Stream and Input Operator                      Line: 3498 */
+/*   Section 5.6: Iterator Creation and Operation                Line: 3569 */
+/*   Section 5.7: Document Forward Root Operator                 Line: 3708 */
+/*   Section 5.8: User-defined Literal Operator                  Line: 3773 */
+/* Part 6: Last Definitions                                      Line: 3790 */
 /* ======================================================================== */
 
 namespace yyjson
 {
 
-// moved to trait namespace below
-
 /* @Part 1: Front Definitions */
 /* ======================================================================== */
 
-/* @Section 1.1: Forward Class Declarations */
+/* @Section 1.1: Conditional Compilation Macros */
+/* ------------------------------------------------------------------------ */
+// Define these macros to disable specific features and reduce binary size
+
+// Disable chained input like "<< key << value"
+#ifndef XYJSON_DISABLE_CHAINED_INPUT
+#endif
+
+// Disable all mutable (writable) JSON features
+#ifndef XYJSON_DISABLE_MUTABLE
+#endif
+
+/* @Section 1.2: Forward Class Declarations */
 /* ------------------------------------------------------------------------ */
 
 class Value;
@@ -504,11 +515,12 @@ private:
 
 /* @Section 2.2: Mutable Json Model */
 /* ------------------------------------------------------------------------ */
+#ifndef XYJSON_DISABLE_MUTABLE
 
-/** 
+/**
  * @brief Writable wrapper for yyjson_mut_val
  * Provides read-write access to yyjson values with operator overloading
- * 
+ *
  * Supported operators:
  * - Access: json[index] (index access), json / path (path access)
  * - Unary: +json (convert to number), -json (convert to string)
@@ -516,7 +528,7 @@ private:
  * - Type: json & type (check type)
  * - Assignment: json = value (set value)
  * - Pipe: json | func (custom transformation)
- * - Key-value: json * key, key * json (KeyValue creation) 
+ * - Key-value: json * key, key * json (KeyValue creation)
  * - Input: json << value (smart input)
  * - Scalar output: json >> value
  * - Steam output: os << json
@@ -740,12 +752,14 @@ public:
     MutableValue& push(KeyValue&& kv);
 
     // Push pending key, only support string type.
+#ifndef XYJSON_DISABLE_CHAINED_INPUT
     template <typename keyT>
     bool pushKey(keyT&& key);
 
     // Push value after pending key.
     template <typename T>
     bool pushValue(T&& value);
+#endif
 
     // Pop methods for removing elements from containers
     MutableValue& pop(MutableValue& result);
@@ -784,9 +798,11 @@ private:
     yyjson_mut_val* m_val = nullptr;
     yyjson_mut_doc* m_doc = nullptr; // Needed for memory allocation
 
+#ifndef XYJSON_DISABLE_CHAINED_INPUT
     // For chained operator << key << value, save the key
     yyjson_mut_val* m_pendingKey = nullptr;
-    
+#endif
+
     friend class MutableDocument;
 };
 
@@ -887,9 +903,11 @@ public:
 private:
     yyjson_mut_doc* m_doc = nullptr;
 };
+#endif // XYJSON_DISABLE_MUTABLE
 
 /* @Section 2.3: Helper Class for Mutable Json */
 /* ------------------------------------------------------------------------ */
+#ifndef XYJSON_DISABLE_MUTABLE
 
 /// Helper class to optimize create json node from string literal.
 struct StringRef
@@ -932,6 +950,7 @@ struct KeyValue
     explicit operator bool() const { return isValid(); }
     bool operator!() const { return !isValid(); }
 };
+#endif // XYJSON_DISABLE_MUTABLE
 
 /* @Section 2.4: Iterator Json */
 /* ------------------------------------------------------------------------ */
@@ -1103,6 +1122,7 @@ private:
     yyjson_obj_iter m_iter;
 };
 
+#ifndef XYJSON_DISABLE_MUTABLE
 /** 
  * @brief Mutable iterator for JSON array elements
  * Provides efficient iteration over mutable array elements with write access
@@ -1295,6 +1315,8 @@ private:
     yyjson_mut_doc* m_doc = nullptr;
 };
 
+#endif // XYJSON_DISABLE_MUTABLE
+
 /* @Section 2.5: Container-specific Wrapper Classes */
 /* ------------------------------------------------------------------------ */
 
@@ -1310,9 +1332,7 @@ public:
     ConstArray() : Value() {}
     explicit ConstArray(const Value& val) : Value(val) 
     {
-        if (!val.isArray()) {
-            set(nullptr); // Invalidate if not an array
-        }
+        if (!val.isArray()) { set(nullptr); } // Invalidate if not an array
     }
     
     // Standard iterator interface
@@ -1332,9 +1352,7 @@ public:
     ConstObject() : Value() {}
     explicit ConstObject(const Value& val) : Value(val) 
     {
-        if (!val.isObject()) {
-            set(nullptr); // Invalidate if not an object
-        }
+        if (!val.isObject()) { set(nullptr); } // Invalidate if not an object
     }
     
     // Standard iterator interface
@@ -1342,6 +1360,7 @@ public:
     iterator end() const { return Value::endObject(); }
 };
 
+#ifndef XYJSON_DISABLE_MUTABLE
 /**
  * @brief Array-specific wrapper for MutableValue that provides standard iterator interface
  * Provides begin() and end() methods for standard C++ iteration
@@ -1354,9 +1373,7 @@ public:
     MutableArray() : MutableValue() {}
     explicit MutableArray(const MutableValue& val) : MutableValue(val) 
     {
-        if (!val.isArray()) {
-            set(nullptr); // Invalidate if not an array
-        }
+        if (!val.isArray()) { set(nullptr); } // Invalidate if not an array
     }
     
     // Standard iterator interface
@@ -1376,15 +1393,14 @@ public:
     MutableObject() : MutableValue() {}
     explicit MutableObject(const MutableValue& val) : MutableValue(val) 
     {
-        if (!val.isObject()) {
-            set(nullptr); // Invalidate if not an object
-        }
+        if (!val.isObject()) { set(nullptr); } // Invalidate if not an object
     }
     
     // Standard iterator interface
     iterator begin() const { return MutableValue::beginObject(); }
     iterator end() const { return MutableValue::endObject(); }
 };
+#endif // XYJSON_DISABLE_MUTABLE
 
 /* @Part 3: Non-Class Functions */
 /* ======================================================================== */
@@ -1394,6 +1410,8 @@ namespace util
 
 /* @Section 3.1: Underlying mut_val Creation */
 /* ------------------------------------------------------------------------ */
+
+#ifndef XYJSON_DISABLE_MUTABLE
 
 inline yyjson_mut_val* create(yyjson_mut_doc* doc, std::nullptr_t = nullptr)
 {
@@ -1583,6 +1601,8 @@ inline yyjson_mut_val* createKey(yyjson_mut_doc* doc, MutableValue&& key)
     }
     return nullptr;
 }
+
+#endif // XYJSON_DISABLE_MUTABLE
 
 /* @Section 3.2: Conversion Helper Functions */
 /* ------------------------------------------------------------------------ */
@@ -1971,15 +1991,17 @@ inline void Document::free()
     }
 }
 
+#ifndef XYJSON_DISABLE_MUTABLE
 inline MutableDocument Document::mutate() const
 {
     if (!isValid()) {
         return MutableDocument((yyjson_mut_doc*)nullptr);
     }
-    
+
     yyjson_mut_doc* mut_doc = yyjson_doc_mut_copy(m_doc, nullptr);
     return MutableDocument(mut_doc);
 }
+#endif
 
 /* @Group 4.2.2: read and write */
 /* ************************************************************************ */
@@ -2066,6 +2088,7 @@ inline bool Document::writeFile(const char* path) const
     return result;
 }
 
+#ifndef XYJSON_DISABLE_MUTABLE
 /* @Section 4.3: MutableValue Methods */
 /* ------------------------------------------------------------------------ */
 
@@ -2467,6 +2490,7 @@ inline MutableValue& MutableValue::push(KeyValue&& kv)
     return *this;
 }
 
+#ifndef XYJSON_DISABLE_CHAINED_INPUT
 template <typename keyT>
 inline bool MutableValue::pushKey(keyT&& key)
 {
@@ -2475,7 +2499,7 @@ inline bool MutableValue::pushKey(keyT&& key)
         keyNode = nullptr;
         return false;
     }
-    
+
     m_pendingKey = keyNode;
     return true;
 }
@@ -2492,6 +2516,7 @@ inline bool MutableValue::pushValue(T&& value)
     m_pendingKey = nullptr;
     return true;
 }
+#endif
 
 // General template for other types
 template <typename T>
@@ -2501,10 +2526,12 @@ inline MutableValue& MutableValue::push(T&& value)
     {
         return append(std::forward<T>(value));
     }
+#ifndef XYJSON_DISABLE_CHAINED_INPUT
     else if (isObject())
     {
         bool ok = pushValue(std::forward<T>(value)) || pushKey(std::forward<T>(value));
     }
+#endif
     return *this;
 }
 
@@ -2816,6 +2843,8 @@ inline MutableValue MutableDocument::create(T&& value) const
     return create(util::create(m_doc, std::forward<T>(value)));
 }
 
+#endif // XYJSON_DISABLE_MUTABLE
+
 /* @Section 4.5: ArrayIterator Methods */
 /* ------------------------------------------------------------------------ */
 
@@ -2902,6 +2931,7 @@ inline Value ObjectIterator::seek(const char* key, size_t key_len)
     return Value(val);
 }
 
+#ifndef XYJSON_DISABLE_MUTABLE
 /* @Section 4.7: MutableArrayIterator Methods */
 /* ------------------------------------------------------------------------ */
 
@@ -3187,6 +3217,8 @@ inline KeyValue MutableObjectIterator::remove()
     return KeyValue(removed_key, removed_val);
 }
 
+#endif // XYJSON_DISABLE_MUTABLE
+
 /* @Part 5: Operator Interface */
 /* ======================================================================== */
 
@@ -3241,6 +3273,7 @@ inline ConstObject operator|(const Value& json, EmptyObject)
     return json.getor(kObject);
 }
 
+#ifndef XYJSON_DISABLE_MUTABLE
 inline MutableArray operator|(const MutableValue& json, EmptyArray)
 {
     return json.getor(kArray);
@@ -3250,6 +3283,7 @@ inline MutableObject operator|(const MutableValue& json, EmptyObject)
 {
     return json.getor(kObject);
 }
+#endif
 
 // `dest |= json` --> `dest = json | dest`;
 template <typename valueT, typename jsonT>
@@ -3330,6 +3364,7 @@ operator*(const docT& doc)
 }
 
 // `~doc` --> `doc.mutate()` : Document --> MutableDocument
+#ifndef XYJSON_DISABLE_MUTABLE
 inline MutableDocument operator~(const Document& doc)
 {
     return doc.mutate();
@@ -3340,6 +3375,7 @@ inline Document operator~(const MutableDocument& doc)
 {
     return doc.freeze();
 }
+#endif
 
 /* @Section 5.3: Comparison Operator */
 /* ------------------------------------------------------------------------ */
@@ -3429,6 +3465,7 @@ operator>=(const jsonT& lhs, const jsonT& rhs)
 
 /* @Section 5.4: Create and Bind KeyValue */
 /* ------------------------------------------------------------------------ */
+#ifndef XYJSON_DISABLE_MUTABLE
 
 // `doc * value` --> `doc.create(value)`
 template <typename T>
@@ -3455,6 +3492,8 @@ inline KeyValue operator*(MutableValue&& key, MutableValue&& value)
 {
     return std::move(value).tag(std::move(key));
 }
+
+#endif // XYJSON_DISABLE_MUTABLE
 
 /* @Section 5.5: Stream and Input Operator */
 /* ------------------------------------------------------------------------ */
@@ -3485,6 +3524,8 @@ operator<<(std::ostream& os, const jsonT& json)
 
 // MutableValue array/object input operators
 // `json << value` --> `json.push(value)`
+#ifndef XYJSON_DISABLE_MUTABLE
+
 template <typename T>
 inline MutableValue& operator<<(MutableValue& json, T&& value)
 {
@@ -3522,6 +3563,8 @@ inline MutableValue& operator>>(MutableValue&& json, KeyValue& result)
 {
     return json.pop(result);
 }
+
+#endif // XYJSON_DISABLE_MUTABLE
 
 /* @Section 5.6: Iterator Creation and Operation */
 /* ------------------------------------------------------------------------ */
@@ -3615,6 +3658,8 @@ operator~(const iteratorT& iter)
     return iter.key();
 }
 
+#ifndef XYJSON_DISABLE_MUTABLE
+
 // Iterator insert operator: iter << value (calls iter.insert(value))
 template<typename T>
 inline MutableArrayIterator& operator<<(MutableArrayIterator& iter, T&& value)
@@ -3645,6 +3690,8 @@ inline MutableObjectIterator& operator>>(MutableObjectIterator& iter, KeyValue& 
     kv_pair = iter.remove();
     return iter;
 }
+
+#endif
 
 // Iterator fast seek operator: iter / key (calls iter.seek(key))
 // Only for object iterators, should fail to compile for array iterators

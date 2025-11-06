@@ -107,6 +107,14 @@ set(TEST_SOURCES
 add_executable(utxyjson ${TEST_SOURCES})
 target_link_libraries(utxyjson PRIVATE xyjson couttast)
 
+# miniut: Minimal unit test (readonly only, no mutable features)
+add_executable(miniut
+    utest/t_basic.cpp
+    utest/t_experiment.cpp
+)
+target_link_libraries(miniut PRIVATE xyjson couttast)
+target_compile_definitions(miniut PRIVATE XYJSON_DISABLE_MUTABLE XYJSON_DISABLE_CHAINED_INPUT)
+
 # ------------------------------------------------------------ #
 # Examples:
 

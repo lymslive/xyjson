@@ -23,18 +23,24 @@ DEF_TAST(basic_size, "verify class sizes to ensure proper optimization")
     // Document and MutableDocument should be lightweight wrapper
     // Their size should be minimal (pointer size)
     size_t ptr = sizeof(size_t);
-    COUT(sizeof(yyjson::Document), 1*ptr);
-    COUT(sizeof(yyjson::MutableDocument), 1*ptr);
-    
-    // Value and MutableValue should be minimal
+
     COUT(sizeof(yyjson::Value), 1*ptr);
-    COUT(sizeof(yyjson::MutableValue), 3*ptr);
-    
-    // Iterators should be lightweight
+    COUT(sizeof(yyjson::Document), 1*ptr);
     COUT(sizeof(yyjson::ArrayIterator), 4*ptr);
     COUT(sizeof(yyjson::ObjectIterator), 4*ptr);
+
+#ifndef XYJSON_DISABLE_MUTABLE
+    // MutableValue size depends on chained input feature
+#ifdef XYJSON_DISABLE_CHAINED_INPUT
+    COUT(sizeof(yyjson::MutableValue), 2*ptr);  // m_val + m_doc
+#else
+    COUT(sizeof(yyjson::MutableValue), 3*ptr);  // m_val + m_doc + m_pendingKey
+#endif
+
+    COUT(sizeof(yyjson::MutableDocument), 1*ptr);
     COUT(sizeof(yyjson::MutableArrayIterator), 6*ptr);
     COUT(sizeof(yyjson::MutableObjectIterator), 6*ptr);
+#endif
 }
 
 DEF_TAST(basic_read_number, "operator read number from scalar value")
@@ -257,6 +263,7 @@ DEF_TAST(basic_reread, "test re-read document")
         COUT(aaa, 2);
     }
 
+#ifndef XYJSON_DISABLE_MUTABLE
     DESC("mutable yyjson document");
     {
         yyjson::MutableDocument doc(R"({"aaa": 1})");
@@ -268,6 +275,7 @@ DEF_TAST(basic_reread, "test re-read document")
         aaa = doc / "aaa" | 0;
         COUT(aaa, 2);
     }
+#endif
 }
 
 DEF_TAST(basic_index_operator, "test index method and operator[]")
@@ -345,6 +353,7 @@ DEF_TAST(basic_index_operator, "test index method and operator[]")
     COUT(objectVal.index("nonexistent").isValid(), false);  // Non-existent key
     COUT(objectVal["nonexistent"].isValid(), false);        // Non-existent key
 
+#ifndef XYJSON_DISABLE_MUTABLE
     // Test with MutableValue (automatic insertion)
     yyjson::MutableDocument mutDoc;
     auto mutObj = mutDoc.create(yyjson::kObject);
@@ -380,6 +389,7 @@ DEF_TAST(basic_index_operator, "test index method and operator[]")
     // Test out of bounds for mutable array
     COUT(mutArray.index(5).isValid(), false);
     COUT(mutArray[5].isValid(), false);
+#endif
 }
 
 DEF_TAST(basic_json_pointer, "test JSON Pointer functionality")
@@ -489,8 +499,8 @@ DEF_TAST(basic_json_pointer, "test JSON Pointer functionality")
     COUT(users / "/0/id" | 0, 1);
     COUT(users / "/1/name" | "", "Bob");
 
+#ifndef XYJSON_DISABLE_MUTABLE
     DESC("Test mutable document JSON Pointer functionality");
-    
     // Test with mutable document
     MutableDocument mutDoc(jsonText);
     COUT(mutDoc.hasError(), false);
@@ -503,6 +513,7 @@ DEF_TAST(basic_json_pointer, "test JSON Pointer functionality")
     auto mutConfig = mutDoc / "config" / "settings";
     mutConfig["theme"] = "light";
     COUT(mutDoc / "/config/settings/theme" | "", "light");
+#endif
 
     DESC("Test JSON Pointer with numeric indices in arrays");
     
@@ -623,6 +634,7 @@ DEF_TAST(basic_type_checking, "type checking with isType method and & operator")
     COUT(doc["nonexistent"].isType(0), false);
     COUT(doc["nonexistent"] & 0, false);
 
+#ifndef XYJSON_DISABLE_MUTABLE
     // Test MutableValue type checking
     yyjson::MutableDocument mutDoc = ~doc; // Convert to mutable
     COUT(mutDoc.hasError(), false);
@@ -631,7 +643,7 @@ DEF_TAST(basic_type_checking, "type checking with isType method and & operator")
     COUT(mutDoc["intVal"] & 0, true);
     COUT(mutDoc["strVal"].isType(""), true);
     COUT(mutDoc["strVal"] & "", true);
-
+#endif
 
     // Test operator name constants are defined
     COUT(okExtract, std::string("|"));
@@ -660,6 +672,7 @@ DEF_TAST(basic_underlying_pointers, "extract underlying yyjson pointers")
     // Type representative constants for pointer types
     COUT((doc/"a") & kNode, true);
 
+#ifndef XYJSON_DISABLE_MUTABLE
     // Mutable document pointers
     MutableDocument mdoc = ~doc;
     auto root = mdoc.root();
@@ -675,4 +688,5 @@ DEF_TAST(basic_underlying_pointers, "extract underlying yyjson pointers")
     // isType with pointer kinds
     COUT(root & kMutNode, true);
     COUT(root & kMutDoc, true);
+#endif
 }
