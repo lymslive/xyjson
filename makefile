@@ -28,7 +28,7 @@ build/Makefile:
 	mkdir -p build
 	cd build && cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=1 ..
 build: build/Makefile
-	cd build && make
+	cd build && make utxyjson
 
 # Run tests (silent mode)
 test: build
