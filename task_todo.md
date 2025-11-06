@@ -1503,6 +1503,23 @@ Part 1 对这类宏作前向声明，`#ifndef` 与 `#endif` 之间不必包含�
 
 ### DONE: 20251106-155509
 
+## TODO:2025-11-06/3 可写对象迭代器支持链式 << 插入功能
+
+可写对象支持链接插入：MutableValue << key << value
+为使操作接口一致性，其迭代器也该支持类似的功能。
+
+请修改 MutableObjectIterator，参考 MutableValue 的相关实现，
+在 `XYJSON_DISABLE_CHAINED_INPUT` 宏条件下增加 `m_pendingKey` 成员，
+增加 insertKey insertValue 辅助方法，以及 insert 单参数模板方法。
+
+再考虑到 MutableObjectIterator << 已有实现，在插入成功后要前进一步，以便链式向
+后而不是向前插入，必须在 insertValue 成功时返回 true，insertKey 时返回 false.
+
+在 `t_iterator.cpp` 增加单元测试覆盖该新功能。
+此外在 `basic_size` 单元测试中调整该类大小的断言，根据编译宏有不同大小。
+
+### DONE: 20251106-181425
+
 ## TODO: 优化文档示例代码管理同步单元测试
 
 - 针对文档：READE.md docs/usage.md

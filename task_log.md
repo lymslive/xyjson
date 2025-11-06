@@ -2071,3 +2071,99 @@ cd build && make -j4
 
 ---
 
+## 任务ID: 20251106-181425
+**任务名称**: 可写对象迭代器支持链式 << 插入功能  
+**关联需求**: TODO:2025-11-06/3  
+**完成时间**: 2025-11-06 18:14:25  
+
+### 任务背景
+可写对象支持链式插入：`MutableValue << key << value`  
+为使操作接口一致性，其迭代器也该支持类似的功能。
+
+### 实施过程
+
+**1. 核心设计调整**
+- 根据用户反馈，将复杂逻辑从 `operator<<` 中分离
+- 在 `MutableObjectIterator` 类中新增 `insert(T&&)` 模板方法
+- `operator<<` 使用万能引用转发，通过返回值决定是否调用 `next()`
+
+**2. 代码实现 (include/xyjson.h)**
+- **新增成员** (第1330-1333行):
+  ```cpp
+  #ifndef XYJSON_DISABLE_CHAINED_INPUT
+      yyjson_mut_val* m_pendingKey = nullptr;
+  #endif
+  ```
+
+- **新增方法声明** (第1311-1320行):
+  ```cpp
+  #ifndef XYJSON_DISABLE_CHAINED_INPUT
+      template<typename keyT> bool insertKey(keyT&& key);
+      template<typename valT> bool insertValue(valT&& value);
+      template<typename T> bool insert(T&& arg);
+  #endif
+  ```
+
+- **实现智能插入逻辑** (第3203-3260行):
+  - `insertKey`: 直接检查 `util::createKey` 返回值，简洁明了
+  - `insertValue`: 处理待处理键的值插入
+  - `insert(T&&)`: 根据是否有待处理键智能判断是键还是值
+  - 使用 `if constexpr (trait::is_key_v<T>)` 避免非键类型编译错误
+
+- **简化操作符实现** (第3755-3765行):
+  ```cpp
+  template<typename T>
+  inline MutableObjectIterator& operator<<(MutableObjectIterator& iter, T&& arg) {
+      if (iter.insert(std::forward<T>(arg))) {
+          iter.next();
+      }
+      return iter;
+  }
+  ```
+
+**3. 单元测试 (utest/t_iterator.cpp)**
+- 新增 `iterator_object_chained_insertion` 测试用例 (第1710-1843行)
+- 包含6个测试场景:
+  - 基本链式插入: `iter << "first" << 100`
+  - 多种类型支持: 字符串、布尔值、双精度浮点数、数组
+  - 字符串字面量优化测试
+  - 与 MutableValue 联合使用
+  - 迭代器位置验证
+  - 混合 KeyValue 操作符使用
+
+**4. 大小断言调整 (utest/t_basic.cpp)**
+- 根据 `XYJSON_DISABLE_CHAINED_INPUT` 宏调整 `MutableObjectIterator` 大小断言 (第42-47行)
+- 默认开启: 7*ptr (增加 m_pendingKey 成员)
+- 禁用功能: 6*ptr (仅有基础成员)
+
+### 关键技术点
+
+**1. 类型安全设计**
+- 使用 `if constexpr (trait::is_key_v<T>)` 避免非键类型编译错误
+- 分离 `insertKey` 和 `insertValue` 辅助方法提高代码复用性
+
+**2. 状态管理**
+- `m_pendingKey` 成员跟踪待处理键值
+- 插入值成功后自动清理待处理键
+- 失败时保持状态不变，支持重试
+
+**3. 接口一致性**
+- 与 `MutableValue` 链式插入保持相同设计模式
+- `operator<<` 返回迭代器引用支持连续链式调用
+- 成功插入值后自动前进，支持直观的位置移动
+
+### 实现简化
+根据用户反馈，简化了原始实现：
+- 移除了不必要的 `isValidKeyType` 辅助函数
+- `insertKey` 直接检查 `util::createKey` 返回值，代码更简洁
+- 保持了 `insert(T&& arg)` 方法作为对外智能接口的核心设计
+
+### 完成成果
+- ✅ 功能实现: MutableObjectIterator 支持链式插入 `iter << key << value`
+- ✅ 条件编译: 正确受 `XYJSON_DISABLE_CHAINED_INPUT` 宏控制
+- ✅ 单元测试: 6个测试场景全部通过
+- ✅ 大小优化: 根据宏控制正确调整内存占用
+- ✅ 编译测试: 所有59个测试用例通过 (utxyjson)
+- ✅ 代码质量: 逻辑清晰，实现简洁，遵循用户建议的架构设计
+
+---

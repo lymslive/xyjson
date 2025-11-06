@@ -1707,3 +1707,138 @@ DEF_TAST(iterator_standard_interface, "standard iterator interface and algorithm
     }
 }
 
+DEF_TAST(iterator_object_chained_insertion, "mutable object iterator chained insertion support")
+{
+    DESC("basic chained insertion with key-value pairs");
+    {
+        yyjson::MutableDocument doc("{}");
+        auto root = doc.root();
+        COUT(root.isObject(), true);
+
+        // Create iterator at beginning
+        auto iter = root.iterator("");
+        COUT(iter.isValid(), false); // Empty object, no valid position
+
+        // Test basic chained insertion: iter << key << value
+        iter << "first" << 100;
+        COUT(root.size(), 1);
+        auto firstVal = root / "first";
+        COUT(firstVal | -1, 100);
+
+        // Insert another key-value pair
+        iter << "second" << 200;
+        COUT(root.size(), 2);
+        auto secondVal = root / "second";
+        COUT(secondVal | -1, 200);
+
+        // Verify first is still there
+        firstVal = root / "first";
+        COUT(firstVal | -1, 100);
+    }
+
+    DESC("chained insertion with multiple types");
+    {
+        yyjson::MutableDocument doc("{}");
+        auto root = doc.root();
+
+        auto iter = root.iterator("");
+
+        // Test with string values
+        iter << "name" << "Alice";
+        COUT((root / "name" | ""), "Alice");
+
+        // Test with boolean values
+        iter << "active" << true;
+        COUT((root / "active" | false), true);
+
+        // Test with double values
+        iter << "score" << 95.5;
+        COUT((root / "score" | 0.0), 95.5);
+
+        // Test with array values
+        auto arrayVal = doc.create(yyjson::kArray);
+        arrayVal << 1 << 2 << 3;
+        iter << "tags" << arrayVal;
+        auto tagsVal = root / "tags";
+        COUT(tagsVal.isArray(), true);
+        COUT(tagsVal.size(), 3);
+
+        COUT(root.size(), 4);
+    }
+
+    DESC("chained insertion with string literals");
+    {
+        yyjson::MutableDocument doc("{}");
+        auto root = doc.root();
+
+        auto iter = root.iterator("");
+
+        // Test with string literals (should be optimized)
+        iter << "key1" << "value1";
+        iter << "key2" << "value2";
+        iter << "key3" << "value3";
+
+        COUT(root.size(), 3);
+        COUT((root / "key1" | ""), "value1");
+        COUT((root / "key2" | ""), "value2");
+        COUT((root / "key3" | ""), "value3");
+    }
+
+    DESC("chained insertion with MutableValue");
+    {
+        yyjson::MutableDocument doc("{}");
+        auto root = doc.root();
+
+        auto iter = root.iterator("");
+
+        // Create a MutableValue separately
+        auto subObj = doc.create(yyjson::kObject);
+        subObj << "inner" << 42;
+
+        // Insert the object as a value
+        iter << "object" << subObj;
+
+        auto objVal = root / "object";
+        COUT(objVal.isObject(), true);
+        COUT((objVal / "inner" | -1), 42);
+    }
+
+    DESC("iterator position after chained insertion");
+    {
+        yyjson::MutableDocument doc("{}");
+        auto root = doc.root();
+
+        auto iter = root.iterator("");
+        COUT(+iter, 0); // Initial index
+
+        iter << "a" << 1;
+        COUT(+iter, 1); // Should advance to next position after insertion
+
+        iter << "b" << 2;
+        COUT(+iter, 2); // Should advance again
+
+        iter << "c" << 3;
+        COUT(+iter, 3); // Should advance again
+
+        COUT(root.size(), 3);
+    }
+
+    DESC("chained insertion mixed with KeyValue operator");
+    {
+        yyjson::MutableDocument doc("{}");
+        auto root = doc.root();
+
+        auto iter = root.iterator("");
+
+        // Mix chained insertion with KeyValue
+        iter << "first" << 1;
+        iter << (doc * 2 * "second");
+        iter << "third" << 3;
+
+        COUT(root.size(), 3);
+        COUT((root / "first" | -1), 1);
+        COUT((root / "second" | -1), 2);
+        COUT((root / "third" | -1), 3);
+    }
+}
+

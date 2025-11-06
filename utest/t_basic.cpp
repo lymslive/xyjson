@@ -39,7 +39,12 @@ DEF_TAST(basic_size, "verify class sizes to ensure proper optimization")
 
     COUT(sizeof(yyjson::MutableDocument), 1*ptr);
     COUT(sizeof(yyjson::MutableArrayIterator), 6*ptr);
-    COUT(sizeof(yyjson::MutableObjectIterator), 6*ptr);
+    // MutableObjectIterator size depends on chained input feature
+#ifdef XYJSON_DISABLE_CHAINED_INPUT
+    COUT(sizeof(yyjson::MutableObjectIterator), 6*ptr);  // m_iter + m_doc
+#else
+    COUT(sizeof(yyjson::MutableObjectIterator), 7*ptr);  // m_iter + m_doc + m_pendingKey
+#endif
 #endif
 }
 

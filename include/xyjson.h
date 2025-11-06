@@ -1240,7 +1240,11 @@ public:
     using pointer = MutableValue;
     using reference = MutableValue;
     
-    MutableObjectIterator() : m_doc(nullptr), m_iter({0}) {}
+    MutableObjectIterator() : m_doc(nullptr), m_iter({0})
+#ifndef XYJSON_DISABLE_CHAINED_INPUT
+        , m_pendingKey(nullptr)
+#endif
+    {}
     explicit MutableObjectIterator(yyjson_mut_val* root, yyjson_mut_doc* doc);
     
     // Check if iterator is valid
@@ -1304,7 +1308,17 @@ public:
     template<typename K, typename V>
     bool insert(K&& key, V&& value);
     bool insert(KeyValue&& kv_pair);
-    
+#ifndef XYJSON_DISABLE_CHAINED_INPUT
+    // Chained insertion support
+    template<typename keyT>
+    bool insertKey(keyT&& key);
+    template<typename valT>
+    bool insertValue(valT&& value);
+    // Insert method for chained insertion - handles key/value logic internally
+    template<typename T>
+    bool insert(T&& arg);
+#endif
+
     // Remove current key-value pair and return it
     KeyValue remove();
     
@@ -1313,6 +1327,10 @@ private:
     yyjson_mut_obj_iter m_iter;
     /// Document for context (needed for mutation)
     yyjson_mut_doc* m_doc = nullptr;
+#ifndef XYJSON_DISABLE_CHAINED_INPUT
+    /// Pending key for chained insertion
+    yyjson_mut_val* m_pendingKey = nullptr;
+#endif
 };
 
 #endif // XYJSON_DISABLE_MUTABLE
@@ -3182,6 +3200,65 @@ inline bool MutableObjectIterator::insert(KeyValue&& kv_pair)
     return result;
 }
 
+#ifndef XYJSON_DISABLE_CHAINED_INPUT
+// Chained insertion support: insertKey
+template<typename keyT>
+inline bool MutableObjectIterator::insertKey(keyT&& key)
+{
+    yyjson_mut_val* keyNode = util::createKey(m_doc, std::forward<keyT>(key));
+    if (keyNode) {
+        m_pendingKey = keyNode;
+        return true;
+    }
+    return false;
+}
+
+// Chained insertion support: insertValue
+template<typename valT>
+inline bool MutableObjectIterator::insertValue(valT&& value)
+{
+    if (m_pendingKey == nullptr) {
+        return false;
+    }
+    yyjson_mut_val* valueNode = util::create(m_doc, std::forward<valT>(value));
+    if (!valueNode) {
+        return false;
+    }
+    bool result = insert(m_pendingKey, valueNode);
+    m_pendingKey = nullptr;
+    return result;
+}
+
+// Insert method for chained insertion - handles key/value logic internally
+// Returns true if a value was inserted (meaning we should advance)
+// Returns false if a key was stored (meaning we should wait for value) or both failed
+template<typename T>
+inline bool MutableObjectIterator::insert(T&& arg)
+{
+    // If we have a pending key, try to insert as value first
+    if (m_pendingKey != nullptr) {
+        yyjson_mut_val* valueNode = util::create(m_doc, std::forward<T>(arg));
+        if (valueNode) {
+            bool result = insert(m_pendingKey, valueNode);
+            m_pendingKey = nullptr;
+            return true; // Successfully inserted a value, should advance
+        }
+        // Failed to create value, might be wrong type, don't clear pending key
+        return false;
+    }
+    // No pending key, try to store as key (only if type is a valid key type)
+    if constexpr (trait::is_key_v<T>) {
+        yyjson_mut_val* keyNode = util::createKey(m_doc, std::forward<T>(arg));
+        if (keyNode) {
+            m_pendingKey = keyNode;
+            return false; // Successfully stored a key, should not advance yet
+        }
+    }
+    // Not a key type or invalid key, return failure
+    return false;
+}
+#endif
+
 // MutableObjectIterator remove implementation
 inline KeyValue MutableObjectIterator::remove()
 {
@@ -3683,6 +3760,22 @@ inline MutableObjectIterator& operator<<(MutableObjectIterator& iter, KeyValue&&
     bool result = iter.insert(std::forward<KeyValue>(kv_pair)) && iter.next();
     return iter;
 }
+
+#ifndef XYJSON_DISABLE_CHAINED_INPUT
+// Iterator insert operator for chained insertion: iter << key or value
+// Uses universal reference forwarding and checks return value to decide if to advance
+template<typename T>
+inline MutableObjectIterator& operator<<(MutableObjectIterator& iter, T&& arg)
+{
+    // Call insert method which handles key/value logic internally
+    // If insert returns true, it means a value was inserted (advance)
+    // If insert returns false, it means a key was stored (don't advance)
+    if (iter.insert(std::forward<T>(arg))) {
+        iter.next();
+    }
+    return iter;
+}
+#endif
 
 // Iterator remove operator: iter >> kv_pair (calls iter.remove() and stores removed key-value pair)
 inline MutableObjectIterator& operator>>(MutableObjectIterator& iter, KeyValue& kv_pair)
