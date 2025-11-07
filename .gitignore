@@ -42,3 +42,7 @@ backup-*
 
 # ignore local symbol link to yyjson lib header
 include/yyjson.h
+
+# Performance test data and results
+perf/datasets/
+perf/results/

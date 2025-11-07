@@ -120,3 +120,11 @@ target_compile_definitions(miniut PRIVATE XYJSON_DISABLE_MUTABLE XYJSON_DISABLE_
 
 add_subdirectory(examples)
 
+# ------------------------------------------------------------ #
+# Performance Test:
+
+option(BUILD_PERF "Build performance tests" OFF)
+if(BUILD_PERF)
+    add_subdirectory(perf)
+endif()
+
