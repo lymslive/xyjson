@@ -1602,6 +1602,13 @@ createKey(yyjson_mut_doc* doc, T&& key)
     return create(doc, std::forward<T>(key));
 }
 
+template<typename T>
+inline typename std::enable_if<!trait::is_key_v<T>, yyjson_mut_val*>::type
+createKey(yyjson_mut_doc* doc, T&& key)
+{
+    return nullptr;
+}
+
 // Specialization for MutableValue key
 inline yyjson_mut_val* createKey(yyjson_mut_doc* doc, const MutableValue& key)
 {
@@ -2512,21 +2519,14 @@ inline MutableValue& MutableValue::push(KeyValue&& kv)
 template <typename keyT>
 inline bool MutableValue::pushKey(keyT&& key)
 {
-    yyjson_mut_val* keyNode = util::create(m_doc, std::forward<keyT>(key));
-    if (!yyjson_mut_is_str(keyNode)) {
-        keyNode = nullptr;
-        return false;
-    }
-
-    m_pendingKey = keyNode;
-    return true;
+    m_pendingKey = util::createKey(m_doc, std::forward<keyT>(key));
+    return false;
 }
 
 template <typename T>
 inline bool MutableValue::pushValue(T&& value)
 {
-    if (m_pendingKey == nullptr)
-    {
+    if (m_pendingKey == nullptr) {
         return false;
     }
     yyjson_mut_val* succeedVal = util::create(m_doc, std::forward<T>(value));
@@ -2540,13 +2540,11 @@ inline bool MutableValue::pushValue(T&& value)
 template <typename T>
 inline MutableValue& MutableValue::push(T&& value)
 {
-    if (isArray())
-    {
+    if (isArray()) {
         return append(std::forward<T>(value));
     }
 #ifndef XYJSON_DISABLE_CHAINED_INPUT
-    else if (isObject())
-    {
+    else if (isObject()) {
         bool ok = pushValue(std::forward<T>(value)) || pushKey(std::forward<T>(value));
     }
 #endif
@@ -3192,8 +3190,7 @@ inline bool MutableObjectIterator::insert(K&& key, V&& value)
 inline bool MutableObjectIterator::insert(KeyValue&& kv_pair)
 {
     bool result = insert(kv_pair.key, kv_pair.value);
-    if (result)
-    {
+    if (result) {
         kv_pair.key = nullptr;
         kv_pair.value = nullptr;
     }
@@ -3205,11 +3202,7 @@ inline bool MutableObjectIterator::insert(KeyValue&& kv_pair)
 template<typename keyT>
 inline bool MutableObjectIterator::insertKey(keyT&& key)
 {
-    yyjson_mut_val* keyNode = util::createKey(m_doc, std::forward<keyT>(key));
-    if (keyNode) {
-        m_pendingKey = keyNode;
-        return true;
-    }
+    m_pendingKey = util::createKey(m_doc, std::forward<keyT>(key));
     return false;
 }
 
@@ -3235,27 +3228,7 @@ inline bool MutableObjectIterator::insertValue(valT&& value)
 template<typename T>
 inline bool MutableObjectIterator::insert(T&& arg)
 {
-    // If we have a pending key, try to insert as value first
-    if (m_pendingKey != nullptr) {
-        yyjson_mut_val* valueNode = util::create(m_doc, std::forward<T>(arg));
-        if (valueNode) {
-            bool result = insert(m_pendingKey, valueNode);
-            m_pendingKey = nullptr;
-            return true; // Successfully inserted a value, should advance
-        }
-        // Failed to create value, might be wrong type, don't clear pending key
-        return false;
-    }
-    // No pending key, try to store as key (only if type is a valid key type)
-    if constexpr (trait::is_key_v<T>) {
-        yyjson_mut_val* keyNode = util::createKey(m_doc, std::forward<T>(arg));
-        if (keyNode) {
-            m_pendingKey = keyNode;
-            return false; // Successfully stored a key, should not advance yet
-        }
-    }
-    // Not a key type or invalid key, return failure
-    return false;
+    return insertValue(std::forward<T>(arg)) || insertKey(std::forward<T>(arg));
 }
 #endif
 
@@ -3866,9 +3839,6 @@ operator<<(std::ostream& os, const docT& doc)
 /* @Section 5.8: User-defined Literal Operator */
 /* ------------------------------------------------------------------------ */
 
-namespace literals
-{
-
 /**
  * User-defined literal operator for converting string literals to Document
  * Usage: "{\"key\": \"value\"}"_xyjson
@@ -3877,8 +3847,6 @@ inline yyjson::Document operator""_xyjson(const char* jsonStr, std::size_t len)
 {
     return yyjson::Document(jsonStr, len);
 }
-
-} /* end of namespace yyjson::literals */
 
 /* @Part 6: Last Definitions */
 /* ======================================================================== */

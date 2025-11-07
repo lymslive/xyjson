@@ -600,7 +600,7 @@ DEF_TAST(conversion_doc_unary, "test Document and MutableDocument unary operator
 
 DEF_TAST(conversion_user_literals, "test user-defined literals for direct Document creation")
 {
-    using namespace yyjson::literals;
+    using namespace yyjson;
 
     DESC("Test basic JSON object creation with user-defined literal");
     {
@@ -694,12 +694,11 @@ DEF_TAST(conversion_user_literals, "test user-defined literals for direct Docume
     DESC("Test namespace qualification");
     {
         // Qualified usage
-        auto doc1 = yyjson::literals::operator""_xyjson("{\"test\": \"value\"}", 17);
+        auto doc1 = yyjson::operator""_xyjson("{\"test\": \"value\"}", 17);
         COUT(doc1.isValid(), true);
         COUT(doc1 / "test" | std::string(), "value");
 
         // Compare with unqualified usage
-        using namespace yyjson::literals;
         auto doc2 = "{\"test\": \"value\"}"_xyjson;
         COUT(doc2.isValid(), true);
         COUT(doc2 / "test" | std::string(), "value");
