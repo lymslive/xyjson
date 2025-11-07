@@ -1,7 +1,7 @@
 # Makefile for xyjson project
 # Common commands integration for development workflow
 
-.PHONY: build test build/fast test/fast install clean toc utable help
+.PHONY: build test build/fast test/fast install clean toc utable help release perf
 
 # Default target
 help:
@@ -12,6 +12,8 @@ help:
 	@echo "  clean      - Clean build directory"
 	@echo "  toc        - Generate table of contents for header file"
 	@echo "  utable     - Generate and update unit test table"
+	@echo "  release    - Build in release mode with performance tests"
+	@echo "  perf       - Run performance tests (requires BUILD_PERF)"
 	@echo "  help       - Show this help message"
 	@echo ""
 	@echo "make <target> -n  Show the command to execute only"
@@ -53,6 +55,22 @@ utable: .touch/utable.t
 .touch/utable.t: .touch $(TEST_SOURCES)
 	perl script/utable.pl
 	@touch $@
+
+# Build in Release mode with performance tests enabled
+release: clean
+	@echo "Building in Release mode with performance tests enabled..."
+	mkdir -p build
+	cd build && cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_PERF=ON ..
+	cd build && make -j4
+
+# Run performance tests (requires perf_test to be built)
+perf: build
+	@echo "Running performance tests..."
+	@if [ ! -f "./build/perf_test" ]; then \
+		echo "Error: perf_test not found. Run 'make release' first."; \
+		exit 1; \
+	fi
+	./build/perf_test
 
 # Alias for help target
 .DEFAULT_GOAL := help

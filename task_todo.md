@@ -1542,6 +1542,29 @@ Part 1 对这类宏作前向声明，`#ifndef` 与 `#endif` 之间不必包含�
 
 ### DONE: 20251107-171740
 
+## TODO:2025-11-07/2 性能测试框架优化
+
+之前的性能测试工作，我发现两个问题。
+
+一是没有开启优化选项，至少要 -O2 ，需要用编译 release 版本。C++ 的多层封装没优
+化时可能会明显降低性能，导致测试失真。
+
+在根目录的 makefile 中增加几个自定义目标:
+- make release, 以 release 方法构建，且开启 BUILD_PERF 选项
+- make perf ，运行 ./build/perf_test ，不要加 --cout=silent 选项
+
+第二个问题是发现迭代器使用性能反而比直接索引方式比，这比较意外，但可能只是由于
+数组长度太小，只有 10 个量级。增加比较测试 100 长度的数组，看迭代器使用是否能
+比直接索引更快。
+
+已有这四个测试用例，
+`access_array` 与 `iterator_small_array`
+`access_array_objects` 与 `iterator_array_objects`
+应该是分别对应的，请改成相同的后缀名字。
+再为测试 100 长度的数组换个后缀名字，分别加 `access_` 与 `iterator_` 用例测试。
+
+### DONE: 20251107-194007
+
 ## TODO: 优化文档示例代码管理同步单元测试
 
 - 针对文档：READE.md docs/usage.md
