@@ -8,21 +8,6 @@
 #include "xyjson.h"
 #include <set>
 
-/* t_mutable.cpp - 可变模型专属功能测试
- * 包含：
- * - 读写修改工作流
- * - 可变值输入
- * - 赋值和复制行为
- * - 字符串赋值
- * - 字符串引用赋值
- * - 数组追加
- * - 对象插入
- * - 可变文档创建方法
- * - 键值优化
- * - 文档追加
- * - 对象添加文档
- */
-
 DEF_TAST(mutable_read_modify, "test read-modify workflow")
 {
     std::string jsonText = R"json({

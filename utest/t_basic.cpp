@@ -7,17 +7,6 @@
 #include "couttast/couttast.h"
 #include "xyjson.h"
 
-/* t_basic.cpp - 基础功能测试（以只读模型为主）
- * 包含：
- * - 类大小验证
- * - 基础数值读取
- * - 基础字符串读取
- * - 错误处理
- * - 文档重新读取
- * - 索引操作符
- * - 比较操作符
- */
-
 DEF_TAST(basic_size, "verify class sizes to ensure proper optimization")
 {
     // Document and MutableDocument should be lightweight wrapper

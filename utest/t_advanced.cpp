@@ -8,12 +8,6 @@
 #include "xyjson.h"
 #include <algorithm>
 
-/* t_advanced.cpp - 高级功能测试
- * 包含：
- * - 管道功能
- * - 类型特征
- */
-
 // Example functions for pipe functionality testing
 namespace {
 

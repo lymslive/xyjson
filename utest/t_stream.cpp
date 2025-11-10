@@ -7,14 +7,6 @@
 #include "couttast/couttast.h"
 #include "xyjson.h"
 
-/* t_stream.cpp - 流操作测试
- * 包含：
- * - 文档流操作
- * - 文件流操作
- * - 标准输出流
- * - 文件操作
- */
-
 DEF_TAST(stream_document_ops, "test Document stream operators << and >>")
 {
     DESC("Test Document stream operators");

@@ -600,6 +600,9 @@ if(doc / "score" & kArray) {
 
 <!-- example:usage_2_4_3_number_type -->
 ```cpp
+yyjson::Document doc;
+doc << R"({"age": 30, "ratio": 0.618})";
+
 // 整数与浮点数都属于 Number
 bool isNumber = doc / "age" & kNumber; // 结果：true
 isNumber = doc / "ration" & kNmuber;   // 结果：true
@@ -966,7 +969,7 @@ mutDoc / "score" = "{}";  // kObject
 mutDoc / "friend" = "[]"; // kArray
 
 std::cout << mutDoc << std::endl;
-// 输出：{"name":"","age":0,"sex":null,"score":{},"friend":[]}
+//^ 输出：{"name":"","age":0,"sex":null,"score":{},"friend":[]}
 ```
 
 可以修改 Json 标量结点的类型，但根据 yyjson 的建议，不要为非空数组或对象重新赋
@@ -1258,7 +1261,7 @@ mutDoc / 0 << "favor" << favor;
 mutDoc / 1 << "favor" << favor;
 
 std::cout << mutDoc << std::endl;
-//^ 输出：[{"name":"Alice","name":30,"favor":["book","movie","music"]},{"name":"Bob","age":25,"favor":["book","movie","music"]}]
+//^ 输出：[{"name":"Alice","age":30,"favor":["book","movie","music"]},{"name":"Bob","age":25,"favor":["book","movie","music"]}]
 
 if (favor) {
     std::cout << favor << std::endl;
@@ -1305,7 +1308,7 @@ doc2 / "age" = 25;
 yyjson::MutableDocument mutDoc("[]");
 mutDoc.root() << doc << doc2; // 或 << doc.root() << doc2.root()
 std::cout << mutDoc << std::endl;
-// 输出：[{"name":"Alice","age":30},{"name":"Bob","age":25}]
+//^ 输出：[{"name":"Alice","age":30},{"name":"Bob","age":25}]
 ```
 
 将上个示例的两个源文档改为插入目标文档的对象中：
@@ -1324,7 +1327,7 @@ yyjson::MutableDocument mutDoc("{}");
 mutDoc.root() << "first" * (mutDoc * doc);
 mutDoc.root() << "second" * (mutDoc * doc2);
 std::cout << mutDoc << std::endl;
-// 输出：{"first":{"name":"Alice","age":30},"second":{"name":"Bob","age":25}}
+//^ 输出：{"first":{"name":"Alice","age":30},"second":{"name":"Bob","age":25}}
 ```
 
 - **错误警示**：路径 `/` 返回的临时值，不要放在 `<<` 后面。
@@ -1367,7 +1370,7 @@ std::cout << mutDoc << std::endl;
 ```cpp
 #define OK "OK"
 constexpr const char* kSucc = "Succ";
-constexpr const char[] kFail = "Fail";
+constexpr const char kFail[] = "Fail";
 
 yyjson::MutableDocument mutDoc("[]");
 mutDoc.root() << OK << kSucc << kFail;
@@ -1803,22 +1806,6 @@ it %= "six";
 std::cout << (*it | 0) << ",";
 it %= "eight";
 if (!it); // 找不到键名，迭代器无效了
-std::cout << std::endl;
-// 输出：2,4,6
-```
-
-因为 yyjson 的数据结构是支持 Json 对象同名键的，所以 `%=` 也能用在循环中，找出
-所有同名键。
-
-<!-- example:usage_4_5_iter_duplicate_keys -->
-```cpp
-yyjson::Document array;
-doc << R"({"one":1, "two":2, "three":3, "two":4, "five":5, "two":6})";
-
-// 从第二个元素开始迭代，每次进两步
-for (auto it = doc % "two"; it; it %= "two") {
-  std::cout << (*it | 0) << ","
-}
 std::cout << std::endl;
 // 输出：2,4,6
 ```

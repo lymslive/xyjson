@@ -7,13 +7,6 @@
 #include "couttast/couttast.h"
 #include "xyjson.h"
 
-/* t_conversion.cpp - 转换功能测试
- * 包含：
- * - 转换方法
- * - 转换操作符
- * - 文档转换
- */
-
 DEF_TAST(conversion_methods, "test toString(), toInteger(), and toNumber() conversion methods")
 {
     std::string jsonText = R"json({
