@@ -402,7 +402,9 @@ public:
     ArrayIterator iterator(size_t startIndex) const;
     ArrayIterator iterator(int startIndex) const;
     ObjectIterator iterator(const char* startKey) const;
-    
+    ArrayIterator iterator(EmptyArray) const;
+    ObjectIterator iterator(EmptyObject) const;
+
     // Standard iterator pattern methods
     ArrayIterator beginArray() const;
     ArrayIterator endArray() const;
@@ -769,7 +771,9 @@ public:
     MutableArrayIterator iterator(size_t startIndex) const;
     MutableArrayIterator iterator(int startIndex) const;
     MutableObjectIterator iterator(const char* startKey) const;
-    
+    MutableArrayIterator iterator(EmptyArray) const;
+    MutableObjectIterator iterator(EmptyObject) const;
+
     // Standard iterator pattern methods
     MutableArrayIterator beginArray() const;
     MutableArrayIterator endArray() const;
@@ -1911,6 +1915,16 @@ inline ObjectIterator Value::iterator(const char* startKey) const
     return ObjectIterator();
 }
 
+inline ArrayIterator Value::iterator(EmptyArray) const
+{
+    return isArray() ? iterator(size_t(0)) : ArrayIterator();
+}
+
+inline ObjectIterator Value::iterator(EmptyObject) const
+{
+    return isObject() ? iterator(nullptr) : ObjectIterator();
+}
+
 inline ArrayIterator Value::beginArray() const
 {
     return iterator(size_t(0));
@@ -2607,6 +2621,16 @@ inline MutableObjectIterator MutableValue::iterator(const char* startKey) const
         return iter.advance(startKey);
     }
     return MutableObjectIterator();
+}
+
+inline MutableArrayIterator MutableValue::iterator(EmptyArray) const
+{
+    return isArray() ? iterator(size_t(0)) : MutableArrayIterator();
+}
+
+inline MutableObjectIterator MutableValue::iterator(EmptyObject) const
+{
+    return isObject() ? iterator(nullptr) : MutableObjectIterator();
 }
 
 inline MutableArrayIterator MutableValue::beginArray() const

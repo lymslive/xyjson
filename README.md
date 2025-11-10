@@ -14,7 +14,7 @@ xyjson 是基于高性能 [yyjson](https://github.com/ibireme/yyjson) 封装的 
 - ✨ **直观语法** - 丰富的操作符重载，类似原生 C++
 - 🔒 **类型安全** - 编译时类型检查，运行时安全提取
 - 📚 **完整功能** - 支持读/写、迭代、文件操作等
-- 🛠️ **易于集成** - **纯头文件库**，CMake 构建支持，支持 `find_package` 集成
+- 🛠️ **易于集成** - **纯头文件库**，也支持 CMake 构建与 `find_package` 集成
 
 ## 依赖项
 
@@ -31,6 +31,7 @@ xyjson 是基于高性能 [yyjson](https://github.com/ibireme/yyjson) 封装的 
 开箱即用。
 
 **代码示例：**
+<!-- example:readme_quick_start -->
 ```cpp
 #include "xyjson.h"
 
@@ -60,16 +61,18 @@ sudo make install
 ```
 
 然后在客户项目中使用 `find_package` 集成：
+<!-- example:NO_TEST -->
 ```cmake
 # 在 CMakeLists.txt 中使用
 find_package(xyjson REQUIRED)
 target_link_libraries(your-target PRIVATE xyjson::xyjson)
-    ```
+```
 
 ## 核心用法示例
 
 ### 基本操作
 
+<!-- example:readme_basic_ops -->
 ```cpp
 // 从 json 串创建文档对象，也可对已有对象 doc << 输入 json 串解析
 xyjson::Document doc(R"({"name": "Alice", "scores": [95, 87]})");
@@ -82,11 +85,12 @@ int firstScore = doc / "scores" / 0 | 0; // 95
 
 // 类型判断
 bool isString = doc / "name" & ""; // true
-bool isNumber = doc / "age" & 0;   // true
+bool isNumber = doc / "scores" / 0 & 0;   // true
 ```
 
 ### 可写文档操作
 
+<!-- example:readme_mutable_ops -->
 ```cpp
 // 创建可写文档对象，默认构建也是创建空 {} 根结点
 xyjson::MutableDocument mutDoc("{}"); // 特殊字面量表示空对象
@@ -107,15 +111,16 @@ std::cout << mutDoc << std::endl;
 
 ### 迭代遍历
 
+<!-- example:readme_iterator -->
 ```cpp
 // 数组迭代
 for (auto iter = doc / "items" % 0; iter; ++iter) {
-    std::cout << "Item " << iter->key << ": " << (iter->value | "") << std::endl;
+    std::cout << "Item " << iter.index() << ": " << (iter.value() | "") << std::endl;
 }
 
-// 对象迭代  
+// 对象迭代
 for (auto iter = doc / "user" % ""; iter; ++iter) {
-    std::cout << iter->key << " = " << (iter->value | "") << std::endl;
+    std::cout << iter.name() << " = " << (iter.value() | "") << std::endl;
 }
 ```
 
@@ -125,6 +130,8 @@ for (auto iter = doc / "user" % ""; iter; ++iter) {
 - 🔧 [API 参考](docs/api.md) - 完整的操作符和类方法文档
 - 🎨 [设计理念](docs/design.md) - 库的设计思路和哲学
 - 🧪 [单元测试](utest/README.md) - 单元测试说明
+- 🧪 [性能测试](perf/README.md) - 性能测试说明
+- 🧪 [应用示例](examples/README.md) - 应用用例说明
 - 📋 [开发需求](task_todo.md) - 当前项目开发的需求列表
 - 📊 [任务日志](task_log.md) - AI 协作的任务完成记录
 
@@ -177,6 +184,8 @@ cd build
 xyjson/
 ├── include/xyjson.h     # 主头文件（纯头文件库）
 ├── utest/               # 单元测试（含丰富示例）
+├── examples/            # 应用示例（不依赖测试框架）
+├── perf/                # 性能测试（主要与原生 yyjson 对比）
 ├── docs/                # 详细文档
 ├── task_todo.md         # 开发需求管理
 ├── task_log.md          # 任务完成记录

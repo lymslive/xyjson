@@ -92,7 +92,7 @@ install(EXPORT xyjsonTargets
 # ------------------------------------------------------------ #
 # Unit Test:
 
-# Source files for test executable
+# Source files for test executable (main tests)
 set(TEST_SOURCES
     utest/t_basic.cpp
     utest/t_mutable.cpp
@@ -103,9 +103,18 @@ set(TEST_SOURCES
     utest/t_experiment.cpp
 )
 
-# Create test executable
+# Create main test executable
 add_executable(utxyjson ${TEST_SOURCES})
 target_link_libraries(utxyjson PRIVATE xyjson couttast)
+
+# Document examples test executable
+set(DOC_TEST_SOURCES
+    utest/t_readme.cpp
+    utest/t_usage.cpp
+)
+
+add_executable(utdocs ${DOC_TEST_SOURCES})
+target_link_libraries(utdocs PRIVATE xyjson couttast)
 
 # miniut: Minimal unit test (readonly only, no mutable features)
 add_executable(miniut
