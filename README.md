@@ -37,7 +37,7 @@ xyjson 是基于高性能 [yyjson](https://github.com/ibireme/yyjson) 封装的 
 
 // 读取 JSON
 std::string json = R"({"name": "Alice", "age": 30})";
-xyjson::Document doc(json);
+yyjson::Document doc(json);
 
 // 提取值
 std::string name = doc / "name" | ""; // 读到 "Alice"
@@ -75,7 +75,7 @@ target_link_libraries(your-target PRIVATE xyjson::xyjson)
 <!-- example:readme_basic_ops -->
 ```cpp
 // 从 json 串创建文档对象，也可对已有对象 doc << 输入 json 串解析
-xyjson::Document doc(R"({"name": "Alice", "scores": [95, 87]})");
+yyjson::Document doc(R"({"name": "Alice", "scores": [95, 87]})");
 
 // 路径访问
 std::string name = doc / "name" | ""; // "Alice"
@@ -93,7 +93,7 @@ bool isNumber = doc / "scores" / 0 & 0;   // true
 <!-- example:readme_mutable_ops -->
 ```cpp
 // 创建可写文档对象，默认构建也是创建空 {} 根结点
-xyjson::MutableDocument mutDoc("{}"); // 特殊字面量表示空对象
+yyjson::MutableDocument mutDoc("{}"); // 特殊字面量表示空对象
 
 // 添加新键不能用路径操作符 / ，索引操作 [] 支持自动添加
 mutDoc["name"] = "Bob";
@@ -105,7 +105,7 @@ mutDoc / "scores" << 95 << 87;
 // 文件写入
 mutDoc.writeFile("output.json");
 
-// 标准流输出
+// 标准流输出: {"name":"Bob","scores":[95,87]}
 std::cout << mutDoc << std::endl;
 ```
 
@@ -113,12 +113,14 @@ std::cout << mutDoc << std::endl;
 
 <!-- example:readme_iterator -->
 ```cpp
-// 数组迭代
+yyjson::Document doc(R"({"user":{"name":"Alice", "age":"30"}, "items": ["apple","banana","cherry"]})");
+
+// 数组迭代，iter.value() 可简化为解引用 *iter
 for (auto iter = doc / "items" % 0; iter; ++iter) {
     std::cout << "Item " << iter.index() << ": " << (iter.value() | "") << std::endl;
 }
 
-// 对象迭代
+// 对象迭代，iter.value() 可简化为解引用 *iter
 for (auto iter = doc / "user" % ""; iter; ++iter) {
     std::cout << iter.name() << " = " << (iter.value() | "") << std::endl;
 }

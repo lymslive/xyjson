@@ -77,7 +77,7 @@ if (doc2) {
 yyjson::Document doc;
 doc << R"({"name": "Alice", "age": 30})";
 if (!doc) {
-  std::cerr << "JSON 解析失败" << std::endl;
+    std::cerr << "JSON 解析失败" << std::endl;
 }
 ```
 
@@ -89,11 +89,11 @@ if (!doc) {
 ```cpp
 yyjson::Document doc;
 if (!doc) {
-  doc << R"({"name": "Alice", "age": 30})"; // 第一次读入
+    doc << R"({"name": "Alice", "age": 30})"; // 第一次读入
 }
 
 if (!doc) {
-  doc << R"({"name": "Alice", "age": 35})"; // 不会二次读入
+    doc << R"({"name": "Alice", "age": 35})"; // 不会二次读入
 }
 ```
 
@@ -147,12 +147,12 @@ mutDoc >> strTarget;
 const char* filePath = "/tmp/output.json";
 FILE* fp = fopen(filePath, "w");
 if (fp) {
-  mutDoc >> fp;
+    mutDoc >> fp;
 }
 
 std::ofstream ofs(filePath);
 if (ofs) {
-  mutDoc >> ofs;
+    mutDoc >> ofs;
 }
 
 mutDoc.writeFile(filePath);
@@ -231,7 +231,7 @@ std::cout << json << std::endl; // 输出: 10
 
 json = doc["score"][10];
 if (!json) {
-  std::cout << "数组越界" << std::endl;
+    std::cout << "数组越界" << std::endl;
 }
 ```
 
@@ -281,7 +281,7 @@ std::cout << json << std::endl; // 输出: 35
 // 不是 Json Pointer ，与 [] 一样尝试找直接字段名
 json = doc / "friend/0/age";
 if (!json) {
-  std::cout << "路径操作错误" << std::endl;
+    std::cout << "路径操作错误" << std::endl;
 }
 ```
 
@@ -426,7 +426,7 @@ std::cout << name << std::endl; // 输出：ALICE
 yyjson::Document doc;
 doc << R"({"name": "Alice", "age": 30})";
 
-// 取值转大写
+// 取值转大写的简化写法
 std::string name = doc / "name" | [](const std::string& str) {
     std::string result = str;
     std::transform(result.begin(), result.end(), result.begin(), ::toupper);
@@ -493,7 +493,7 @@ xyjson 旨在封装 yyjson 的常用功能，并未封装所有功能，对于�
 
 <!-- example:usage_2_3_5_underlying_ptr -->
 ```cpp
-Document doc("{}");
+yyjson::Document doc("{}");
 
 yyjson_val* p  = doc.root().get();
 yyjson_val* p1 = doc.root() | (yyjson_val*)nullptr;
@@ -510,7 +510,7 @@ if (doc.root() >> p3) {
 
 <!-- example:usage_2_3_5_underlying_mutptr -->
 ```cpp
-MutableDocument doc("{}");
+yyjson::MutableDocument doc("{}");
 yyjson_mut_val* p1 = nullptr;
 yyjson_mut_doc* p2 = nullptr;
 p1 |= doc.root();
@@ -544,9 +544,11 @@ bool isNumber = doc["age"].isInt();
 bool isArray  = doc["score"].isArray();
 bool isObject = doc["config"].isObject();
 
+
 isString = doc / "name" & "";
 isNumber = doc / "age" & 0;
 isArray = doc / "score" & "[]";
+
 
 // 使用类型常量（推荐）
 isString = doc / "name" & kString;
@@ -572,17 +574,17 @@ std::string typeName = (doc / "name").typeName();
 yyjson::Document doc;
 doc << R"({"name": "Alice", "age": 30, "ratio": 0.618, "score": [10, 20, 30]})";
 
-if(doc / "name" & kString) {
+if (doc / "name" & kString) {
     std::cout << (doc / "name" | kString) << std::endl; // 输出：Alice
 }
-if(doc / "age" & kInt) {
+if (doc / "age" & kInt) {
     std::cout << (doc / "age" | kInt) << std::endl; // 输出：30
 }
-if(doc / "ratio" & kReal) {
+if (doc / "ratio" & kReal) {
     std::cout << (doc / "ratio" | kReal) << std::endl; // 输出：0.618
 }
 
-if(doc / "score" & kArray) {
+if (doc / "score" & kArray) {
     // kArray 与 kObject 也可用于 | 参数，返回表示数组/对象的特殊子类
     std::cout << (doc / "score" | kArray).toString() << std::endl;
     //^ 输出：[10,20,30]
@@ -605,7 +607,7 @@ doc << R"({"age": 30, "ratio": 0.618})";
 
 // 整数与浮点数都属于 Number
 bool isNumber = doc / "age" & kNumber; // 结果：true
-isNumber = doc / "ration" & kNmuber;   // 结果：true
+isNumber = doc / "ratio" & kNumber;    // 结果：true
 auto age = doc / "age" | kNumber;      // 结果: 30.0
 ```
 
@@ -624,7 +626,7 @@ xyjson 定义的常量符号分别是 `kInt`, `kUint` 与 `kSint` 。
 <!-- example:usage_2_4_3_integer_types -->
 ```cpp
 yyjson::Document doc;
-doc << R"({"uint": "1", "sint": -1, "int": 100})";
+doc << R"({"uint": 1, "sint": -1, "int": 100})";
 
 bool check;
 check = doc / "uint" & int(0);  // 结果: true
@@ -866,7 +868,6 @@ bool result = (doc2 == doc); // 结果：true
 
 <!-- example:usage_2_6_4_literal_operator -->
 ```cpp
-using namespace yyjson::literals;
 auto doc = R"({"name": "Alice", "age": 30})"_xyjson;
 auto name = doc / "name" | "";
 auto age = doc / "age" | 0;
@@ -946,7 +947,7 @@ if(age & int64_t(0));  // kSint: true
 // 重新序列化与反序列化
 std::string json = mutDoc.root().toString();
 yyjson::Document doc(json);
-if (doc / "age" & int64_t())); // kSint: false
+if (doc / "age" & int64_t()); // kSint: false
 ```
 
 然而要注意的是，将 json 序列化后，这种细节类型信息就丢失了。重新读入后，非负整
@@ -1127,9 +1128,9 @@ Json 对象中。所以输入对象时，要求 `<<` 成对出现（且奇数位
 
 有了 `<<` 操作符，就可以动态构建具有复杂层次结构的 Json 了。例如：
 
-<!-- example:usage_3_4_2_build_object -->
+<!-- example:usage_3_4_3_build_object -->
 ```cpp
-MutableDocument mutDoc;
+yyjson::MutableDocument mutDoc;
 
 // 链式添加数组元素
 mutDoc["numbers"] = "[]"; // mutDoc.root() << "numbers" << kArray;
@@ -1148,9 +1149,9 @@ mutDoc / "config" / "timeout" = 40;
 
 以上代码构建的 Json 等效于：
 
-<!-- example:usage_3_4_2_build_static -->
+<!-- example:usage_3_4_3_build_static -->
 ```cpp
-MutableDocument mutDoc;
+yyjson::MutableDocument mutDoc;
 
 mutDoc << R"({
     "numbers": [1, 2, 3, 4, 5],
@@ -1198,10 +1199,10 @@ mutDoc << R"({
 
 <!-- example:usage_3_5_1_keyvalue_binding -->
 ```cpp
-MutableDocument mutDoc;
+yyjson::MutableDocument mutDoc;
 
-MutableValue name = mutDoc * "Alice"; // mutDoc.create("Alice")
-MutableValue age = mutDoc * 25;       // mutDoc.create(25)
+yyjson::MutableValue name = mutDoc * "Alice"; // mutDoc.create("Alice")
+yyjson::MutableValue age = mutDoc * 25;       // mutDoc.create(25)
 auto kv = std::move(name) * std::move(age);
 //^ 等效: std::move(age).tag(std::move(name));
 
@@ -1236,7 +1237,7 @@ root << mutDoc.create(25).tag("Alice"); // root.add("Alice", 25)
 <!-- example:usage_3_5_2_move_node -->
 ```cpp
 // 创建根为数组的 Json
-MutableDocument mutDoc("[]");
+yyjson::MutableDocument mutDoc("[]");
 
 // 创建独立于 Json 树根的对象，填充信息
 auto user = mutDoc * "{}";
@@ -1244,7 +1245,9 @@ user << "name" << "Alice" << "age" << 30;
 
 // 将对象移入到 Json 根数组中
 mutDoc.root() << std::move(user);
-if (!user) { std::cout << "moved" << std::endl; }
+if (!user) {
+    std::cout << "moved" << std::endl;
+}
 
 // 创建另一个对象，可复用 user 变量名，再移入
 user = mutDoc * "{}";
@@ -1252,7 +1255,7 @@ user << "name" << "Bob" << "age" << 25;
 mutDoc.root() << std::move(user);
 
 std::cout << mutDoc << std::endl;
-//^ 输出：[{"name":"Alice","name":30},{"name":"Bob","age":25}]
+//^ 输出：[{"name":"Alice","age":30},{"name":"Bob","age":25}]
 
 // 再创建一个数组
 auto favor = mutDoc * "[]";
@@ -1282,7 +1285,7 @@ if (favor) {
 
 <!-- example:usage_3_6_copy_node -->
 ```cpp
-MutableDocument mutDoc(R"(["Alice",25])");
+yyjson::MutableDocument mutDoc(R"(["Alice",25])");
 
 auto age = mutDoc / 1;       // 引用已有结点
 mutDoc.root() << "Bob" << age; // 拷贝原结点，不要用 std::move(age)
@@ -1354,7 +1357,7 @@ root / "name" = strName; // 或 strName.c_str()，都会拷贝
 // 自动插入的键名，不能获得字面量优化
 root["friend"] = "[]"; // 特殊字面量，空数组
 // 添加数组元素，可以引用字面量
-root / "friend" << "Bob" << "Candy"; 
+root / "friend" << "Bob" << "Candy";
 
 // 插入对象的键名与字符串值，都能获得字面量优化
 root << "telephone" << "{}";
@@ -1397,8 +1400,10 @@ if (mutDoc[2] | "" == kFail) {
 ```cpp
 yyjson::MutableDocument mutDoc;
 mutDoc << R"({"name": "Alice", "age": 30})";
+auto root = *mutDoc;
+
 std::string strName = "Alice.Green";
-autu refName = yyjson::StringRef(strName.c_str(), strName.size());
+auto refName = yyjson::StringRef(strName.c_str(), strName.size());
 root / "name" = refName;
 
 if (root / "name" | "" == strName.c_str()) {
@@ -1542,7 +1547,6 @@ O(1) 复杂度，其他位置则是 O(N) 复杂度。删除最后面的元素也
 
 <!-- example:usage_4_2_iter_create -->
 ```cpp
-using namespace yyjson;
 auto doc = R"({"name": "Alice", "age": 30})"_xyjson;
 auto mutDoc = ~doc;
 
@@ -1556,7 +1560,6 @@ mutDoc = ~doc;
 // 数组迭代器
 for (auto iter = doc % 0; iter; ++iter) { }
 for (auto iter = mutDoc % 0; iter; ++iter) { }
-}
 ```
 
 可以将 `%` 视为路径操作 `/` 的变种，因为迭代器的主要作用是为重复路径操作提效用
@@ -1570,7 +1573,6 @@ for (auto iter = mutDoc % 0; iter; ++iter) { }
 
 <!-- example:usage_4_2_iter_with_startpos -->
 ```cpp
-using namespace yyjson;
 auto doc = R"({"name": "Alice", "age": 30})"_xyjson;
 
 // 对象迭代器，从第二个键值对 "age" 开始迭代
@@ -1582,7 +1584,6 @@ doc << R"(["name", "Alice", "age", 30])";
 // 数组迭代器，从第三个索引开始迭代（第一个的索引是 0）
 // doc.root().iterator(2)
 for (auto iter = doc % 2; iter; ++iter) { }
-}
 ```
 
 简单类比一下，`doc / "age"` 与 `doc % "age"` 都指向同一个 Json 结点，只不过
@@ -1595,7 +1596,6 @@ for (auto iter = doc % 2; iter; ++iter) { }
 
 <!-- example:usage_4_2_iter_type_constants -->
 ```cpp
-using namespace yyjson;
 auto doc = R"({"name": "Alice", "age": 30})"_xyjson;
 
 // 对象迭代器 doc.root().iterator(kObject)
@@ -1604,7 +1604,6 @@ for (auto iter = doc % kObject; iter; ++iter) { }
 // 数组迭代器 doc.root().iterator(kArray)
 doc << R"(["name", "Alice", "age", 30])";
 for (auto iter = doc % kArray; iter; ++iter) { }
-}
 ```
 
 还有一种类似标准库的创建迭代器方法，成对的 begin 与 end 。但是由于 Json 有两种
@@ -1612,7 +1611,6 @@ for (auto iter = doc % kArray; iter; ++iter) { }
 
 <!-- example:usage_4_2_iter_begin_end -->
 ```cpp
-using namespace yyjson;
 auto doc = R"({"name": "Alice", "age": 30})"_xyjson;
 
 // 对象迭代器
@@ -1636,7 +1634,7 @@ for (auto it = doc.root().beginArray(); it != doc.root().endArray(); ++it) { }
 <!-- example:usage_4_3_iter_validity -->
 ```cpp
 // 迭代器有效性检查示例
-yyjson::Document doc
+yyjson::Document doc;
 doc << R"({"users": [{"name":"Alice", "age":25}, {"name":"Bob", "age":30}]})";
 
 // 1. 正确创建迭代器
@@ -1652,21 +1650,21 @@ if (!invalidObjectIter) {
 }
 
 // 3. 空数组的迭代器
-Document emptyArrayDoc("[]");
+yyjson::Document emptyArrayDoc("[]");
 auto emptyArrayIter = emptyArrayDoc.root() % 0;
 if (!emptyArrayIter) {
     std::cout << "Empty" << std::endl;
 }
 
-// 4. 空对象的迭代器  
-Document emptyObjectDoc("{}");
+// 4. 空对象的迭代器
+yyjson::Document emptyObjectDoc("{}");
 auto emptyObjectIter = emptyObjectDoc.root() % "";
 if (!emptyObjectIter) {
     std::cout << "Empty" << std::endl;
 }
 
 // 5. 迭代器边界检查
-Document arrayDoc("[1, 2, 3]");
+yyjson::Document arrayDoc("[1, 2, 3]");
 auto iter = arrayDoc.root() % 0;
 for (int i = 0; iter; ++iter, ++i) { }
 
@@ -1686,7 +1684,7 @@ if (!iter) {
 
 <!-- example:usage_4_4_array_iter_deref -->
 ```cpp
-yyjson::Document doc
+yyjson::Document doc;
 doc << R"(["name", "Alice", "age", 30])";
 
 for (auto it = doc % 0; it; ++it) {
@@ -1694,7 +1692,7 @@ for (auto it = doc % 0; it; ++it) {
         std::cout << (*it | "") << ","; // | 优先级比 << 低，要加括号
     }
     else if (it->isInt()) { // 调用方法，用 -> 更方便，否则 (*it).isInt()
-      std::cout << (*it | 0) << ",";
+        std::cout << (*it | 0) << ",";
     }
 }
 std::cout << std::endl; // 输出：name,Alice,age,30,
@@ -1706,7 +1704,7 @@ std::cout << std::endl; // 输出：name,Alice,age,30,
 
 <!-- example:usage_4_4_object_iter_deref -->
 ```cpp
-yyjson::Document doc
+yyjson::Document doc;
 doc << R"({"name": "Alice", "age": 30})";
 
 for (auto it = doc % ""; it; ++it) {
@@ -1726,7 +1724,7 @@ std::cout << std::endl; // 输出：Alice,30,
 
 <!-- example:usage_4_4_iter_key_value -->
 ```cpp
-yyjson::Document doc
+yyjson::Document doc;
 doc << R"({"name": "Alice", "age": 30})";
 
 for (auto it = doc % ""; it; ++it) {
@@ -1790,9 +1788,9 @@ doc << R"({"one":1, "two":2, "three":3, "four":4, "five":5, "six":6})";
 
 // 从第二个元素开始迭代，每次进两步
 for (auto it = doc % "two"; it; it += 2) {
-  std::cout << (*it | 0) << ",";
+    std::cout << (*it | 0) << ",";
 }
-std::cout << std::endl; // 输出：2,4,6
+std::cout << std::endl; // 输出：2,4,6,
 
 // 不用循环，已知每个键名，向前搜索
 auto it = doc % "two";
@@ -1803,7 +1801,7 @@ it %= "six";
 std::cout << (*it | 0) << ",";
 it %= "eight";
 if (!it); // 找不到键名，迭代器无效了
-std::cout << std::endl; // 输出：2,4,6
+std::cout << std::endl; // 输出：2,4,6,
 ```
 
 符合常规语义，后缀 `++` 、二元 `+` 与 `%` 都产生新迭代器，而前缀 `++` 、`+=`
@@ -1892,7 +1890,7 @@ O(N^2) 平均 O(N) 。
 
 <!-- example:usage_4_7_iter_modify -->
 ```cpp
-yyjson::MutableDocument mutDoc
+yyjson::MutableDocument mutDoc;
 mutDoc << R"({"name": "Alice", "age": 30})";
 
 auto iter = mutDoc % "age"; // item = mutDoc / "age"
@@ -1918,7 +1916,7 @@ std::cout << mutDoc << std::endl; // 输出：[2,4,6,8,10,12]
 
 // 使用迭代器批量修改
 for (auto it = mutDoc % 0; it; ++it) {
-    *it i = (*it | 0) * 2;
+    *it = (*it | 0) * 2;
 }
 std::cout << mutDoc << std::endl; // 输出：[4,8,12,16,20,24]
 ```
@@ -2011,7 +2009,7 @@ auto it = mutDoc % 3;
 auto rm = it.remove();
 std::cout << (rm | 0.0) << std::endl; // 输出：3.1
 
-MutableValue rm1, rm2;
+yyjson::MutableValue rm1, rm2;
 it >> rm1 >> rm2;
 std::cout << (rm1 | 0.0) << std::endl; // 输出：3.14
 std::cout << (rm2 | 0.0) << std::endl; // 输出：3.142
@@ -2030,7 +2028,7 @@ auto it = mutDoc % "sex2";
 auto rm2 = it.remove();
 
 // 在 it 处删除 sex2 后，自动移到下一个结点 sex3
-KeyValue rm3;
+yyjson::KeyValue rm3;
 it >> rm3;
 
 // 将删除的 sex2 sex3 字段重新插入到末尾

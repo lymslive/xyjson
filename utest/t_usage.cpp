@@ -26,7 +26,7 @@ DEF_TAST(usage_2_1_1_read_json, "usage: 2.1.1 Document 读入操作 - 基础构�
 #ifdef MARKDOWN_CODE_SNIPPET
     DESC("宏语句不同步到文档");
     std::string jsonText = R"({"name": "Alice", "age": 30})";
-    Document doc(jsonText);
+    yyjson::Document doc(jsonText);
 
     COUT((doc / "name" | ""), "Alice");
     COUT((doc / "age" | 0), 30);
@@ -70,7 +70,6 @@ DEF_TAST(usage_2_1_1_read_operator, "usage: 2.1.1 Document 读入操作 - << 操
 
 DEF_TAST(usage_2_1_1_lazy_read, "usage: 2.1.1 Document 读入操作 - 延迟读入")
 {
-    
 #ifdef MARKDOWN_CODE_SNIPPET
     yyjson::Document doc;
     if (!doc) {
@@ -127,7 +126,7 @@ DEF_TAST(usage_2_1_2_write_json, "usage: 2.1.2 Document 写出操作 - 基本输
 {
 #ifdef MARKDOWN_CODE_SNIPPET
     std::string jsonText = R"({"name": "Alice", "age": 30})";
-    MutableDocument mutDoc(jsonText);
+    yyjson::MutableDocument mutDoc(jsonText);
 
     std::string strTarget;
     mutDoc >> strTarget;
@@ -214,7 +213,7 @@ DEF_TAST(usage_2_2_2_index_access, "usage: 2.2.2 索引操作 []")
 DEF_TAST(usage_2_2_3_path_access, "usage: 2.2.3 路径操作 /")
 {
 #ifdef MARKDOWN_CODE_SNIPPET
-    Document doc;
+    yyjson::Document doc;
     doc << R"({"name": "Alice", "age": 30, "score": [10, 20, 30],
         "friend": [{"name": "Bob", "age": 35}, {"name": "Cous", "age": 20}]
     })";
@@ -257,7 +256,7 @@ DEF_TAST(usage_2_2_4_json_pointer, "usage: 2.2.4 JSON Pointer 路径操作")
 DEF_TAST(usage_2_3_1_extract_value, "usage: 2.3.1 带默认值的取值操作 |")
 {
 #ifdef MARKDOWN_CODE_SNIPPET
-    Document doc;
+    yyjson::Document doc;
     doc << R"({"name": "Alice", "age": 30, "ratio": 0.618, "pass": true})";
 
     const char* name = doc / "name" | "";
@@ -297,7 +296,7 @@ DEF_TAST(usage_2_3_1_convert_value, "usage: 2.3.1 带默认值的取值操作 |"
 DEF_TAST(usage_2_3_2_or_assign, "usage: 2.3.2 使用变量原来的默认值提取 |=")
 {
 #ifdef MARKDOWN_CODE_SNIPPET
-    Document doc;
+    yyjson::Document doc;
     doc << R"({"name": "Alice", "age": 30})";
 
     int age = 18;
@@ -321,7 +320,7 @@ DEF_TAST(usage_2_3_2_or_assign, "usage: 2.3.2 使用变量原来的默认值提�
 DEF_TAST(usage_2_3_3_explicit_check, "usage: 2.3.3 明确判断取值操作是否成功 >>")
 {
 #ifdef MARKDOWN_CODE_SNIPPET
-    Document doc;
+    yyjson::Document doc;
     doc << R"({"name": "Alice", "age": 30})";
 
     std::string name;
@@ -352,7 +351,7 @@ DEF_TAST(usage_2_3_3_post_check, "usage: 2.3.3 明确判断取值是否有效 >>
 DEF_TAST(usage_2_3_4_pipe_function, "usage: 2.3.4 自定义管道函数取值 |")
 {
 #ifdef MARKDOWN_CODE_SNIPPET
-    Document doc;
+    yyjson::Document doc;
     doc << R"({"name": "Alice", "age": 30})";
 
     // 取值转大写
@@ -434,9 +433,9 @@ DEF_TAST(usage_2_3_4_complex_object, "usage: 2.3.4 复杂对象读取示例")
 DEF_TAST(usage_2_3_5_underlying_ptr, "usage: 2.3.5 底层指针访问")
 {
 #ifdef MARKDOWN_CODE_SNIPPET
-    Document doc("{}");
+    yyjson::Document doc("{}");
 
-    yyjson_val* p = doc.root().get();
+    yyjson_val* p  = doc.root().get();
     yyjson_val* p1 = doc.root() | (yyjson_val*)nullptr;
     yyjson_val* p2 = nullptr;
     p2 |= doc.root();
@@ -454,7 +453,7 @@ DEF_TAST(usage_2_3_5_underlying_ptr, "usage: 2.3.5 底层指针访问")
 DEF_TAST(usage_2_3_5_underlying_mutptr, "usage: 2.3.5 底层指针访问")
 {
 #ifdef MARKDOWN_CODE_SNIPPET
-    MutableDocument doc("{}");
+    yyjson::MutableDocument doc("{}");
     yyjson_mut_val* p1 = nullptr;
     yyjson_mut_doc* p2 = nullptr;
     p1 |= doc.root();
@@ -467,12 +466,12 @@ DEF_TAST(usage_2_3_5_underlying_mutptr, "usage: 2.3.5 底层指针访问")
 DEF_TAST(usage_2_4_1_type_check, "usage: 2.4.1 Json 结点类型判断 &")
 {
 #ifdef MARKDOWN_CODE_SNIPPET
-    Document doc;
+    yyjson::Document doc;
     doc << R"({"name": "Alice", "age": 30, "score": [10, 20, 30]})";
 
     bool isString = doc["name"].isString();
     bool isNumber = doc["age"].isInt();
-    bool isArray = doc["score"].isArray();
+    bool isArray  = doc["score"].isArray();
     bool isObject = doc["config"].isObject();
 
     COUT(isString, true);
@@ -508,22 +507,22 @@ DEF_TAST(usage_2_4_1_type_check, "usage: 2.4.1 Json 结点类型判断 &")
 DEF_TAST(usage_2_4_2_type_represent, "usage: 2.4.2 类型代表值")
 {
 #ifdef MARKDOWN_CODE_SNIPPET
-    Document doc;
+    yyjson::Document doc;
     doc << R"({"name": "Alice", "age": 30, "ratio": 0.618, "score": [10, 20, 30]})";
 
     COUT((doc / "name" & kString), true);
     if (doc / "name" & kString) {
-//+     std::cout << (doc / "name" | kString) << std::endl;
+//+     std::cout << (doc / "name" | kString) << std::endl; // 输出：Alice
         COUT((doc / "name" | kString), "Alice");
     }
     COUT((doc / "age" & kInt), true);
     if (doc / "age" & kInt) {
-//+     std::cout << (doc / "age" | kInt) << std::endl;
+//+     std::cout << (doc / "age" | kInt) << std::endl; // 输出：30
         COUT((doc / "age" | kInt), 30);
     }
     COUT((doc / "ratio" & kReal), true);
     if (doc / "ratio" & kReal) {
-//+     std::cout << (doc / "ratio" | kReal) << std::endl;
+//+     std::cout << (doc / "ratio" | kReal) << std::endl; // 输出：0.618
         COUT((doc / "ratio" | kReal), 0.618);
     }
 
@@ -550,7 +549,7 @@ DEF_TAST(usage_2_4_3_number_type, "usage: 2.4.3 数字类型细分")
     // 整数与浮点数都属于 Number
     bool isNumber = doc / "age" & kNumber; // 结果：true
     COUT(isNumber, true);
-    isNumber = doc / "ratio" & kNumber;   // 结果：true
+    isNumber = doc / "ratio" & kNumber;    // 结果：true
     COUT(isNumber, true);
     auto age = doc / "age" | kNumber;      // 结果: 30.0
     COUT(age, 30.0);
@@ -592,6 +591,16 @@ DEF_TAST(usage_2_4_3_integer_types, "usage: 2.4.3 整数类型详细区分")
     COUT(check, false);
     check = doc / "sint" & kSint;  // 结果: true
     COUT(check, true);
+
+    // 取值失败，"int" 结点不是负整数
+    int64_t value = 0;
+    value |= doc / "int";
+//+ std::cout << value << std::endl; // 输出：0
+    COUT(value, 0);
+
+    // 取值成功，字面量 `0` 属于 `int` 类型，与 json 结点匹配
+//+ std::cout << (doc / "int" | 0) << std::endl; // 输出：100
+    COUT((doc / "int" | 0), 100);
 #endif
 }
 
@@ -750,13 +759,13 @@ DEF_TAST(usage_3_1_create_mutable, "usage: 3.1 创建与初始化可写文档")
 {
 #ifdef MARKDOWN_CODE_SNIPPET
     // 创建空对象文档
-    MutableDocument mutDoc("{}");
+    yyjson::MutableDocument mutDoc("{}");
 
     // 创建带初始内容的文档
-    MutableDocument mutDoc2(R"({"name": "Alice", "age": 30})");
+    yyjson::MutableDocument mutDoc2(R"({"name": "Alice", "age": 30})");
 
     // 创建空数组文档
-    MutableDocument mutDoc3("[]");
+    yyjson::MutableDocument mutDoc3("[]");
 
     COUT((bool)mutDoc, true);
     COUT((bool)mutDoc2, true);
@@ -809,7 +818,8 @@ DEF_TAST(usage_3_2_1_integer_type, "usage: 3.2.1 修改整数类型")
     // 重新序列化与反序列化
     std::string json = mutDoc.root().toString();
     yyjson::Document doc(json);
-    COUT(((doc / "age") & int64_t()), false); // kSint: false
+    if (doc / "age" & int64_t()); // kSint: false
+    COUT(((doc / "age") & int64_t()), false);
 #endif
 }
 
@@ -858,7 +868,7 @@ DEF_TAST(usage_3_2_3_value_assign, "usage: 3.2.3 Value 类型本身的赋值")
 DEF_TAST(usage_3_3_auto_insert, "usage: 3.3 索引操作自动插入结点 []")
 {
 #ifdef MARKDOWN_CODE_SNIPPET
-    MutableDocument mutDoc;
+    yyjson::MutableDocument mutDoc;
 
     mutDoc["name"] = "Alice";     // 自动创建并设置 name 字段
     mutDoc["age"] = 30;           // 自动创建并设置 age 字段
@@ -873,6 +883,7 @@ DEF_TAST(usage_3_3_auto_insert, "usage: 3.3 索引操作自动插入结点 []")
     mutDoc["sex"] = "female";   // 创建
     mutDoc / "sex" = "Female";  // 修改
     mutDoc["sex"] = "Male";     // 修改
+    if (mutDoc / "sex"); // true
 
     COUT((mutDoc / "name" | ""), "Bob");
     COUT((mutDoc / "age" | 0), 30);
@@ -930,7 +941,7 @@ DEF_TAST(usage_3_4_2_add_object, "usage: 3.4.2 给对象添加结点")
 DEF_TAST(usage_3_4_3_build_object, "usage: 3.4.3 从头构建复杂 Json")
 {
 #ifdef MARKDOWN_CODE_SNIPPET
-    MutableDocument mutDoc;
+    yyjson::MutableDocument mutDoc;
 
     // 链式添加数组元素
     mutDoc["numbers"] = "[]"; // mutDoc.root() << "numbers" << kArray;
@@ -952,7 +963,7 @@ DEF_TAST(usage_3_4_3_build_object, "usage: 3.4.3 从头构建复杂 Json")
 DEF_TAST(usage_3_4_3_build_static, "usage: 3.4.3 从头构建复杂 Json")
 {
 #ifdef MARKDOWN_CODE_SNIPPET
-    MutableDocument mutDoc;
+    yyjson::MutableDocument mutDoc;
 
     mutDoc << R"({
         "numbers": [1, 2, 3, 4, 5],
@@ -1168,15 +1179,17 @@ DEF_TAST(usage_3_6_stringref, "usage: 3.6 StringRef 显式引用")
 #ifdef MARKDOWN_CODE_SNIPPET
     yyjson::MutableDocument mutDoc;
     mutDoc << R"({"name": "Alice", "age": 30})";
+    auto root = *mutDoc;
+
     std::string strName = "Alice.Green";
     auto refName = yyjson::StringRef(strName.c_str(), strName.size());
-    mutDoc.root() / "name" = refName;
+    root / "name" = refName;
 
-    if (mutDoc.root() / "name" | "" == strName.c_str()) {
+    if (root / "name" | "" == strName.c_str()) {
 //+     std::cout << "ref" << std::endl;
     }
-    COUT((mutDoc.root() / "name" | ""), "Alice.Green");
-    COUT_PTR((mutDoc.root() / "name" | ""), strName.c_str());
+    COUT((root / "name" | ""), "Alice.Green");
+    COUT_PTR((root / "name" | ""), strName.c_str());
 #endif
 }
 
@@ -1203,8 +1216,7 @@ DEF_TAST(usage_4_2_iter_create, "usage: 4.2 迭代器创建与基本遍历")
 DEF_TAST(usage_4_2_iter_with_startpos, "usage: 4.2 迭代器带起始位置")
 {
 #ifdef MARKDOWN_CODE_SNIPPET
-    yyjson::Document doc;
-    doc << R"({"name": "Alice", "age": 30})";
+    auto doc = R"({"name": "Alice", "age": 30})"_xyjson;
 
     // 对象迭代器，从第二个键值对 "age" 开始迭代
     // doc.root().iterator("age")
@@ -1222,8 +1234,7 @@ DEF_TAST(usage_4_2_iter_with_startpos, "usage: 4.2 迭代器带起始位置")
 DEF_TAST(usage_4_2_iter_type_constants, "usage: 4.2 使用类型常量创建迭代器")
 {
 #ifdef MARKDOWN_CODE_SNIPPET
-    yyjson::Document doc;
-    doc << R"({"name": "Alice", "age": 30})";
+    auto doc = R"({"name": "Alice", "age": 30})"_xyjson;
 
     // 对象迭代器 doc.root().iterator(kObject)
     for (auto iter = doc % kObject; iter; ++iter) { }
@@ -1238,8 +1249,7 @@ DEF_TAST(usage_4_2_iter_type_constants, "usage: 4.2 使用类型常量创建迭�
 DEF_TAST(usage_4_2_iter_begin_end, "usage: 4.2 begin/end 风格迭代器")
 {
 #ifdef MARKDOWN_CODE_SNIPPET
-    yyjson::Document doc;
-    doc << R"({"name": "Alice", "age": 30})";
+    auto doc = R"({"name": "Alice", "age": 30})"_xyjson;
 
     // 对象迭代器
     for (auto it = doc.root().beginObject(); it != doc.root().endObject(); ++it) { }
@@ -1474,7 +1484,7 @@ DEF_TAST(usage_4_6_object_iter_seek_fast, "usage: 4.6 对象迭代器快速查�
 DEF_TAST(usage_4_7_iter_modify, "usage: 4.7 可写迭代器修改结点")
 {
 #ifdef MARKDOWN_CODE_SNIPPET
-    MutableDocument mutDoc;
+    yyjson::MutableDocument mutDoc;
     mutDoc << R"({"name": "Alice", "age": 30})";
 
     auto iter = mutDoc % "age"; // item = mutDoc / "age"
@@ -1578,7 +1588,7 @@ DEF_TAST(usage_4_9_iter_delete, "usage: 4.9 可写迭代器删除结点")
 //+ std::cout << (rm | 0.0) << std::endl; // 输出：3.1
     COUT((rm | 0.0), 3.1);
 
-    MutableValue rm1, rm2;
+    yyjson::MutableValue rm1, rm2;
     it >> rm1 >> rm2;
 //+ std::cout << (rm1 | 0.0) << std::endl; // 输出：3.14
 //+ std::cout << (rm2 | 0.0) << std::endl; // 输出：3.142
@@ -1643,16 +1653,16 @@ DEF_TAST(usage_4_10_standard_interface, "usage: 4.10 标准迭代器接口")
 DEF_TAST(usage_6_1_copy_behavior, "usage: 6.1 理解核心类的拷贝行为")
 {
 #ifdef MARKDOWN_CODE_SNIPPET
-    Document doc1("{\"data\": \"value\"}");
+    yyjson::Document doc1("{\"data\": \"value\"}");
 
     //! 错误：尝试拷贝 Document
     //! yyjson::Document doc2 = doc1;  // 编译错误
 
     // 合法：使用移动语义
-    Document doc2 = std::move(doc1);
+    yyjson::Document doc2 = std::move(doc1);
 
     // 合法：使用类型转换，拷贝
-    MutableDocument mutCopy = ~doc2;
+    yyjson::MutableDocument mutCopy = ~doc2;
 #endif
     COUT((bool)doc2, true);
     COUT((bool)mutCopy, true);
@@ -1668,6 +1678,7 @@ DEF_TAST(usage_6_1_mutable_value_ref, "usage: 6.1 MutableValue 引用行为")
     auto copyNode = ageNode;  // 实际复制的是对结点的引用
 
     ageNode = 25;
+//+ std::cout << (copyNode | 0) << std::endl; // 输出：25
     COUT((copyNode | 0), 25);
 
     // 要真正复制结点，得调用 mutDoc 的 create 方法，或 * 操作符
@@ -1680,7 +1691,7 @@ DEF_TAST(usage_6_1_mutable_value_ref, "usage: 6.1 MutableValue 引用行为")
 DEF_TAST(usage_6_3_index_operator, "usage: 6.3 索引操作符只建议放 = 左边")
 {
 #ifdef MARKDOWN_CODE_SNIPPET
-    MutableDocument mutDoc("{}");
+    yyjson::MutableDocument mutDoc("{}");
 
     //! 错误：用 / 操作符不会创建新字段
     //! mutDoc / "new_field" = "value";
@@ -1690,7 +1701,7 @@ DEF_TAST(usage_6_3_index_operator, "usage: 6.3 索引操作符只建议放 = 左
     mutDoc / "new_field" = "updated";  // 修改已存在字段
     COUT((mutDoc / "new_field" | ""), "updated");
 
-    // 错误：会自动添加 "no_field" 字段，类型为 null
+    //! 错误：会自动添加 "no_field" 字段，类型为 null
     int i = mutDoc["non_field"] | 0;
     COUT(i, 0);
     COUT((mutDoc / "non_field").isNull(), true);
