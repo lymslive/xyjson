@@ -7,6 +7,7 @@
 #include "couttast/couttast.h"
 #include "xyjson.h"
 #include <numeric>
+#include <sstream>
 
 // use to mark code snippet from document
 #define MARKDOWN_CODE_SNIPPET
@@ -16,6 +17,8 @@
 using namespace yyjson;
 #endif
 // end code in markdown file with ```
+
+#define CODE(statement) statement
 
 DEF_TAST(usage_2_1_1_read_json, "usage: 2.1.1 Document 读入操作 - 基础构造")
 {
@@ -917,16 +920,52 @@ DEF_TAST(usage_3_4_2_add_object, "usage: 3.4.2 给对象添加结点")
     root << "age" << "25";
 
 //+ std::cout << mutDoc << std::endl;
-
+#endif
     COUT((mutDoc / "name" | ""), "Alice");
     COUT((mutDoc / "age" | 0), 35);
     COUT((mutDoc / "sex" | ""), "Female");
-
     COUT(mutDoc.root().toString(), R"({"name":"Alice","age":35,"sex":"Female","login":false,"name":"Alice","age":"25"})");
-#endif
 }
 
-// to fix: 3.4.3 有两个示例片断没有对应用例名
+DEF_TAST(usage_3_4_3_build_object, "usage: 3.4.3 从头构建复杂 Json")
+{
+#ifdef MARKDOWN_CODE_SNIPPET
+    MutableDocument mutDoc;
+
+    // 链式添加数组元素
+    mutDoc["numbers"] = "[]"; // mutDoc.root() << "numbers" << kArray;
+    mutDoc / "numbers" << 1 << 2 << 3 << 4 << 5;
+
+    // 链式设置对象属性，键、值需成对出现
+    mutDoc["config"] = "{}"; // mutDoc.root() << "config" << kObject;
+    mutDoc / "config" << "timeout" << 30 << "retries" << 3 << "debug" << true;
+
+    // 混合类型数组
+    mutDoc["mixed"] = "[]"; // mutDoc.root() << "mixed" << kArray;
+    mutDoc / "mixed" << 42 << "text" << 3.14 << false;
+
+    mutDoc / "config" / "timeout" = 40;
+#endif
+    COUT(mutDoc.root().toString(), R"({"numbers":[1,2,3,4,5],"config":{"timeout":40,"retries":3,"debug":true},"mixed":[42,"text",3.14,false]})");
+}
+
+DEF_TAST(usage_3_4_3_build_static, "usage: 3.4.3 从头构建复杂 Json")
+{
+#ifdef MARKDOWN_CODE_SNIPPET
+    MutableDocument mutDoc;
+
+    mutDoc << R"({
+        "numbers": [1, 2, 3, 4, 5],
+        "config": {
+            "timeout": 40,
+            "retries": 3,
+            "debug": true
+        },
+        "mixed": [42, "text", 3.14, false]
+    })";
+#endif
+    COUT(mutDoc.root().toString(), R"({"numbers":[1,2,3,4,5],"config":{"timeout":40,"retries":3,"debug":true},"mixed":[42,"text",3.14,false]})");
+}
 
 DEF_TAST(usage_3_5_1_keyvalue_binding, "usage: 3.5.1 键值对绑定")
 {
@@ -942,6 +981,7 @@ DEF_TAST(usage_3_5_1_keyvalue_binding, "usage: 3.5.1 键值对绑定")
     root << std::move(kv);
 //+ std::cout << mutDoc << std::endl; // 输出：{"Alice":25}
     COUT((mutDoc / "Alice" | 0), 25);
+    COUT(mutDoc.root().toString(), R"({"Alice":25})");
 
     // 这些操作可写成一行表达式，以下每一行都是等效的
     root << (mutDoc * "Alice") * (mutDoc * 25); // 键结点 * 值结点
@@ -950,6 +990,7 @@ DEF_TAST(usage_3_5_1_keyvalue_binding, "usage: 3.5.1 键值对绑定")
     root << mutDoc * 25 * "Alice";   // 值结点 * 键名，省去括号
     root << mutDoc.create(25).tag("Alice"); // root.add("Alice", 25)
 #endif
+    COUT(mutDoc.root().toString(), R"({"Alice":25,"Alice":25,"Alice":25,"Alice":25,"Alice":25,"Alice":25})");
 }
 
 DEF_TAST(usage_3_5_2_move_node, "usage: 3.5.2 移动独立结点")
@@ -1117,7 +1158,8 @@ DEF_TAST(usage_3_6_string_literal_const, "usage: 3.6 字符串字面量常量")
     COUT_PTR((mutDoc[0] | ""), "OK");
     COUT((mutDoc[1] | ""), "Succ");
     COUT((mutDoc[1] | "" != kSucc), true);
-    COUT_PTR((mutDoc[2] | ""), "Fail");
+    COUT((mutDoc[2] | "") != "Fail", true);
+    COUT_PTR((mutDoc[2] | ""), kFail);
 #endif
 }
 
@@ -1154,9 +1196,8 @@ DEF_TAST(usage_4_2_iter_create, "usage: 4.2 迭代器创建与基本遍历")
     // 数组迭代器
     for (auto iter = doc % 0; iter; ++iter) { }
     for (auto iter = mutDoc % 0; iter; ++iter) { }
-
-    COUT(true, true);
 #endif
+    COUT(true, true);
 }
 
 DEF_TAST(usage_4_2_iter_with_startpos, "usage: 4.2 迭代器带起始位置")
@@ -1174,8 +1215,8 @@ DEF_TAST(usage_4_2_iter_with_startpos, "usage: 4.2 迭代器带起始位置")
     // 数组迭代器，从第三个索引开始迭代（第一个的索引是 0）
     // doc.root().iterator(2)
     for (auto iter = doc % 2; iter; ++iter) { }
-    COUT(true, true);
 #endif
+    COUT(true, true);
 }
 
 DEF_TAST(usage_4_2_iter_type_constants, "usage: 4.2 使用类型常量创建迭代器")
@@ -1190,8 +1231,8 @@ DEF_TAST(usage_4_2_iter_type_constants, "usage: 4.2 使用类型常量创建迭�
     // 数组迭代器 doc.root().iterator(kArray)
     doc << R"(["name", "Alice", "age", 30])";
     for (auto iter = doc % kArray; iter; ++iter) { }
-    COUT(true, true);
 #endif
+    COUT(true, true);
 }
 
 DEF_TAST(usage_4_2_iter_begin_end, "usage: 4.2 begin/end 风格迭代器")
@@ -1206,8 +1247,8 @@ DEF_TAST(usage_4_2_iter_begin_end, "usage: 4.2 begin/end 风格迭代器")
     // 数组迭代器
     doc << R"(["name", "Alice", "age", 30])";
     for (auto it = doc.root().beginArray(); it != doc.root().endArray(); ++it) { }
-    COUT(true, true);
 #endif
+    COUT(true, true);
 }
 
 DEF_TAST(usage_4_3_iter_validity, "usage: 4.3 迭代器有效性检查")
@@ -1262,111 +1303,125 @@ DEF_TAST(usage_4_3_iter_validity, "usage: 4.3 迭代器有效性检查")
 
 DEF_TAST(usage_4_4_array_iter_deref, "usage: 4.4 数组迭代器解引用")
 {
+    std::stringstream out;
 #ifdef MARKDOWN_CODE_SNIPPET
     yyjson::Document doc;
     doc << R"(["name", "Alice", "age", 30])";
 
     for (auto it = doc % 0; it; ++it) {
         if (*it & "") { // 解引用操作符 *it 优先级高，不必加括号
-            //+     std::cout << (*it | "") << ","; // | 优先级比 << 低，要加括号
+//+         std::cout << (*it | "") << ","; // | 优先级比 << 低，要加括号
+            CODE(out << (*it | "") << ",");
         }
         else if (it->isInt()) { // 调用方法，用 -> 更方便，否则 (*it).isInt()
-                    //+     std::cout << (*it | 0) << ",";
+//+         std::cout << (*it | 0) << ",";
+            CODE(out << (*it | 0) << ",");
         }
     }
-//+ std::cout << std::endl;
-    // 输出：name,Alice,age,30,
-    COUT(true, true);
+//+ std::cout << std::endl; // 输出：name,Alice,age,30,
 #endif
+    COUT(out.str(), "name,Alice,age,30,");
 }
 
 DEF_TAST(usage_4_4_object_iter_deref, "usage: 4.4 对象迭代器解引用")
 {
+    std::stringstream out;
 #ifdef MARKDOWN_CODE_SNIPPET
     yyjson::Document doc;
     doc << R"({"name": "Alice", "age": 30})";
 
     for (auto it = doc % ""; it; ++it) {
         if (*it & "") {
-//+     std::cout << (*it | "") << ",";
+//+         std::cout << (*it | "") << ",";
+            CODE(out << (*it | "") << ",");
         }
         else if (it->isInt()) {
-//+     std::cout << (*it | 0) << ",";
+//+         std::cout << (*it | 0) << ",";
+            CODE(out << (*it | 0) << ",");
         }
     }
-//+ std::cout << std::endl;
-    // 输出：Alice,30,
-    COUT(true, true);
+//+ std::cout << std::endl; // 输出：Alice,30,
+    COUT(out.str(), "Alice,30,");
 #endif
 }
 
 DEF_TAST(usage_4_4_iter_key_value, "usage: 4.4 迭代器键值访问")
 {
+    std::stringstream out;
 #ifdef MARKDOWN_CODE_SNIPPET
     yyjson::Document doc;
     doc << R"({"name": "Alice", "age": 30})";
 
     for (auto it = doc % ""; it; ++it) {
         if (*it & "") {
-//+     std::cout << (it.key() | "") << "," << (it.value() | "") << ",";
+//+         std::cout << (it.key() | "") << "," << (it.value() | "") << ",";
+            CODE(out << (it.key() | "") << "," << (it.value() | "") << ",");
         }
         else if (it->isInt()) {
-//+     std::cout << (it.key() | "") << "," << (it.value() | 0) << ",";
+//+         std::cout << (it.key() | "") << "," << (it.value() | 0) << ",";
+            CODE(out << (it.key() | "") << "," << (it.value() | 0) << ",");
         }
     }
-//+ std::cout << std::endl;
-    // 输出：name,Alice,age,30,
-    COUT(true, true);
+//+ std::cout << std::endl; // 输出：name,Alice,age,30,
 #endif
+    COUT(out.str(), "name,Alice,age,30,");
 }
 
 DEF_TAST(usage_4_5_iter_move_plus, "usage: 4.5 迭代器前进操作 +")
 {
+    std::stringstream out;
 #ifdef MARKDOWN_CODE_SNIPPET
     yyjson::Document doc;
     doc << R"([1,2,3,4,5,6])";
 
     // 从第二个元素开始迭代，每次进两步
     for (auto it = doc % 1; it; it +=2) {
-//+     std::cout << (*it | 0) << ","
+//+     std::cout << (*it | 0) << ",";
+        CODE(out << (*it | 0) << ",");
     }
-//+ std::cout << std::endl;
-    // 输出：2,4,6
+//+ std::cout << std::endl; // 输出：2,4,6,
     COUT(true, true);
 #endif
+    COUT(out.str(), "2,4,6,");
 }
 
 DEF_TAST(usage_4_5_iter_move_plus_object, "usage: 4.5 迭代器前进操作 +")
 {
+    std::stringstream out;
 #ifdef MARKDOWN_CODE_SNIPPET
     yyjson::Document doc;
     doc << R"({"one":1, "two":2, "three":3, "four":4, "five":5, "six":6})";
 
     // 从第二个元素开始迭代，每次进两步
     for (auto it = doc % "two"; it; it += 2) {
-        std::cout << (*it | 0) << ",";
+//+     std::cout << (*it | 0) << ",";
+        CODE(out << (*it | 0) << ",");
     }
-    std::cout << std::endl;
-    // 输出：2,4,6
+//+ std::cout << std::endl; // 输出：2,4,6,
+    COUT(out.str(), "2,4,6,");
 
+    CODE(out.str(""));
     // 不用循环，已知每个键名，向前搜索
     auto it = doc % "two";
-    std::cout << (*it | 0) << ",";
+//+ std::cout << (*it | 0) << ",";
+    CODE(out << (*it | 0) << ",");
     it %= "four";
-    std::cout << (*it | 0) << ",";
+//+ std::cout << (*it | 0) << ",";
+    CODE(out << (*it | 0) << ",");
     it %= "six";
-    std::cout << (*it | 0) << ",";
+//+ std::cout << (*it | 0) << ",";
+    CODE(out << (*it | 0) << ",");
     it %= "eight";
+    COUT(!it, true);
     if (!it); // 找不到键名，迭代器无效了
-    std::cout << std::endl;
-    // 输出：2,4,6
+//+ std::cout << std::endl; // 输出：2,4,6,
+    COUT(out.str(), "2,4,6,");
 #endif
 }
 
 DEF_TAST(usage_4_6_object_iter_seek_traditional, "usage: 4.6 对象迭代器传统查找方式")
 {
 #ifdef MARKDOWN_CODE_SNIPPET
-    using namespace yyjson;
     auto doc = R"({"name":"Alice", "sex":false, "age":25, "height":163.5, "weight":53.3})"_xyjson;
 
     std::string name = doc / "name" | "";
@@ -1374,19 +1429,17 @@ DEF_TAST(usage_4_6_object_iter_seek_traditional, "usage: 4.6 对象迭代器传�
     int age = doc / "age" | 0;
     double height = doc / "height" | 0.0;
     double weight = doc / "weight" | 0.0;
-
+#endif
     COUT(name, "Alice");
     COUT(sex, false);
     COUT(age, 25);
     COUT(height, 163.5);
     COUT(weight, 53.3);
-#endif
 }
 
 DEF_TAST(usage_4_6_object_iter_seek_fast, "usage: 4.6 对象迭代器快速查找")
 {
 #ifdef MARKDOWN_CODE_SNIPPET
-    using namespace yyjson;
     auto doc = R"({"name":"Alice", "sex":false, "age":25, "height":163.5, "weight":53.3})"_xyjson;
 
     auto it = doc % "";
@@ -1395,6 +1448,11 @@ DEF_TAST(usage_4_6_object_iter_seek_fast, "usage: 4.6 对象迭代器快速查�
     int age = it / "age" | 0;
     double height = it / "height" | 0.0;
     double weight = it / "weight" | 0.0; // it.seek("weight") | "
+    COUT(name, "Alice");
+    COUT(sex, false);
+    COUT(age, 25);
+    COUT(height, 163.5);
+    COUT(weight, 53.3);
 
     // 等效于如下写法
     it = doc % "";
@@ -1440,14 +1498,14 @@ DEF_TAST(usage_4_7_iter_modify_batch, "usage: 4.7 迭代器批量修改")
         mutDoc / i = (mutDoc / i | 0) * 2;
     }
 //+ std::cout << mutDoc << std::endl; // 输出：[2,4,6,8,10,12]
+    COUT(mutDoc.root().toString(), R"([2,4,6,8,10,12])");
 
     // 使用迭代器批量修改
     for (auto it = mutDoc % 0; it; ++it) {
         *it = (*it | 0) * 2;
     }
 //+ std::cout << mutDoc << std::endl; // 输出：[4,8,12,16,20,24]
-    COUT((mutDoc / 0 | 0), 4);
-    COUT((mutDoc / 1 | 0), 8);
+    COUT(mutDoc.root().toString(), R"([4,8,12,16,20,24])");
 #endif
 }
 
@@ -1480,7 +1538,6 @@ DEF_TAST(usage_4_8_iter_insert, "usage: 4.8 可写迭代器插入结点")
 DEF_TAST(usage_4_8_iter_insert_object, "usage: 4.8 对象迭代器插入")
 {
 #ifdef MARKDOWN_CODE_SNIPPET
-    using namespace yyjson;
     auto doc = R"({"name": "Alice", "age": 30})"_xyjson;
     auto mutDoc = ~doc;
 
@@ -1490,6 +1547,7 @@ DEF_TAST(usage_4_8_iter_insert_object, "usage: 4.8 对象迭代器插入")
 //+ std::cout << -it << "=" << *it << std::endl; // 输出：sex=false
 //+ std::cout << mutDoc << std::endl;
     //^ 输出：{"name":"Alice","sex":false,"age":30}
+    COUT(-it, "sex");
     COUT(mutDoc.root().toString(), R"({"name":"Alice","sex":false,"age":30})");
 
     // 当前 it 指向 sex ，在其前面再插入 sex2:49
@@ -1534,7 +1592,6 @@ DEF_TAST(usage_4_9_iter_delete, "usage: 4.9 可写迭代器删除结点")
 DEF_TAST(usage_4_9_iter_delete_object, "usage: 4.9 对象迭代器删除")
 {
 #ifdef MARKDOWN_CODE_SNIPPET
-    using namespace yyjson;
     auto doc = R"({"name":"Alice","sex2":49,"sex3":"spec","sex":false,"age":30})"_xyjson;
     auto mutDoc = ~doc;
 
@@ -1563,7 +1620,6 @@ DEF_TAST(usage_4_9_iter_delete_object, "usage: 4.9 对象迭代器删除")
 DEF_TAST(usage_4_10_standard_interface, "usage: 4.10 标准迭代器接口")
 {
 #ifdef MARKDOWN_CODE_SNIPPET
-    using namespace yyjson;
     auto doc = R"([1, 2, 3, 4, 5])"_xyjson;
 
     auto array = doc.root().array(); // doc.root() | kArray;
@@ -1597,9 +1653,9 @@ DEF_TAST(usage_6_1_copy_behavior, "usage: 6.1 理解核心类的拷贝行为")
 
     // 合法：使用类型转换，拷贝
     MutableDocument mutCopy = ~doc2;
+#endif
     COUT((bool)doc2, true);
     COUT((bool)mutCopy, true);
-#endif
 }
 
 DEF_TAST(usage_6_1_mutable_value_ref, "usage: 6.1 MutableValue 引用行为")
@@ -1615,6 +1671,7 @@ DEF_TAST(usage_6_1_mutable_value_ref, "usage: 6.1 MutableValue 引用行为")
     COUT((copyNode | 0), 25);
 
     // 要真正复制结点，得调用 mutDoc 的 create 方法，或 * 操作符
+    // 新结点是游离在 json 树外的独立结点，除非挂载到树上的某个容器中
     auto cloneNode = mutDoc * ageNode;
     COUT((bool)cloneNode, true);
 #endif
@@ -1643,7 +1700,6 @@ DEF_TAST(usage_6_3_index_operator, "usage: 6.3 索引操作符只建议放 = 左
 DEF_TAST(usage_6_4_iterator_safety, "usage: 6.4 避免对可写容器同时操作两个迭代器")
 {
 #ifdef MARKDOWN_CODE_SNIPPET
-    using namespace yyjson;
     auto doc = R"({"name": "Alice", "age": 30})"_xyjson;
     auto mutDoc = ~doc;
 

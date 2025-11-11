@@ -1127,6 +1127,7 @@ Json 对象中。所以输入对象时，要求 `<<` 成对出现（且奇数位
 
 有了 `<<` 操作符，就可以动态构建具有复杂层次结构的 Json 了。例如：
 
+<!-- example:usage_3_4_2_build_object -->
 ```cpp
 MutableDocument mutDoc;
 
@@ -1147,6 +1148,7 @@ mutDoc / "config" / "timeout" = 40;
 
 以上代码构建的 Json 等效于：
 
+<!-- example:usage_3_4_2_build_static -->
 ```cpp
 MutableDocument mutDoc;
 
@@ -1695,8 +1697,7 @@ for (auto it = doc % 0; it; ++it) {
       std::cout << (*it | 0) << ",";
     }
 }
-std::cout << std::endl;
-// 输出：name,Alice,age,30,
+std::cout << std::endl; // 输出：name,Alice,age,30,
 ```
 
 对象从概念上讲是键值对组合，但 xyjson 设计的对象迭代器，为了与数组迭代器解引用
@@ -1709,15 +1710,14 @@ yyjson::Document doc
 doc << R"({"name": "Alice", "age": 30})";
 
 for (auto it = doc % ""; it; ++it) {
-  if (*it & "") {
-    std::cout << (*it | "") << ",";
-  }
-  else if (it->isInt()) {
-    std::cout << (*it | 0) << ",";
-  }
+    if (*it & "") {
+        std::cout << (*it | "") << ",";
+    }
+    else if (it->isInt()) {
+        std::cout << (*it | 0) << ",";
+    }
 }
-std::cout << std::endl;
-// 输出：Alice,30,
+std::cout << std::endl; // 输出：Alice,30,
 ```
 
 至于键值对中的键结点，可用对象迭代器的 `key` 方法获取，相应的也有 `value` 方法
@@ -1730,15 +1730,14 @@ yyjson::Document doc
 doc << R"({"name": "Alice", "age": 30})";
 
 for (auto it = doc % ""; it; ++it) {
-  if (*it & "") {
-    std::cout << (it.key() | "") << "," << (it.value() | "") << ",";
-  }
-  else if (it->isInt()) {
-    std::cout << (it.key() | "") << "," << (it.value() | 0) << ",";
-  }
+    if (*it & "") {
+        std::cout << (it.key() | "") << "," << (it.value() | "") << ",";
+    }
+    else if (it->isInt()) {
+        std::cout << (it.key() | "") << "," << (it.value() | 0) << ",";
+    }
 }
-std::cout << std::endl;
-// 输出：name,Alice,age,30,
+std::cout << std::endl; // 输出：name,Alice,age,30,
 ```
 
 对象迭代器还有另一个方法 `name` 方法，返回 `const char \*` 字符串类型的键名，
@@ -1775,10 +1774,9 @@ doc << R"([1,2,3,4,5,6])";
 
 // 从第二个元素开始迭代，每次进两步
 for (auto it = doc % 1; it; it +=2) {
-    std::cout << (*it | 0) << ","
+    std::cout << (*it | 0) << ",";
 }
-std::cout << std::endl;
-// 输出：2,4,6
+std::cout << std::endl; // 输出：2,4,6,
 ```
 
 对象也是线性存储的，所以对象迭代器 `+ n` 操作也有意义，相当于根据 Json 源字符
@@ -1794,8 +1792,7 @@ doc << R"({"one":1, "two":2, "three":3, "four":4, "five":5, "six":6})";
 for (auto it = doc % "two"; it; it += 2) {
   std::cout << (*it | 0) << ",";
 }
-std::cout << std::endl;
-// 输出：2,4,6
+std::cout << std::endl; // 输出：2,4,6
 
 // 不用循环，已知每个键名，向前搜索
 auto it = doc % "two";
@@ -1806,8 +1803,7 @@ it %= "six";
 std::cout << (*it | 0) << ",";
 it %= "eight";
 if (!it); // 找不到键名，迭代器无效了
-std::cout << std::endl;
-// 输出：2,4,6
+std::cout << std::endl; // 输出：2,4,6
 ```
 
 符合常规语义，后缀 `++` 、二元 `+` 与 `%` 都产生新迭代器，而前缀 `++` 、`+=`
@@ -1836,7 +1832,6 @@ std::cout << std::endl;
 
 <!-- example:usage_4_6_object_iter_seek_traditional -->
 ```cpp
-using namespace yyjson;
 auto doc = R"({"name":"Alice", "sex":false, "age":25, "height":163.5, "weight":53.3})"_xyjson;
 
 std::string name = doc / "name" | "";
@@ -1852,7 +1847,6 @@ double weight = doc / "weight" | 0.0;
 
 <!-- example:usage_4_6_object_iter_seek_fast -->
 ```cpp
-using namespace yyjson;
 auto doc = R"({"name":"Alice", "sex":false, "age":25, "height":163.5, "weight":53.3})"_xyjson;
 
 auto it = doc % "";
@@ -1937,7 +1931,6 @@ std::cout << mutDoc << std::endl; // 输出：[4,8,12,16,20,24]
 
 <!-- example:usage_4_8_iter_insert -->
 ```cpp
-using namespace yyjson;
 auto doc = R"([1, 3, 4, 5])"_xyjson;
 auto mutDoc = ~doc;
 
@@ -1971,7 +1964,6 @@ std::cout << mutDoc << std::endl; // 输出：[1,2,3,3.1,3.14,3.142,4,5]
 
 <!-- example:usage_4_8_iter_insert_object -->
 ```cpp
-using namespace yyjson;
 auto doc = R"({"name": "Alice", "age": 30})"_xyjson;
 auto mutDoc = ~doc;
 
@@ -2012,7 +2004,6 @@ yyjson 对象允许重名键，所以即使插入已有键，也不会失败。
 
 <!-- example:usage_4_9_iter_delete -->
 ```cpp
-using namespace yyjson;
 auto doc = R"([1,2,3,3.1,3.14,3.142,4,5])"_xyjson;
 auto mutDoc = ~doc;
 
@@ -2032,7 +2023,6 @@ std::cout << mutDoc << std::endl; // 输出：[1,2,3,4,5]
 
 <!-- example:usage_4_9_iter_delete_object -->
 ```cpp
-using namespace yyjson;
 auto doc = R"({"name":"Alice","sex2":49,"sex3":"spec","sex":false,"age":30})"_xyjson;
 auto mutDoc = ~doc;
 
@@ -2083,7 +2073,6 @@ std::cout << mutDoc << std::endl;
 
 <!-- example:usage_4_10_standard_interface -->
 ```cpp
-using namespace yyjson;
 auto doc = R"([1, 2, 3, 4, 5])"_xyjson;
 
 auto array = doc.root().array(); // doc.root() | kArray;
@@ -2198,7 +2187,6 @@ yyjson::MutableDocument mutCopy = ~doc2;
 
 <!-- example:usage_6_1_mutable_value_ref -->
 ```cpp
-using namespace yyjson;
 auto doc = R"({"name": "Alice", "age": 30})"_xyjson;
 auto mutDoc = ~doc;
 
@@ -2258,7 +2246,6 @@ int i = mutDoc["non_field"] | 0;
 
 <!-- example:usage_6_4_iterator_safety -->
 ```cpp
-using namespace yyjson;
 auto doc = R"({"name": "Alice", "age": 30})"_xyjson;
 auto mutDoc = ~doc;
 
