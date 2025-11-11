@@ -1,0 +1,279 @@
+@startuml xyjson_class_diagram
+' ========================================
+' xyjson Class Diagram
+' ========================================
+
+' 只读模型
+class Value {
+    - yyjson_val* m_val
+    + Value(yyjson_val*)
+    + isValid() const
+    + getType() const
+    + isXXX() const
+    + isType(T) const
+    + get(result) const
+    + getor(default) const
+    + pathto(path)
+    + index(idx)
+    + iterator(arg)
+    + toString() const
+    + toInteger() const
+    + toNumber() const
+    + size() const
+    + typeName() const
+    + equal(other) const
+    + less(other) const
+    + c_val() const
+    + beginArray()
+    + endArray()
+    + beginObject()
+    + endObject()
+    + array()
+    + object()
+}
+
+class Document {
+    - yyjson_doc* m_doc
+    + Document()
+    + Document(const char*)
+    + Document(const char*, size_t)
+    + Document(FILE*)
+    + Document(const std::string&)
+    + ~Document()
+    + isValid() const
+    + hasError() const
+    + read(input)
+    + write(output) const
+    + readFile(path)
+    + writeFile(path) const
+    + root() const
+    + c_doc() const
+}
+
+' 可写模型
+class MutableValue {
+    - yyjson_mut_val* m_val
+    - yyjson_mut_doc* m_doc
+    + MutableValue(yyjson_mut_val*, yyjson_mut_doc*)
+    + isValid() const
+    + getType() const
+    + isXXX() const
+    + isType(T) const
+    + get(result) const
+    + getor(default) const
+    + pathto(path)
+    + index(idx)
+    + iterator(arg)
+    + toString() const
+    + toInteger() const
+    + toNumber() const
+    + size() const
+    + set(value)
+    + push(value)
+    + add(key, value)
+    + input(value)
+    + pop(result) const
+    + clear()
+    + create(value)
+    + tag(key)
+    + beginArray()
+    + endArray()
+    + beginObject()
+    + endObject()
+    + array()
+    + object()
+    + c_val() const
+    + c_doc() const
+}
+
+class MutableDocument {
+    - yyjson_mut_doc* m_doc
+    + MutableDocument()
+    + MutableDocument(const char*)
+    + MutableDocument(const char*, size_t)
+    + MutableDocument(FILE*)
+    + MutableDocument(const std::string&)
+    + ~MutableDocument()
+    + isValid() const
+    + hasError() const
+    + read(input)
+    + write(output) const
+    + readFile(path)
+    + writeFile(path) const
+    + root() const
+    + create(value)
+    + mutate() const
+    + freeze() const
+    + c_mutdoc() const
+    + c_doc() const
+}
+
+' 迭代器
+class ArrayIterator {
+    - yyjson_arr_iter m_iter
+    - const yyjson_val* m_arr
+    + ArrayIterator(const yyjson_val*, size_t)
+    + isValid() const
+    + next()
+    + advance(step)
+    + begin()
+    + end()
+    + value()
+    + key()
+    + name()
+    + index() const
+    + c_val() const
+    + c_key() const
+    + c_iter() const
+    + equal(other) const
+}
+
+class ObjectIterator {
+    - yyjson_obj_iter m_iter
+    - const yyjson_val* m_obj
+    + ObjectIterator(const yyjson_val*, size_t)
+    + isValid() const
+    + next()
+    + advance(step)
+    + begin()
+    + end()
+    + value()
+    + key()
+    + name()
+    + index() const
+    + c_val() const
+    + c_key() const
+    + c_iter() const
+    + equal(other) const
+    + seek(key)
+}
+
+class MutableArrayIterator {
+    - yyjson_mut_arr_iter m_iter
+    - yyjson_mut_doc* m_doc
+    + MutableArrayIterator(yyjson_mut_val*, yyjson_mut_doc*)
+    + isValid() const
+    + next()
+    + advance(step)
+    + begin()
+    + end()
+    + value()
+    + key()
+    + name()
+    + index() const
+    + c_val() const
+    + c_key() const
+    + c_iter() const
+    + equal(other) const
+    + insert(value)
+    + remove()
+}
+
+class MutableObjectIterator {
+    - yyjson_mut_obj_iter m_iter
+    - yyjson_mut_doc* m_doc
+    + MutableObjectIterator(yyjson_mut_val*, yyjson_mut_doc*)
+    + isValid() const
+    + next()
+    + advance(step)
+    + begin()
+    + end()
+    + value()
+    + key()
+    + name()
+    + index() const
+    + c_val() const
+    + c_key() const
+    + c_iter() const
+    + equal(other) const
+    + seek(key)
+    + insert(key, value)
+    + insert(kv_pair)
+    + remove()
+}
+
+' 辅助类
+class KeyValue {
+    - yyjson_mut_val* key
+    - yyjson_mut_val* value
+    + KeyValue(yyjson_mut_val*, yyjson_mut_val*)
+}
+
+class StringRef {
+    - const char* str
+    - size_t len
+    + StringRef(const char*, size_t)
+}
+
+' 容器特定包装类
+class ConstArray {
+    - Value m_base
+    + ConstArray(const Value&)
+    + begin()
+    + end()
+}
+
+class ConstObject {
+    - Value m_base
+    + ConstObject(const Value&)
+    + begin()
+    + end()
+}
+
+class MutableArray {
+    - MutableValue m_base
+    + MutableArray(const MutableValue&)
+    + begin()
+    + end()
+}
+
+class MutableObject {
+    - MutableValue m_base
+    + MutableObject(const MutableValue&)
+    + begin()
+    + end()
+}
+
+' 继承关系
+Value <|-- ConstArray
+Value <|-- ConstObject
+MutableValue <|-- MutableArray
+MutableValue <|-- MutableObject
+
+Document <|.. Value : contains
+MutableDocument <|.. MutableValue : contains
+
+' 关联关系
+Value o-- "1" yyjson_val
+Document o-- "1" yyjson_doc
+MutableValue o-- "1" yyjson_mut_val
+MutableValue o-- "1" yyjson_mut_doc
+MutableDocument o-- "1" yyjson_mut_doc
+
+ArrayIterator o-- "1" yyjson_arr_iter
+ObjectIterator o-- "1" yyjson_obj_iter
+MutableArrayIterator o-- "1" yyjson_mut_arr_iter
+MutableObjectIterator o-- "1" yyjson_mut_obj_iter
+
+KeyValue o-- "1" yyjson_mut_val
+KeyValue o-- "1" yyjson_mut_val
+
+' 命名空间
+package "yyjson namespace" {
+    [Value]
+    [Document]
+    [MutableValue]
+    [MutableDocument]
+    [ArrayIterator]
+    [ObjectIterator]
+    [MutableArrayIterator]
+    [MutableObjectIterator]
+    [KeyValue]
+    [StringRef]
+    [ConstArray]
+    [ConstObject]
+    [MutableArray]
+    [MutableObject]
+}
+
+@enduml

@@ -1,6 +1,6 @@
 ---
-argument-hint: 需求 ID
 description: "核心代码开发 TODO 需求"
+argument-hint: "需求 ID"
 ---
 
 任务 ID:
