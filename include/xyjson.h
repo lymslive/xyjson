@@ -424,6 +424,11 @@ public:
     int toInteger() const;
     double toNumber() const;
     
+    // Explicit type conversion operators
+    explicit operator int() const { return toInteger(); }
+    explicit operator double() const { return toNumber(); }
+    explicit operator std::string() const { return toString(); }
+    
     // Comparison method
     bool equal(const Value& other) const;
     bool less(const Value& other) const;
@@ -457,6 +462,9 @@ public:
     explicit Document(const char* str, size_t len = 0);
     explicit Document(const std::string& str)
         : Document(str.c_str(), str.size()) {}
+    
+    // Conversion from MutableDocument
+    explicit Document(const MutableDocument& other);
     
     // Free the document
     void free();
@@ -794,6 +802,11 @@ public:
     int toInteger() const;
     double toNumber() const;
     
+    // Explicit type conversion operators
+    explicit operator int() const { return toInteger(); }
+    explicit operator double() const { return toNumber(); }
+    explicit operator std::string() const { return toString(); }
+    
     // Comparison method
     bool equal(const MutableValue& other) const;
     bool less(const MutableValue& other) const;
@@ -832,6 +845,9 @@ public:
     explicit MutableDocument(yyjson_mut_doc* doc);
     explicit MutableDocument(const char* str, size_t len = 0);
     explicit MutableDocument(const std::string& str) : MutableDocument(str.c_str(), str.size()) {}
+    
+    // Conversion from Document
+    explicit MutableDocument(const Document& other);
     
     // Free the document
     void free();
@@ -2025,6 +2041,13 @@ inline Document::Document(const char* str, size_t len/* = 0*/)
     m_doc = yyjson_read(str, len, 0);
 }
 
+inline Document::Document(const MutableDocument& other)
+{
+    // Use freeze() method to convert mutable document to read-only document
+    // This is a copy operation
+    *this = other.freeze();
+}
+
 inline void Document::free()
 {
     if (m_doc)
@@ -2737,6 +2760,13 @@ inline MutableDocument::MutableDocument(const char* str, size_t len/* = 0*/)
     } else {
         m_doc = nullptr;
     }
+}
+
+inline MutableDocument::MutableDocument(const Document& other)
+{
+    // Use mutate() method to convert read-only document to mutable document
+    // This is a copy operation
+    *this = other.mutate();
 }
 
 inline void MutableDocument::free()

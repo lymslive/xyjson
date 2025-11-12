@@ -2664,3 +2664,71 @@ perl ./script/sync_doc_examples.pl --help
 
 #### 总结
 成功为xyjson迭代器添加了完整的递减操作符支持，完善了迭代器的双向操作能力。通过优化的实现和全面的测试，确保了功能的正确性和稳定性。
+
+---
+
+## 任务ID: 20251113-000614
+- **任务类型**: 开发
+- **任务状态**: 已完成
+- **执行AI**: DeepSeek-V3.1
+
+### 任务需求
+为Value/Document类补充类型转换函数，支持以下用法：
+- `int(json)`
+- `(int)json`
+- `std::string(json)`
+- `(std::string)json`
+- `Document(mutDoc)`
+- `MutableDocument(doc)`
+- `(Document)mutDoc`
+- `(MutableDocument)doc`
+
+### 实施过程
+**1. 分析现有代码**
+- 检查当前一元操作符`+`和`-`的实现
+- 确认现有的`toInteger()`和`toString()`方法
+- 了解`mutate()`和`freeze()`方法用于文档类型转换
+
+**2. 为Value类添加explicit转换函数**
+- 在Value类中添加`explicit operator int() const`
+- 在Value类中添加`explicit operator std::string() const`
+- 在MutableValue类中添加相同的转换函数
+
+**3. 为Document类添加转换构造函数**
+- 添加`explicit Document(const MutableDocument& other)`
+- 添加`explicit MutableDocument(const Document& other)`
+- 使用拷贝语义，调用现有的`mutate()`和`freeze()`方法
+
+**4. 测试验证**
+- 在`t_basic.cpp`中添加`basic_type_conversion`测试用例
+- 验证所有新的类型转换语法
+- 确保与现有功能兼容
+
+### 实现效果
+- 支持C++显式类型转换语法：`int(json)`和`(int)json`
+- 支持字符串转换：`std::string(json)`和`(std::string)json`
+- 支持文档类型互转：`Document(mutDoc)`和`MutableDocument(doc)`
+- 所有测试通过，功能稳定
+
+#### 总结
+成功为xyjson添加了完整的类型转换函数支持，使代码更加直观和符合C++标准。通过使用拷贝语义和现有方法，确保了实现的正确性和一致性。
+
+### 补充实现：explicit double转换函数
+- 为Value类添加`explicit operator double() const`
+- 为MutableValue类添加相同的转换函数
+- 调用现有的`toNumber()`方法实现
+- 更新测试用例验证double转换功能
+
+#### 最终实现效果
+支持以下所有类型转换语法：
+```cpp
+// 数值类型转换
+int(json)        // 调用 toInteger()
+(double)json     // 调用 toNumber()
+std::string(json) // 调用 toString()
+
+// 文档类型转换  
+Document(mutDoc)        // 调用 freeze()
+MutableDocument(doc)    // 调用 mutate()
+```
+所有测试通过，功能完整稳定。

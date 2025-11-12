@@ -1707,6 +1707,8 @@ markdown 格式更新到 docs/api.md 文档中。
 已有实现用 `+` 转整数，用 `-` 转字符串。这两个操作符虽简洁，但可能不直观，希望
 支持以下用法：
 
+- double(json)
+- (double)json
 - int(json)
 - (int)json
 - std::string(json)
@@ -1724,6 +1726,8 @@ markdown 格式更新到 docs/api.md 文档中。
 
 请用 TDD 测试驱动开发流程，先在 `t_basic.cpp` 增加测试用例，检验以上用法是否已
 经支持，再添加实现支持之。
+
+### DONE: 20251113-000614
 
 ## TODO: v1.0.0 封版
 
