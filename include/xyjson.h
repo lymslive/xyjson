@@ -3690,7 +3690,7 @@ operator+(iteratorT& iter, size_t step)
     return copy.advance(step);
 }
 
-// Iterator seek operators (%= %)
+// Iterator jump operators (%= %)
 // `iter %= target` --> `iter.begin().advance(target)` for position jump
 template<typename iteratorT, typename T>
 inline typename std::enable_if<trait::is_iterator<iteratorT>::value, iteratorT&>::type
