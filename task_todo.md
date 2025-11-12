@@ -1696,9 +1696,11 @@ markdown 格式更新到 docs/api.md 文档中。
 迭代器后退是 O(N) 操作，只能先回到开头，再前进 idx-1 步。如果初始位置 idx = 0，
 则移到最后 end(true) 。
 
-先实现 `prev` 方法，再定义两个 `--` 操作符调用 prev 。
+先在 `next` 后面实现 `prev` 方法，再在 `++` 后面定义两个 `--` 操作符调用 prev 。
 
 补充单元测试在 `t_iterator.cpp` 文件中。
+
+### DONE: 20251112-225030
 
 ## TODO:2025-11-12/3 为 Value/Document 类补充类型转换函数
 

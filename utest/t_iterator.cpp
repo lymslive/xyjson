@@ -1842,3 +1842,142 @@ DEF_TAST(iterator_object_chained_insertion, "mutable object iterator chained ins
     }
 }
 
+DEF_TAST(iterator_decrement, "test iterator decrement operators --")
+{
+    DESC("test readonly array iterator decrement");
+    {
+        std::string jsonText = "[1, 2, 3, 4, 5]";
+        yyjson::Document doc(jsonText);
+        COUT(doc.hasError(), false);
+
+        auto arrayVal = doc.root();
+        COUT(arrayVal.isArray(), true);
+        COUT(arrayVal.size(), 5);
+
+        // Test prefix decrement (--iter)
+        auto iter = arrayVal.iterator(0);
+        ++iter; ++iter; // Move to index 2 (value 3)
+        COUT(+iter, 2);
+        COUT((*iter | -1), 3);
+
+        // Test prefix decrement
+        --iter;
+        COUT(+iter, 1);
+        COUT((*iter | -1), 2);
+
+        // Test postfix decrement (iter--)
+        auto old = iter--;
+        COUT(+old, 1);
+        COUT((*old | -1), 2);
+        COUT(+iter, 0);
+        COUT((*iter | -1), 1);
+
+        // Test decrement at beginning: should move to end
+        --iter;
+        COUT(iter.isValid(), false);
+        COUT(+iter, 5);
+    }
+
+    DESC("test readonly object iterator decrement");
+    {
+        std::string jsonText = "{\"a\":1, \"b\":2, \"c\":3}";
+        yyjson::Document doc(jsonText);
+        COUT(doc.hasError(), false);
+
+        auto objVal = doc.root();
+        COUT(objVal.isObject(), true);
+        COUT(objVal.size(), 3);
+
+        // Test prefix decrement (--iter)
+        auto iter = objVal.iterator("");
+        ++iter; ++iter; // Move to third key-value pair
+        COUT(+iter, 2);
+        COUT(std::string(-iter), "c");
+
+        // Test prefix decrement
+        --iter;
+        COUT(+iter, 1);
+        COUT(std::string(-iter), "b");
+
+        // Test postfix decrement (iter--)
+        auto old = iter--;
+        COUT(+old, 1);
+        COUT(std::string(-old), "b");
+        COUT(+iter, 0);
+        COUT(std::string(-iter), "a");
+
+        // Test decrement at beginning: should move to end
+        --iter;
+        COUT(iter.isValid(), false);
+        COUT(+iter, 3);
+    }
+
+#ifndef XYJSON_DISABLE_MUTABLE
+    DESC("test mutable array iterator decrement");
+    {
+        yyjson::MutableDocument doc("[1, 2, 3, 4, 5]");
+        COUT(doc.hasError(), false);
+
+        auto arrayVal = doc.root();
+        COUT(arrayVal.isArray(), true);
+        COUT(arrayVal.size(), 5);
+
+        // Test prefix decrement (--iter)
+        auto iter = arrayVal.iterator(0);
+        ++iter; ++iter; // Move to index 2 (value 3)
+        COUT(+iter, 2);
+        COUT((*iter | -1), 3);
+
+        // Test prefix decrement
+        --iter;
+        COUT(+iter, 1);
+        COUT((*iter | -1), 2);
+
+        // Test postfix decrement (iter--)
+        auto old = iter--;
+        COUT(+old, 1);
+        COUT((*old | -1), 2);
+        COUT(+iter, 0);
+        COUT((*iter | -1), 1);
+
+        // Test decrement at beginning: should move to end
+        --iter;
+        COUT(iter.isValid(), false);
+        COUT(+iter, 5);
+    }
+
+    DESC("test mutable object iterator decrement");
+    {
+        yyjson::MutableDocument doc("{\"a\":1, \"b\":2, \"c\":3}");
+        COUT(doc.hasError(), false);
+
+        auto objVal = doc.root();
+        COUT(objVal.isObject(), true);
+        COUT(objVal.size(), 3);
+
+        // Test prefix decrement (--iter)
+        auto iter = objVal.iterator("");
+        ++iter; ++iter; // Move to third key-value pair
+        COUT(+iter, 2);
+        COUT(std::string(-iter), "c");
+
+        // Test prefix decrement
+        --iter;
+        COUT(+iter, 1);
+        COUT(std::string(-iter), "b");
+
+        // Test postfix decrement (iter--)
+        auto old = iter--;
+        COUT(+old, 1);
+        COUT(std::string(-old), "b");
+        COUT(+iter, 0);
+        COUT(std::string(-iter), "a");
+
+        // Test decrement at beginning: should move to end
+        --iter;
+        COUT(iter.isValid(), false);
+        COUT(+iter, 3);
+    }
+#endif // XYJSON_DISABLE_MUTABLE
+}
+

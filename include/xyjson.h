@@ -1027,6 +1027,7 @@ public:
 
     // Position manipulation
     ArrayIterator& next(); // prefix ++, move to nexe element
+    ArrayIterator& prev(); // prefix --, move to previous element
     ArrayIterator& advance(size_t steps = 1); // +n, move n steps
     ArrayIterator& advance(const char* key) { return end(); } // No-op for array iterator
     ArrayIterator& begin(); // Reset iterator to beginning
@@ -1108,6 +1109,7 @@ public:
 
     // Position manipulation
     ObjectIterator& next(); // prefix ++
+    ObjectIterator& prev(); // prefix --, move to previous element
     ObjectIterator& advance(size_t steps = 1); // +n
     ObjectIterator& advance(const char* key); // Jump to specific key
     ObjectIterator& begin(); // Reset iterator to beginning
@@ -1197,6 +1199,7 @@ public:
 
     // Position manipulation
     MutableArrayIterator& next(); // prefix ++
+    MutableArrayIterator& prev(); // prefix --, move to previous element
     MutableArrayIterator& advance(size_t steps = 1); // +n
     MutableArrayIterator& advance(const char* key) { return end(); } // No-op for array iterator
     MutableArrayIterator& begin(); // Reset iterator to beginning
@@ -1294,6 +1297,7 @@ public:
 
     // Position manipulation
     MutableObjectIterator& next(); // prefix ++, move to next key-value pair
+    MutableObjectIterator& prev(); // prefix --, move to previous key-value pair
     MutableObjectIterator& advance(size_t steps = 1); // +n to next n pairs
     MutableObjectIterator& advance(const char* key); // jump to specific key
     MutableObjectIterator& begin(); // Reset iterator to beginning
@@ -2901,6 +2905,16 @@ inline ArrayIterator& ArrayIterator::next()
     return *this;
 }
 
+// Backward iteration is O(N) operation: reset to beginning and advance idx-1 steps
+inline ArrayIterator& ArrayIterator::prev()
+{
+    if (m_iter.idx == 0) {
+        return end(true);
+    }
+    size_t idx = m_iter.idx - 1;
+    return begin().advance(idx);
+}
+
 inline ArrayIterator& ArrayIterator::begin()
 {
     if (m_arr) {
@@ -2932,6 +2946,16 @@ inline ObjectIterator& ObjectIterator::next()
 {
     yyjson_obj_iter_next(&m_iter);
     return *this;
+}
+
+// Backward iteration is O(N) operation: reset to beginning and advance idx-1 steps
+inline ObjectIterator& ObjectIterator::prev()
+{
+    if (m_iter.idx == 0) {
+        return end(true);
+    }
+    size_t idx = m_iter.idx - 1;
+    return begin().advance(idx);
 }
 
 inline ObjectIterator& ObjectIterator::begin()
@@ -2994,6 +3018,17 @@ inline MutableArrayIterator& MutableArrayIterator::next()
         m_iter.idx++;                     // increment index
     }
     return *this;
+}
+
+// Backward iteration is O(N) operation: reset to beginning and advance idx-1 steps
+// If at beginning, move to fast end (circular linked list)
+inline MutableArrayIterator& MutableArrayIterator::prev()
+{
+    if (m_iter.idx == 0) {
+        return end();
+    }
+    size_t idx = m_iter.idx - 1;
+    return begin().advance(idx);
 }
 
 inline MutableArrayIterator& MutableArrayIterator::begin()
@@ -3104,6 +3139,17 @@ inline MutableObjectIterator& MutableObjectIterator::next()
         m_iter.idx++;                              // increment index
     }
     return *this;
+}
+
+// Backward iteration is O(N) operation: reset to beginning and advance idx-1 steps
+// If at beginning, move to fast end (circular linked list)
+inline MutableObjectIterator& MutableObjectIterator::prev()
+{
+    if (m_iter.idx == 0) {
+        return end();
+    }
+    size_t idx = m_iter.idx - 1;
+    return begin().advance(idx);
 }
 
 inline MutableObjectIterator& MutableObjectIterator::begin()
@@ -3669,6 +3715,26 @@ operator++(iteratorT& iter, int)
 {
     iteratorT old = iter;
     iter.next();
+    return old;
+}
+
+// Prefix decrement operator (--iter)
+// `--iter` --> `iter.prev()`
+template<typename iteratorT>
+inline typename std::enable_if<trait::is_iterator<iteratorT>::value, iteratorT&>::type
+operator--(iteratorT& iter)
+{
+    return iter.prev();
+}
+
+// Postfix decrement operator (iter--)
+// `iter--` --> `iter.prev()` (return old copy)
+template<typename iteratorT>
+inline typename std::enable_if<trait::is_iterator<iteratorT>::value, iteratorT>::type
+operator--(iteratorT& iter, int)
+{
+    iteratorT old = iter;
+    iter.prev();
     return old;
 }
 
