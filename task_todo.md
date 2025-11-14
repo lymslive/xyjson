@@ -1729,6 +1729,8 @@ markdown 格式更新到 docs/api.md 文档中。
 
 ### DONE: 20251113-000614
 
+变更：单元测试应写在 `t_conversion.cpp` 中。
+
 ## TODO: v1.0.0 封版
 
 - 完善迭代器功能
