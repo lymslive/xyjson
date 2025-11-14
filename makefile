@@ -1,7 +1,7 @@
 # Makefile for xyjson project
 # Common commands integration for development workflow
 
-.PHONY: build test build/fast test/fast install clean toc utable help release perf
+.PHONY: build test build/fast test/fast install clean toc utable otable help release perf
 
 # Default target
 help:
@@ -12,6 +12,7 @@ help:
 	@echo "  clean      - Clean build directory"
 	@echo "  toc        - Generate table of contents for header file"
 	@echo "  utable     - Generate and update unit test table"
+	@echo "  otable     - Generate and update operator table"
 	@echo "  release    - Build in release mode with performance tests"
 	@echo "  perf       - Run performance tests (requires BUILD_PERF)"
 	@echo "  help       - Show this help message"
@@ -53,7 +54,13 @@ toc: .touch/toc.t
 # Generate and update unit test table
 utable: .touch/utable.t
 .touch/utable.t: .touch $(TEST_SOURCES)
-	perl script/utable.pl
+	./script/utable.sh
+	@touch $@
+
+# Generate and update operator table
+otable: .touch/otable.t
+.touch/otable.t: .touch docs/operator.csv
+	./script/otable.sh
 	@touch $@
 
 # Build in Release mode with performance tests enabled

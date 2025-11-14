@@ -2727,8 +2727,72 @@ int(json)        // 调用 toInteger()
 (double)json     // 调用 toNumber()
 std::string(json) // 调用 toString()
 
-// 文档类型转换  
+// 文档类型转换
 Document(mutDoc)        // 调用 freeze()
 MutableDocument(doc)    // 调用 mutate()
 ```
 所有测试通过，功能完整稳定。
+
+---
+
+## 任务ID: 20251114-175941
+- **任务类型**: 开发
+- **任务状态**: 已完成
+- **执行AI**: minimax-m2
+
+### 任务需求
+优化更新文档表格的脚本，将原有 `script/utable.pl` 拆分为多个可通过管道连接的独立脚本，提高复用性和可扩展性。
+
+### 执行过程
+**1. 开发模块化脚本**
+- 开发 `script/tsv2mdtable.pl`：将制表符分隔的文本转换为 markdown 表格
+  - 支持 `--head=` 参数指定表头
+  - 支持从标准输入或文件读取
+  - 支持 `--help` 参数显示帮助信息
+  - 正确处理管道输入时的选项参数
+
+- 开发 `script/csv2mdtable.pl`：将 CSV 格式文本转换为 markdown 表格
+  - 功能与 tsv2mdtable.pl 类似，但处理逗号分隔
+  - 正确处理 CSV 引号转义
+
+- 开发 `script/update_par.pl`：更新文档段落
+  - 支持 `--begin=` 和 `--end=` 参数（正则表达式）
+  - 支持 `--input=` 指定输入文件
+  - 更新前比较内容，相同则不更新
+  - 更新前自动备份原文件
+
+**2. 优化管道组合脚本**
+- 更新 `script/utable.sh`：
+  - 添加 `awk -F'\t'` 精简行号格式
+  - 删除 "TAST" 类型列
+  - 使用制表符作为字段分隔符精确选列
+
+**3. 集成到构建系统**
+- 更新 `makefile`：
+  - 添加 `otable` 目标调用 `script/otable.sh`
+  - 更新 `utable` 目标调用 `script/utable.sh`
+  - 更新 help 信息添加 otable 说明
+
+**4. 测试验证**
+- ✅ 完整管道测试：`./build/utxyjson --List | ... | update_par.pl`
+- ✅ CSV 管道测试：`cat docs/operator.csv | ... | update_par.pl`
+- ✅ make 命令测试：`make utable` 和 `make otable`
+- ✅ 所有脚本的 `--help` 参数正常工作
+
+#### 最终实现效果
+通过管道组合实现了灵活的文档表格更新机制：
+```bash
+# 更新测试用例表
+./build/utxyjson --List \
+    | cat -n \
+    | awk -F'\t' '{printf "%d\t%s\t%s\t%s\t%s\n", NR, $2, $4, $5, $6}' \
+    | ./script/tsv2mdtable.pl --head="序号,测试用例名称,文件,行号,描述" \
+    | ./script/update_par.pl --begin="<!-- UTABLE_START -->" --end="<!-- UTABLE_END -->" utest/README.md
+
+# 更新操作符表
+cat docs/operator.csv \
+    | ./script/csv2mdtable.pl \
+    | ./script/update_par.pl --begin="<!-- begin operator table -->" --end="<!-- end operator table -->" docs/api.md
+```
+
+所有脚本均可独立使用，也可通过管道灵活组合。提高了代码复用性和可维护性。
