@@ -5,8 +5,11 @@
 [English Version](README-en.md) | [中文文档](README.md)
 
 xyjson 是基于高性能 [yyjson](https://github.com/ibireme/yyjson) 封装的 C++ 纯头文件库，通过操作符重载提供直观的 JSON 处理体验。
-其命名除了沿袭 yyjson 外，更因为 **x y** 常用于数学符号，追求像数学变量符号一样操作 JSON 数据，而实现代码所在命名空间仍叫 `yyjson::` 
-以示致敬。
+
+命名 xyjson 的含义：
+- 基于 yyjson 库，封装的 C++ 类相当于对应 yyjson 结构的代理(Pro**xy**)，命名空间也
+  沿用 `yyjson::`；
+- **x y** 常用于数学符号，xyjson 库追求像数学变量符号一样操作 JSON 数据。
 
 ## 特性
 

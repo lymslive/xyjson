@@ -1,10 +1,11 @@
 # xyjson API 参考手册
 
-本手册提供 xyjson 库的完整 API 参考，作为查询手册使用，内容详尽、务实。
+本手册提供 xyjson 库的完整 API 参考，作为查询手册之用。
 
 ## 核心类介绍
 
-所有类均在 `yyjson` 命名空间下定义：
+在 xyjson 中定义的类，基本都是对 yyjson 底层 C 结构体指针的封装，
+所有类均在 `yyjson::` 命名空间（而不是 `xyjson::`）下定义：
 
 - **Document** - 只读 JSON 文档树包装器
 - **MutableDocument** - 可写 JSON 文档树包装器
@@ -185,9 +186,6 @@ if (iter->isInt()) {
 }
 ```
 
-下面将以操作符优先级的顺序重新介绍每一种操作符重载的用法。因为推荐度、常用、好用等
-概念是偏主观的，优先级才是客观的。
-
 ### 索引操作符 `[]`
 
 **语法**：`jsonT[key]` 或 `jsonT[index]`
@@ -202,7 +200,7 @@ if (iter->isInt()) {
 后调用方法，这点比路径操作符 `/` 简洁点。所以如果惯用方法名，可用 `[]` ，否则
 更推荐用 `/` 。
 
-注意：索引操作是 O(N) 时间复杂度，不过是用键名索引对象，还是用整数索引数组，都
+注意：索引操作是 O(N) 时间复杂度，不论是用键名索引对象，还是用整数索引数组，都
 是线性的。
 
 #### 对象字段访问 `index`
@@ -364,7 +362,7 @@ auto iter = doc / "items" % 0;
 yyjson::Document doc = R"({})"_xyjson;
 
 if (!doc) {
-    // 文档无效
+    // 文档无效，可能是解析错误
 }
 if (!(doc / "nonexistent")) {
     // 路径不存在
@@ -402,10 +400,10 @@ Value 类支持向 `bool`，`double`, `int` 与 `std::string` 的显式类型转
 
 #### 布尔转换 `bool`
 
-**语法**：`bool(jsonT)` 或 `bool(docT)` 或 `bool(iteratorT)`；条件语句中可直接
-使用，或使用双重否定 `!!`。
+**语法**：`bool(jsonT)` 或 `bool(docT)` 或 `bool(iteratorT)`
 
-**功能**：显式转布尔逻辑值，判断对象有效性，另见操作符 `!`
+**功能**：显式转布尔逻辑值，判断对象有效性。条件语句中可直接使用，或使用双重否
+定 `!!`。另见操作符 `!`
 
 - **参数类型**：jsonT, docT, iteratorT
 - **返回值类型**：`bool`
@@ -580,7 +578,7 @@ std::string strArray  = doc["array"].toString(true);
 std::string strObject = doc["object"].toString(true);
 ```
 
-最后一条语句输出大约是：
+最后一条语句输出格式大约是：
 ```json
 {
     "x": 0,
@@ -643,7 +641,7 @@ yyjson::Document doc(mutDoc);
 
 ```cpp
 yyjson::Document doc("{}");
-yyjson::MutableDocument mutDoc(doc);
+yyjson::MutableDocument mutDoc = ~doc;
 
 /* use method: mutate() */
 {
@@ -662,7 +660,7 @@ yyjson::MutableDocument mutDoc(doc);
 
 ```cpp
 yyjson::MutableDocument mutDoc("{}");
-yyjson::Document doc(mutDoc);
+yyjson::Document doc = ~mutDoc;
 
 /* use method: freeze() */
 {
@@ -887,7 +885,7 @@ for (auto iter = doc / "user" % ""; iter; ++iter) {
 
 #### 链式路径访问 `pathto`
 
-**语法**：`jsonT / key` 或 `json / index`
+**语法**：`jsonT / key` 或 `jsonT / index`
 
 **功能**：类似 `[]` 索引的单层访问与线性查找，更方便链式逐级访问
 
@@ -899,28 +897,28 @@ for (auto iter = doc / "user" % ""; iter; ++iter) {
 路径访问不存在键时返回无效值，不会自动添加新键。
 
 ```cpp
-yyjson::Document doc = R"({"user": {"name": "Alice", "age": 30}},
-    "items": [10, 20, 30])"_xyjson;
-auto node = doc / "user" / "name";
-auto item = doc / "items" / 0;
+yyjson::Document doc = R"({"user": {"name": "Alice", "age": 30},
+    "items": [10, 20, 30]})"_xyjson;
+auto name = *doc / "user" / "name";
+auto item = *doc / "items" / 0;
 
 /* use method: pathto() */
 {
-    auto node = doc.root().pathto("user").pathto("name");
+    auto name = doc.root().pathto("user").pathto("name");
     auto item = doc.root().pathto("items").index(0);
 }
 ```
 
-路径操作符 `/` 优先级比 `.` 的成员访问优先级级，如果想对返回值调用方法，需要加
+路径操作符 `/` 优先级比 `.` 的成员访问优先级低，如果想对返回值调用方法，需要加
 括号提升优先级，或者可改用 `[]`。
 
 ```cpp
 yyjson::Document doc = R"({"user": {"name": "Alice", "age": 30}})"_xyjson;
-int age = (doc / "user" / "age").toInteger();
+int age = (*doc / "user" / "age").toInteger();
 
 /* use operator[] */
 {
-    int = doc["user"]["age"].toInteger();
+    int = doc.root()["user"]["age"].toInteger();
 }
 
 /* use method: pathto() */
@@ -928,6 +926,10 @@ int age = (doc / "user" / "age").toInteger();
     int = doc.root().pathto("user").pathto("age").toInteger();
 }
 ```
+
+> **说明**：
+操作符 `/` 也可直接用于 Document 类，但 `pathto` 只是 Value 类的方法。
+
 #### JSON Pointer 路径访问 `pathto`
 
 **语法**：`jsonT / "/json/pointer/path"`
@@ -938,12 +940,12 @@ int age = (doc / "user" / "age").toInteger();
 - **右侧参数类型**：`stringT`（JSON Pointer 格式路径）
 - **返回值类型**：`jsonT`
 
-注意：右侧参数需要遵循 JSON Pointer 标准，以 `/` 字符开头，否则认为是简单的单
-层键名查找。
+注意：右侧参数需要遵循 JSON Pointer 标准。尤其要以 `/` 字符开头，否则认为是简
+单的单层键名查找。
 
 ```cpp
 yyjson::Document doc = R"({"user": {"name": "Alice", "age": 30}})"_xyjson;
-auto node = doc / "/user/name";
+auto node = *doc / "/user/name";
 
 /* use method: pathto() */
 {
@@ -981,18 +983,18 @@ auto lang = iter / "lang";    // 继续在相同对象中查找
 
 ### 乘法运算 `*`
 
-正常的乘法 `*` 是 `/` 的逆运算。在 xyjson 已经用 `/` 表示按路径查找 json 结点，
+常规的乘法 `*` 是 `/` 的逆运算。在 xyjson 已经用 `/` 表示按路径查找 json 结点，
 显然对于从头构建的 json 来说，要能用 `/` 查找到的前提就是先在 json 所在内存池
 中创建结点，所以重载 `*` 用来表达这个功能。
 
 很多时候不需要主动使用 `*` 操作符，因为往 json 容器中添加结点的操作符会隐含自
-动先创建结点。理解 `*` 操作揭示了内问部实现方法。
+动先创建结点。理解 `*` 操作揭示了内部实现方法。
 
 #### 文档创建新结点 `create`
 
 **语法**：`MutableDocument * value`
 
-**功能**：创建 JSON 结点，支持基本类型和容器字面量
+**功能**：创建 JSON 结点，支持基本类型和类型常量
 
 - **左侧参数类型**：`MutableDocument`
 - **右侧参数类型**：`scalarT` 或特殊参数（如 "[]", "{}"）
@@ -1057,7 +1059,7 @@ auto copyDocMut = dstDoc * srcDocMut;
 
 **语法**：`MutableDocument * MutableValue`
 
-**功能**：移动一个右值语义 json 结点代理值
+**功能**：移动一个右值语义的 json 结点代理值
 
 - **左侧参数类型**：`MutableDocument`
 - **右侧参数类型**：`MutableValue&&`
@@ -1068,10 +1070,11 @@ auto copyDocMut = dstDoc * srcDocMut;
 使用相同的内存池，否则移动后会出现内存问题，生命周期不一致。
 
 另要注意，用该方法的移动结点，并不会真实影响底层 json 树的结点关系，因为
-`MutableValue` 类只相同于底层结点的代理指针。它只强调代理指针的转交。所以并不
-能只靠该操作来真正移动原来某个 json 容器内的结点，需要先将结点从原容器中删除，
-或将新建的独立结点用移动的方式添加到其他容器的某个位置，避免将同一个底层结点重
-复添加到不同的容器中，造成所有权混乱，或者避免将新建结点再次不必要的重复复制。
+`MutableValue` 类只相当于底层结点的代理指针。它只强调指针代理权的转交。所以并
+不能只靠该操作来真正移动原来某个 json 容器内的结点，需要先将结点从原容器中删除
+，或将新建的独立结点用移动的方式添加到其他容器的某个位置，避免将同一个底层结点
+重复添加到不同的容器中，造成所有权混乱，或者避免将新建结点再次不必要的重复复制
+。
 
 移动结点不会在文档的内存池中创建新结点，仍用 `create` 方法命名主要是内部实现中
 上层模板方法转调底层方法时统一命名比较方便，只用参数重载表达语义的差异。
@@ -1080,7 +1083,7 @@ auto copyDocMut = dstDoc * srcDocMut;
 yyjson::MutableDocument mutDoc(R"(["Alice", 30])");
 
 auto node = mutDoc * 2.5;     // node 有效
-auto level = std::move(node); // node 失效
+auto level = mutDoc * std::move(node); // node 失效
 mutDoc.root() << std::move(level);   // level 失效
 //^ 结果：["Alice",30,2.5]
 
@@ -1095,7 +1098,7 @@ mutDoc.root() << std::move(level);   // level 失效
 
 **语法**：`MutableValue * MutableValue`
 
-**功能**：将分别表示键与值的两个结点绑定在一起，支持联用创建链式连乘
+**功能**：将分别表示键与值的两个结点绑定在一起，支持联用创建结点的链式连乘。
 
 - **左侧参数类型**：`MutableValue&&`
 - **右侧参数类型**：`MutableValue&&`
@@ -1125,15 +1128,15 @@ mutDoc.root() << std::move(kv); // 结果：{"key":314}
 
 **语法**：`MutableValue * key` 或 `key * MutableValue`
 
-**功能**：为可写结点绑定键名，支持联用创建链式连乘
+**功能**：为可写结点绑定键名，支持联用创建结点的链式连乘。
 
 - **左侧参数类型**：`MutableValue&&`
 - **右侧参数类型**：`stringT` 可用于键的字符串类型
 - **返回值类型**：`KeyValue`
 
-将 `MutableValue` 与一个字符串绑定时，字符串会自动先创建键结点，再绑定为键值对。
-这时的 `*` 支持交换律，字符串可写在左边。但使用对应的方法名时，字符串参数只能
-写在右边的括号内。
+将 `MutableValue` 与一个字符串绑定时，字符串会自动先创建键结点，再绑定为键值对
+。这时的 `*` 支持交换律，字符串可写在左边，更符合键值对阅读顺序。但使用对应的
+方法名时，字符串参数只能写在右边的括号内。
 
 ```cpp
 yyjson::MutableDocument mutDoc;
@@ -1192,7 +1195,7 @@ for (auto iter = doc["items"].iterator(0); iter; ++iter) {
 
 - **左侧参数类型**：`jsonT`（对象）
 - **右侧参数类型**：`const char*`（C 字符串表示的键名）
-- **返回值类型**：`ObjectIterator`
+- **返回值类型**：`ObjectIterator` 或 `MutableObjectIterator`
 
 因为从特定键名开始迭代的需求场景比较罕见，所以右侧参数暂时只支持 `const char*`
 类型的字符串，简单实现。
@@ -1224,8 +1227,8 @@ for (auto iter = doc["user"].iterator(""); iter; ++iter) {
 可能并不多，而且 `%` 会拷贝新值，效率上也不如 `%=`。
 
 ```cpp
-yyjson::Document doc = R"({"user": {"name": "Alice", "age": 30}},
-    "items": [10, 20, 30])"_xyjson;
+yyjson::Document doc = R"({"user": {"name": "Alice", "age": 30},
+    "items": [10, 20, 30]})"_xyjson;
 auto itArray = doc / "items" % 1; // 创建迭代器初始位置 1
 auto itArrayCopy = iter % 3;  // 重定位到索引3的元素
 auto itObject = *doc % "items"; // 创建迭代器初始位置 "items"
@@ -1266,15 +1269,17 @@ auto iterCopy = iter + 3;  // 前进3步，指向第4个元素
 
 /* use method: advance() */
 {
-    auto iterCopy = iter.advance(3);
+    auto iterCopy = iter；
+    iterCopy.advance(3);
 }
 ```
 
-<!-- refine line -->
+### 左移运算 `<<`
 
-### 左移运算 `<<` - 流输出与输入
+这可能是 C++ 中应用最广泛的重载了，标准库带头重载为流式插入。取其象形，xyjson
+也为各个类重载了 `<<` 操作符，用于流式输出，或向 json 容器以至整体文档的输入。
 
-#### Json 结点输出 `toString`
+#### Json 标准流输出 `toString`
 
 **语法**：`std::ostream << jsonT`
 
@@ -1282,7 +1287,7 @@ auto iterCopy = iter + 3;  // 前进3步，指向第4个元素
 
 - **左侧参数类型**：`std::ostream&`
 - **右侧参数类型**：`jsonT`
-- **返回值类型**：`std::ostream&`
+- **返回值类型**：`std::ostream&` 原左参引用
 
 ```cpp
 yyjson::Document doc = R"({"name": "Alice"})"_xyjson;
@@ -1294,50 +1299,62 @@ std::cout << doc / "name" << std::endl;
 }
 ```
 
-#### 文档输出 `root`
-
-**语法**：`std::ostream << docT`
-
-**功能**：整个文档序列化输出
-
-- **左侧参数类型**：`std::ostream&`
-- **右侧参数类型**：`docT`
-- **返回值类型**：`std::ostream&`
-
-```cpp
-yyjson::Document doc = R"({"name": "Alice"})"_xyjson;
-std::cout << doc << std::endl;
-
-/* use method: root() */
-{
-    std::cout << doc.root().toString() << std::endl;
-}
-```
-
-#### 文档读入解析 `read`
+#### 读入 Json 字符串 `read`
 
 **语法**：`docT << input`
 
-**功能**：从字符串或输入流读入并解析 JSON
+**功能**：读入并解析 Json 字符串
 
 - **左侧参数类型**：`docT`
-- **右侧参数类型**：`const char*` 或 `std::istream&`
-- **返回值类型**：`bool`（是否成功）
+- **右侧参数类型**：`stringT`
+- **返回值类型**：`bool`（解析是否成功）
 
 ```cpp
 yyjson::Document doc;
 bool success = doc << R"({"name": "Alice"})";
 
-yyjson::MutableDocument mutDoc;
-std::ifstream file("data.json");
-if (file) {
-    bool success = mutDoc << file;
+/* use method: read() */
+{
+    yyjson::Document doc;
+    bool success = doc.read(R"({"name": "Alice"})");
 }
+
+// 也可直接用构造函数
+{
+    yyjson::Document doc(R"({"name": "Alice"})");
+}
+```
+
+>**说明**：
+如果 Document 原来已经管理一个底层文档树，读入操作将会先释放原有的文档树，替换
+为新文档树。使用构造函数则不涉及释放再重建文档树。
+
+#### 读入 Json 文件解析 `read`
+
+**语法**：`docT << input`
+
+**功能**：读取 Json 文件并解析，可能替换原有底层文档树
+
+- **左侧参数类型**：`docT`
+- **右侧参数类型**：`std::istream&` 或 `FILE*`
+- **返回值类型**：`bool`（解析是否成功）
+
+```cpp
+yyjson::Document doc;
+std::ifstream file("data.json");
+bool success = mutDoc << file;
 
 /* use method: read() */
 {
-    yyjson::Document doc2;
-    bool success2 = doc2.read(R"({"name": "Alice"})");
+    yyjson::Document doc;
+    std::ifstream file("data.json");
+    bool success = mutDoc.read(file);
+}
+
+// 另有 readFile() 方法接收文件名参数
+{
+    yyjson::Document doc;
+    bool success = mutDoc.readFile("data.json");
 }
 ```
 
@@ -1348,117 +1365,243 @@ if (file) {
 **功能**：数组尾部追加元素
 
 - **左侧参数类型**：`MutableValue`（数组）
-- **右侧参数类型**：各种类型
-- **返回值类型**：`MutableValue&`
+- **右侧参数类型**：各种能用 `MutableDocument` 创建结点的参数类型
+- **返回值类型**：`MutableValue&` 原左参引用
 
 ```cpp
 yyjson::MutableDocument mutDoc;
 mutDoc["items"] = "[]";
 mutDoc / "items" << 1 << "two" << 3.14;
+//^ 结果：{"items":[1,"two",3.14]}
 
 /* use method: push() */
 {
-    auto root = mutDoc.root().index("items");
-    root.push(1).push("two").push(3.14);
+    yyjson::MutableDocument mutDoc;
+    mutDoc["items"] = "[]";
+    mutDoc["items"].push(1).push("two").push(3.14);
+}
+
+// push 是 json 容器通用方法，数组也可用 append()
+{
+    yyjson::MutableDocument mutDoc;
+    mutDoc["items"] = "[]";
+    mutDoc["items"].append(1).append("two").append(3.14);
 }
 ```
 
-#### 对象插入键值对 `add`
+#### 对象插入键值对 `push`
 
-**语法**：`MutableValue << key << value`
+**语法**：`MutableValue << key << value` 或 `MutableValue << KeyValue&&`
 
-**功能**：对象插入键值对
+**功能**：对象插入键值对（也是尾部追加式）
 
 - **左侧参数类型**：`MutableValue`（对象）
-- **右侧参数类型**：`const char*`、`scalarT`（键值对）
-- **返回值类型**：`MutableValue&`
+- **右侧参数类型**：各种能用 `MutableDocument`创建结点的参数类型
+- **返回值类型**：`MutableValue&` 原左参引用
 
 ```cpp
 yyjson::MutableDocument mutDoc;
 auto root = *mutDoc;
 root << "key1" << "value1" << "key2" << 42;
 
-/* use method: add() */
+/* use method: push() */
 {
-    auto root2 = mutDoc.root();
-    root2.add("key1", "value1").add("key2", 42);
+    yyjson::MutableDocument mutDoc;
+    auto root = *mutDoc;
+    root.push("key1").push("value1").push("key2").push(42);
 }
+
+// 也可用 add() 方法接收两个参数
+{
+    yyjson::MutableDocument mutDoc;
+    auto root = *mutDoc;
+    root.add("key1", "value1").add("key2", 42);
+}
+```
+
+对象要支持这样的链式交替插入键与值，需要额外维护一个内部状态，是有一定代价的。
+如果定义了条件编译宏 `XYJSON_DISABLE_CHAINED_INPUT`，则该操作方法不可用，默认
+是可用的。
+
+另外，对象的 `<<` 操作与 `add` 方法也支持接收一个打包了键值对的 `KeyValue` 
+参数。需要右值 `KeyValue` ，通过 `*` 连乘创建的 `KeyValue` 临时值是右值，可直
+接与 `<<` 联用。在禁用了交换插入键与值的情况下可用该操作方式。或者从其他对象删
+除的键值对也可保存为 `KeyValue` ，再用 `<<` 或 `add` 方法再插入到其他地方。
+
+```cpp
+yyjson::MutableDocument mutDoc;
+*mutDoc << mutDoc * "Alice" * "name" << "age" * (mutDoc * 25);
+//^ 结果：{"name":"Alice","age":25}
+
+// 删除结点
+yyjson::KeyValue age, name;
+mutDoc >> age >> name;
+
+// 换个顺序重新插入
+mutDoc << std::move(age) << std::move(name);
+//^ 结果：{"age":25,"name":"Alice"}
 ```
 
 #### 迭代器定点插入 `insert`
 
 **语法**：`iteratorT << value`
 
-**功能**：在迭代器指定位置插入元素
+**功能**：在可写数组或对象迭代器指定位置插入元素
 
 - **左侧参数类型**：`iteratorT`
-- **右侧参数类型**：各种类型
-- **返回值类型**：`iteratorT&`
+- **右侧参数类型**：各种类型，与支持 `MutableValue <<` 的参数类型一样
+- **返回值类型**：`iteratorT&` 原左参引用
+
+操作符 `<<` 作用于 `MutableValue` 时，是在数组或对象末尾添加元素的，作用于可写
+迭代器时，可在当前位置之前插入元素。它们所支持的参数意义是一样。
+
+但是迭代器的操作符 `<<` 与它所对应的 `insert` 方法有点微小差异。调用 `insert`
+方法后迭代器状态指向新插入的元素，也即原来的当前元素之前。如果支持链式调用
+`it.insert(x).insert(y)` 将会往前插入，结果是 `y -> x -> 原来的当前元素` 。而
+链式操作符 `<<` 直觉上应该保留顺序，批量将一些元素插入当前位置（之前），结果是
+`x -> y -> 原来的当前元素` 。因此，操作符 `<<` 在调用 `insert` 方法后，还会自
+动前进一步。
 
 ```cpp
 yyjson::MutableDocument mutDoc;
 mutDoc["items"] = "[]";
 auto iter = mutDoc / "items" % 0;
-iter << 10 << 20 << 30;  // 在迭代器位置插入元素
+iter << 10 << 20 << 30;
 
 /* use method: insert() */
 {
-    auto iter2 = mutDoc / "items" % 0;
-    iter2.insert(10).insert(20).insert(30);
+    yyjson::MutableDocument mutDoc;
+    mutDoc["items"] = "[]";
+    auto iter = mutDoc / "items" % 0;
+    iter.insert(10); ++iter;
+    iter.insert(20); ++iter;
+    iter.insert(30); ++iter;
 }
 ```
 
-### 右移运算 `>>` - 输出与删除
+用对象迭代器插入元素，默认也支持链式交替插入键与值，当用
+`XYJSON_DISABLE_CHAINED_INPUT` 条件编译宏禁用该功能时，可以插入一个 `KeyValue`
+右值参数，另外 `insert` 方法也支持直接传入键与值两个参数。
 
-#### 文档序列化输出 `write`
+```cpp
+yyjson::MutableDocument mutDoc;
+mutDoc["user"] = "{}";
+auto iter = mutDoc / "user" % "";
+iter << "name" << "Alice" << "age" * (mutDoc * 25);
+
+/* use method: insert() */
+{
+    yyjson::MutableDocument mutDoc;
+    mutDoc["user"] = "{}";
+    auto iter = mutDoc / "user" % "";
+    iter.insert("name"); iter.insert("Alice); ++iter;
+    iter.insert("age", 25); ++iter;
+}
+```
+
+注意，操作符 `<<` 与 `insert` 方法的另一个差别是返回值不同。操作符 `<<` 返回迭
+代器引用本身以支持链式操作。而 `insert` 方法返回 `bool` 值表示插入操作成功与否
+。在插入数组时，一般都会成功。在交替插入对象时，先插入键时返回 `false` ，再插
+入配对的值时返回 `true` 。在接收两个键与值参数，或一个键值对 `KeyValue` 参数，
+如果键不是字符串也会返回 `false` 表示插入失败。
+
+### 右移运算 `>>`
+
+xyjson 重载了 `>>` 操作，基本满足 `<<` 操作的逆运算。但是不支持标准输入流在
+`>>` 左侧，只支持自定义类在左侧。
+
+#### 文档序列化字符串 `write`
 
 **语法**：`docT >> output`
 
-**功能**：将文档序列化输出到流或字符串
+**功能**：将文档序列化为字符串
 
 - **左侧参数类型**：`docT`
-- **右侧参数类型**：`std::ostream&` 或 `const char*`
+- **右侧参数类型**：`std::string`
+- **返回值类型**：`bool`（是否成功）
+
+与 `<<` 或 `read` 方法不一样的是，`>>` 或 `write` 的目标只能是 `std::string`
+这种拥有字符串所有权的字符串类，不能是 `const char*` 。
+
+```cpp
+yyjson::Document doc = R"({"name": "Alice"})"_xyjson;
+std::string str;
+doc >> str;
+
+/* use method: write() */
+{
+    std::string str;
+    doc.write(str);
+}
+```
+
+#### 文档序列化写入文件
+
+**语法**：`docT >> output`
+
+**功能**：将文档序列化直接写入文件
+
+- **左侧参数类型**：`docT`
+- **右侧参数类型**：`std::ostream&` 或 `FILE*`
 - **返回值类型**：`bool`（是否成功）
 
 ```cpp
 yyjson::Document doc = R"({"name": "Alice"})"_xyjson;
 std::ofstream file("output.json");
-doc >> file;
-
-std::string str;
-doc >> str;  // 输出到字符串
+bool success = doc >> file;
 
 /* use method: write() */
 {
-    doc.write(file);
-    doc.write(str);
+    std::ofstream file("output.json");
+    bool success = doc.write(file);
+}
+
+// 另有 writeFile() 方法接收文件名参数
+{
+    bool success = doc.writeFile("output.json");
 }
 ```
+
+写入字符串基本是成功的，除非内存不足。写入文件就有更多场景可能失败了，比如文件
+未打开，没有写入权限等。
 
 #### 安全值提取 `get`
 
 **语法**：`jsonT >> target`
 
-**功能**：从 Json 结点提取值并判断是否成功
+**功能**：从 Json 标量叶结点提取值并判断是否成功
 
 - **左侧参数类型**：`jsonT`
 - **右侧参数类型**：`scalarT&` 或底层指针类型
 - **返回值类型**：`bool`
 
+该操作主要用于 json 叶结点，例如存储着一个标量数字或字符串。如果该 json 的类型
+与 `>>` 右侧参数匹配，就会将 json 结点的内容提取存到右侧参数中，并返回 `bool`
+表示该操作是否成功。该操作适用于需要显式判断提取是否成功的场景，如果希望在失败
+时能回滚一个默认值时，使用 `|` 更为常见。
+
 ```cpp
-int age;
+yyjosn::Document doc(R"({"name": "Alice", "age":25})");
+
 std::string name;
-if (doc / "age" >> age) {
+if (doc / "name" >> name) {
     // 成功提取
 }
-if (doc / "name" >> name) {
+
+int age;
+if (doc / "age" >> age) {
     // 成功提取
 }
 
 /* use method: get() */
 {
+    std::string name;
+    if (doc["name"].get(name)) {
+        // 成功提取
+    }
+
     int age;
-    if (doc / "age".get(age)) {
+    if (doc["age"].get(age)) {
         // 成功提取
     }
 }
@@ -1468,53 +1611,113 @@ if (doc / "name" >> name) {
 
 **语法**：`MutableValue >> MutableValue&`
 
-**功能**：数组或对象尾部删除元素
+**功能**：在 Json 数组尾部删除元素
 
-- **左侧参数类型**：`MutableValue`（容器）
-- **右侧参数类型**：`MutableValue&` 或 `KeyValue&`
-- **返回值类型**：`MutableValue&`
+- **左侧参数类型**：`MutableValue`（json 数组）
+- **右侧参数类型**：`MutableValue&`
+- **返回值类型**：`MutableValue&` 左参自身引用
+
+从尾部删除，支持链式调用。方法要求有 `MutableValue` 左值接收被删除的结点，实际
+业务可弃用。
 
 ```cpp
-yyjson::MutableDocument mutDoc;
-mutDoc["items"] = "[]";
-mutDoc / "items" << 1 << 2 << 3;
-auto popped = mutDoc / "items" >> *(mutDoc / "items");  // 删除尾部元素
+yyjosn::Document mutDoc(R"({"items":[10, 20, 30]})");
+yyjson::MutableValue p1, p2,p3;
+mutDoc / "items" >> p3;
+mutDoc / "items" >> p2 >> p1;
 
 /* use method: pop() */
 {
-    auto popped = mutDoc / "items".pop();
+    yyjosn::Document mutDoc(R"({"items":[10, 20, 30]})");
+    MutableValue p1, p2, p3;
+    mutDoc["items"].pop(p3);
+    mutDoc["items"].pop(p2).pop(p1);
 }
 ```
 
-> **说明**：该操作符使用较少，通常使用 `pop()` 方法更直观。
+#### 对象尾部删除 `pop`
 
-#### 迭代器定点删除 `remove`
+**语法**：`MutableValue >> KeyValue&`
+
+**功能**：在 Json 对象尾部删除元素
+
+- **左侧参数类型**：`MutableValue`（json 对象）
+- **右侧参数类型**：`KeyValue&`
+- **返回值类型**：`MutableValue&` 左参自身引用
+
+```cpp
+yyjosn::Document mutDoc(R"({"user":{"name": "Alice", "age":25}})");
+yyjson::KeyValue name, age;
+mutDoc / "user" >> age >> name;
+
+/* use method: pop() */
+{
+    yyjosn::Document mutDoc(R"({"user":{"name": "Alice", "age":25}})");
+    yyjson::KeyValue name, age;
+    mutDoc["user"].pop(age).pop(name);
+}
+```
+
+#### 数组迭代器定点删除 `remove`
 
 **语法**：`iteratorT >> MutableValue&`
 
-**功能**：迭代器定点删除当前元素
+**功能**：可写数组迭代器定点删除当前元素，迭代器指向下一个元素
 
-- **左侧参数类型**：`iteratorT`
-- **右侧参数类型**：`MutableValue&` 或 `KeyValue&`
-- **返回值类型**：`iteratorT&`
+- **左侧参数类型**：`iteratorT` 限可写数组迭代器
+- **右侧参数类型**：`MutableValue&`
+- **返回值类型**：`iteratorT&` 左参自身引用
+
+对应的 `remove` 方法返回 `MutableValue` ，但 `>>` 返回自身引用支持链式删除。
+如果链式调用 `it.remove().remove()` ，第二个 `remove` 其实是尝试对第一个删除
+返回的临时值（将其视为数组）再作删除，往往不是想要的。
 
 ```cpp
-yyjson::MutableDocument mutDoc;
-mutDoc["items"] = "[]";
-mutDoc / "items" << 1 << 2 << 3;
-auto iter = mutDoc / "items" % 1;
-iter >> *(mutDoc / "items" / 1);  // 删除索引1的元素
+yyjosn::Document mutDoc(R"({"items":[10, 20, 30]})");
+yyjson::MutableValue p1, p2,p3;
+auto it = mutDoc / "items" % 0;
+it >> p1;
+it >> p2 >> p3;
 
 /* use method: remove() */
 {
-    auto iter = mutDoc / "items" % 1;
-    iter.remove();
+    yyjosn::Document mutDoc(R"({"items":[10, 20, 30]})");
+    auto it = mutDoc / "items" % 0;
+    auto p1 = it.pop();
+    auto p2 = it.pop();
+    auto p3 = it.pop();
 }
 ```
 
-> **说明**：该操作符使用较少，通常使用 `remove()` 方法更直观。
+#### 对象迭代器定点删除 `remove`
 
-### 小于比较 `<` - 有序性判断
+**语法**：`iteratorT >> KeyValue&`
+
+**功能**：可写对象迭代器定点删除当前键值对，迭代器指向下一个键值对
+
+- **左侧参数类型**：`iteratorT` 限可写对象迭代器
+- **右侧参数类型**：`KeyValue&`
+- **返回值类型**：`iteratorT&` 左参自身引用
+
+对应的 `remove` 方法返回 `KeyValue` ，但 `>>` 返回自身引用支持链式删除。
+`KeyValue` 没有 `remove` 方法，所以尝试对此链式调用 `remove` 将编译错误。
+
+```cpp
+yyjosn::Document mutDoc(R"({"user":{"name": "Alice", "age":25}})");
+yyjson::KeyValue name, age;
+auto it = mutDoc / "user" % "";
+it >> name >> age;
+
+/* use method: remove() */
+{
+    yyjosn::Document mutDoc(R"({"user":{"name": "Alice", "age":25}})");
+    auto it = mutDoc / "user" % "";
+    auto name = it.pop();
+    auto age = it.pop();
+}
+```
+
+### 有序性比较 `<`
 
 #### Json 结点比较 `less`
 
@@ -1526,151 +1729,123 @@ iter >> *(mutDoc / "items" / 1);  // 删除索引1的元素
 - **右侧参数类型**：`jsonT`
 - **返回值类型**：`bool`
 
+按如下规则定义两个 json 的大小，在需要的场合下规定某种确定的顺序：
+
+- 首先按 yyjson 内部定义的类型编号（枚举）比较，如 null 最小，对象最大；
+- 相同类型的标量，按值比较，Number 类型统一转 double 比较大小，String 类型采用
+  `strcmp` 比较，Bool 值的 `false` 比 `true` 比，Null 值只有一个是相等的；
+- 容器类型，只比较容器大小，不递归比较，如果容器大小相同，按内存地址比较。
+
 ```cpp
 yyjson::Document doc = R"({"a": 10, "b": 20})"_xyjson;
-if (doc / "a" < doc / "b") {
-    // 比较结果
-}
+if (doc / "a" < doc / "b") { } // true
 
 /* use method: less() */
 {
-    auto result = doc / "a".less(doc / "b");
+    auto result = doc["a"].less(doc["b"]);
 }
 ```
 
-> **说明**：json的有序性定义基于内容，具体比较规则参考`less()`方法。
+#### 其他有序性比较操作符
 
-#### 小于等于比较 `<=`
+除了 `<` 小于比较，还有其他几种大小比较，但都可以从 `<` 推导，所以一般自定义类
+只需重载 `less` 方法。
 
-**语法**：`jsonT <= jsonT`
+- 大于 `>`：`a > b` 由 `b < a` 推导；
+- 小于等于 `<=`：`a <= b` 由 `!(b < a)` 推导；
+- 于于等于 `>=`：`a >= b` 由 `!(a < b)` 推导；
 
-**功能**：Json 有序性定义小于等于比较
+理论上，相等比较 `==` 也可由 `!(a < b) && !(b < a)` 推导。但是 xyjson 为各个核
+心类都定义了自己的 `==` 比较操作。
+
+### 相等性比较 `==`
+
+#### Json 结点值比较 `equal`
+
+**语法**：`jsonT == jsonT`
+
+**功能**：深度比较两个 json 树的内容，即递归比较其类型、容器大小及内容。
 
 - **左侧参数类型**：`jsonT`
 - **右侧参数类型**：`jsonT`
 - **返回值类型**：`bool`
 
 ```cpp
-if (doc / "a" <= doc / "b") {
-    // 比较结果
-}
+yyjson::Document doc1 = R"({"name": "Alice"})"_xyjson;
+yyjson::Document doc2 = R"({"name": "Alice"})"_xyjson;
+auto root1 = *doc1;
+auto root2 = *doc2;
 
-/* use method: less() */
-{
-    auto result = !doc / "b".less(doc / "a");
-}
-```
-
-#### 大于比较 `>`
-
-**语法**：`jsonT > jsonT`
-
-**功能**：Json 有序性定义大于比较
-
-- **左侧参数类型**：`jsonT`
-- **右侧参数类型**：`jsonT`
-- **返回值类型**：`bool`
-
-```cpp
-if (doc / "b" > doc / "a") {
-    // 比较结果
-}
-
-/* use method: less() */
-{
-    auto result = doc / "b".less(doc / "a");
-}
-```
-
-#### 大于等于比较 `>=`
-
-**语法**：`jsonT >= jsonT`
-
-**功能**：Json 有序性定义大于等于比较
-
-- **左侧参数类型**：`jsonT`
-- **右侧参数类型**：`jsonT`
-- **返回值类型**：`bool`
-
-```cpp
-if (doc / "b" >= doc / "a") {
-    // 比较结果
-}
-
-/* use method: less() */
-{
-    auto result = !doc / "a".less(doc / "b");
-}
-```
-
-### 相等比较 `==` - 等价性判断
-
-#### 文档内容比较 `equal`
-
-**语法**：`docT == docT`
-
-**功能**：两个文档内容是否相等
-
-- **左侧参数类型**：`docT`
-- **右侧参数类型**：`docT`
-- **返回值类型**：`bool`
-
-```cpp
-if (doc1 == doc2) {
-    // 内容相同
-}
+if (root1 == root2) { } // true
 
 /* use method: equal() */
-{
-    if (doc1.root().equal(doc2.root())) {
-        // 内容相同
-    }
-}
+if (root1.equal(root2)) { }
 ```
 
-#### 值比较 `equal`
+#### Json 叶结点与基本标量类型比较
 
 **语法**：`jsonT == value`
 
-**功能**：Json 结点值与给定值比较
+**功能**：Json 结点值与给定值比较，要求类型匹配且内容相等。
 
 - **左侧参数类型**：`jsonT`
-- **右侧参数类型**：`scalarT` 或 `jsonT`
+- **右侧参数类型**：`scalarT`
 - **返回值类型**：`bool`
 
 ```cpp
-if (doc / "version" == "1.0") {
-    // 版本匹配
-}
+yyjson::Document doc = R"({"name":"Alice", "age": 25})"_xyjson;
+
+if (doc  / "name" == "Alice") {} // true
+if (doc  / "age" == 25) {} // true
+if (doc  / "age" == 25.0) {} // false
+```
+
+#### 迭代器比较
+
+**语法**：`iteratorT == iteratorT`
+
+**功能**：比较两个迭代器是否相等
+
+- **左侧参数类型**：`iteratorT`
+- **右侧参数类型**：`iteratorT`
+- **返回值类型**：`bool`
+
+迭代器的很多操作前提都要判断迭代器是否失效，或者迭代器是否相等。只有从相同容器
+创建的迭代器才可能相等，然后比较其当前索引。从相同容器任意起点创建的迭代器，经
+过不断前进的前进，应该都能达到相同的终点失效状态。
+
+```cpp
+yyjson::Document doc = R"({"user": {"name": "Alice", "age": 30}})"_xyjson;
+
+// 用迭代器判断键是否存在
+auto it = doc / "user" % "age";
+if (it == doc["user"].endObject()) {} // false
 
 /* use method: equal() */
-{
-    if (doc / "version".equal("1.0")) {
-        // 版本匹配
-    }
-}
+if (it.equal(doc["user"].endObject())) {} // false
+
+// 更简洁的判断
+if(doc / "user" / "age") {} // true
+if(doc / "user" % "age") {} // true
 ```
 
 #### 不等比较 `!=`
 
-**语法**：`lhs != rhs`
+在 xyjson 库中，所有重载定义了 `==` 的类，也都支持 `!=` 操作，后者明显可以且应
+该由前者推导，也即相当于调用 `!equal()` 方法。
 
-**功能**：不等性判断
-
-- **左侧参数类型**：任意类型
-- **右侧参数类型**：任意类型
-- **返回值类型**：`bool`
+这在 begin/end 迭代器对循环中尤为常见。
 
 ```cpp
-if (doc / "status" != "active") {
-    // 状态不匹配
+yyjson::Document doc = R"({"items":[10, 20, 30]})"_xyjson;
+
+if (auto it = doc["items"].beginArray(); it != doc["items"].endArray(); ++it)
+{
 }
 
-/* use method: !equal() */
+/* use method: equal() */
+if (auto it = doc["items"].beginArray(); !it.equal(doc["items"].endArray()); ++it)
 {
-    if (!doc / "status".equal("active")) {
-        // 状态不匹配
-    }
 }
 ```
 
@@ -1683,73 +1858,67 @@ if (doc / "status" != "active") {
 **功能**：类型判断，使用字面量作为类型指示器
 
 - **左侧参数类型**：`jsonT`
-- **右侧参数类型**：`scalarT` 或 `EmptyXXX` 类型常量
+- **右侧参数类型**：`scalarT` 或类型常量
 - **返回值类型**：`bool`
 
 ```cpp
 yyjson::Document doc = R"({"name": "Alice", "age": 30})"_xyjson;
-bool isString = doc / "name" & "";
-bool isNumber = doc / "age" & 0;
-bool isObject = doc & "{}";
-bool isArray = doc & "[]";
+bool isString = doc / "name" & ""; // true
+bool isInt = doc / "age" & 0;      // true
+bool isReal = doc / "age" & 0.0;   // false
+bool isObject = doc.root() & "{}"; // true
+bool isArray = doc.root() & "[]";  // false
 
 /* use method: isType() */
 {
-    bool isString = doc / "name".isType("");
-    bool isNumber = doc / "age".isType(0);
+    bool isString = doc["name].isType("");   // true
+    bool isInt = doc["age"].isType(0);       // true
+    bool isReal = doc["age"].isType(0.0);    // false
+    bool isObject = doc.root().isType("{}"); // true
+    bool isArray = doc.root().isType("[]");  // false
 }
 ```
 
-#### 类型常量判断 `isType`
+> **说明**:
+操作符 `&` 与 `isType` 方法也接收类型常量作为参数，详情参考类型常量章节。
 
-**语法**：`jsonT & kType`
+### 按位或运算 `|`
 
-**功能**：使用预定义类型常量进行类型判断
-
-- **左侧参数类型**：`jsonT`
-- **右侧参数类型**：`yyjson::kString`、`yyjson::kInt` 等类型常量
-- **返回值类型**：`bool`
-
-```cpp
-yyjson::Document doc = R"({"name": "Alice", "age": 30, "items": [1,2,3]})"_xyjson;
-bool isString = doc / "name" & yyjson::kString;
-bool isNumber = doc / "age" & yyjson::kInt;
-bool isArray = doc / "items" & yyjson::kArray;
-bool isObject = doc & yyjson::kObject;
-
-/* use method: isType() */
-{
-    bool isString = doc / "name".isType(yyjson::kString);
-    bool isNumber = doc / "age".isType(yyjson::kInt);
-    bool isArray = doc / "items".isType(yyjson::kArray);
-}
-```
-
-### 按位或运算 `|` - 值提取与转换
-
-#### 基本类型提取 `getor`
+#### 带默认值提取 `getor`
 
 **语法**：`jsonT | defaultValue`
 
-**功能**：从 Json 结点提取值，如果无效则返回默认值
+**功能**：从 Json 结点提取值，如果无效或类型不匹配则返回默认值
 
 - **左侧参数类型**：`jsonT`
 - **右侧参数类型**：`scalarT`（基本类型）
 - **返回值类型**：与右侧参数类型相同
 
+带默认值提取操作符 `|` 是 xyjson 推荐的常用操作。基本上能用于 `&` 类型判断的参
+数，也能用于 `|` 参数作为默认值提取。如果 `&` 类型判断返回 `true` ，那么 `|`
+操作能转换提取 json 值，否则返回右侧的默认参数值。大部分情况下，没必要显式用
+`&` 额外做类型判断，只要用 `|` 默认提取即可。
+
 ```cpp
 yyjson::Document doc = R"({"name": "Alice", "age": 30, "active": true})"_xyjson;
+cons char* pszName = doc / "name" | "";
 std::string name = doc / "name" | "";
 int age = doc / "age" | 0;
 bool active = doc / "active" | false;
 
 /* use method: getor() */
 {
-    std::string name = doc / "name".getor("");
-    int age = doc / "age".getor(0);
-    bool active = doc / "active".getor(false);
+    cons char* pszName = doc["name"].getor("");
+    std::string name = doc["name"].getor("");
+    int age = doc["age"].getor(0);
+    bool active = doc["active"].getor(false);
 }
 ```
+
+注意在上例中 `|""` 返回 C-Style 的字符串 `const char*` ，但可以赋值给
+`std::string` ，相当于调用后者的构造函数。也支持 `| std::string()` 直接返回
+`std::string` ，虽不如 `|""` 简洁，但意义明了。另外也支持 `| kString` 等类型常
+量。
 
 #### 管道函数转换 `pipe`
 
@@ -1758,8 +1927,14 @@ bool active = doc / "active" | false;
 **功能**：对 Json 值应用管道函数进行转换
 
 - **左侧参数类型**：`jsonT`
-- **右侧参数类型**：`std::function`
-- **返回值类型**：与函数返回值类型相同
+- **右侧参数类型**：`std::function` 等任意可调用对象
+- **返回值类型**：与右侧函数返回值类型相同
+
+右侧函数支持接收一个 jsonT 类型（`Value` 或 `MutableValue`）的参数，也支持基本
+类型（数字或字符串），如果是后者，`pipe` 方法相当于先调用 `getor` 方法将左侧
+json 转为基本类型（类型不匹配时返回目标类型的零值）再调用右侧函数，否则直接将
+左侧 json 传给右侧函数。因此，`pipe` 相当于 `getor` 的超集，`getor` 相当于
+`pipe` 的最常用基础版。
 
 ```cpp
 yyjson::Document doc = R"({"name": "alice"})"_xyjson;
@@ -1767,46 +1942,38 @@ std::string upper = doc / "name" | [](const std::string& s) {
     std::string r = s;
     std::transform(r.begin(), r.end(), r.begin(), ::toupper);
     return r;
-} | "DEFAULT";
+};
 
 /* use method: pipe() */
 {
-    std::string upper = doc / "name".pipe([](const std::string& s) {
+    std::string upper = doc["name"].pipe([](const std::string& s) {
         std::string r = s;
         std::transform(r.begin(), r.end(), r.begin(), ::toupper);
         return r;
-    }).getor("DEFAULT");
+    });
 }
 ```
 
-#### 类型常量提取 `getor`
+### 赋值操作符 `=`
 
-**语法**：`jsonT | kType`
+#### 自定义类的拷贝赋值
 
-**功能**：使用类型常量提取对应类型的值
+封装的 jsonT 类，相当于是 yyjson 底层结点的代理指针，它是值类，允许拷贝赋值。
+多个拷贝的 `Value` 值引用相同的底层结点。但不建议拷贝 `MutableValue` 值，因为
+通过一个拷贝修改底层结点也会影响另一个拷贝的观察或操作，容易混乱误解。
 
-- **左侧参数类型**：`jsonT`
-- **右侧参数类型**：`yyjson::kArray`、`yyjson::kObject` 等类型常量
-- **返回值类型**：容器类型（如 `ConstArray`、`ConstObject`）
+迭代器 iteratorT 类，也是值类，可以拷贝赋值，但是迭代器内部成员比 jsonT 复杂，
+应该尽量避免拷贝赋值。
 
-```cpp
-yyjson::Document doc = R"({"score": [10, 20, 30]})"_xyjson;
-auto arr = doc / "score" | yyjson::kArray;
-int size = +(doc / "score" | yyjson::kArray);
-
-/* use method: getor() */
-{
-    auto arr = doc / "score".getor(yyjson::kArray);
-}
-```
-
-### 赋值运算 `=` - 值设置
+但是封装的 docT 类，它代理了 yyjson 底层的文档树与内存池，不允许拷贝赋值，只允
+许移动赋值。但一般业务中也不建议移动 docT 文档对象。
 
 #### 可写结点赋值 `set`
 
 **语法**：`MutableValue = value`
 
-**功能**：为 MutableValue 赋新值
+**功能**：为可写的 json 标量叶结点赋新值，可以改变 json 标量类型，但避免对非空
+容器重新赋值。
 
 - **左侧参数类型**：`MutableValue`
 - **右侧参数类型**：`scalarT`、`jsonT`、或类型常量
@@ -1815,20 +1982,29 @@ int size = +(doc / "score" | yyjson::kArray);
 ```cpp
 yyjson::MutableDocument mutDoc = R"({"name": "Alice"})"_xyjson;
 mutDoc / "name" = "Bob";
-mutDoc / "age" = 30;
-mutDoc / "active" = true;
+mutDoc["age"] = 30;
+mutDoc / "active" = true; // 无效果
+//^ 结果：{"name":"Bob","age":30}
 
 /* use method: set() */
 {
-    mutDoc / "name".set("Bob");
-    mutDoc / "age".set(30);
-    mutDoc / "active".set(true);
+    yyjson::MutableDocument mutDoc = R"({"name": "Alice"})"_xyjson;
+    (mutDoc / "name").set("Bob");
+    mutDoc["age"].set(30);
+    (mutDoc / "active").set(true);
 }
 ```
 
-#### 复合赋值提取 `get`
+注意，不能通过 `/` 为不存在的键赋值，那没有效果。`[]` 可以自动添加不存在的键，
+先默认创建并添加 null 类型的 json 结点，再赋值。
 
-**语法**：`scalarT& |= jsonT`
+### 复合赋值操作符
+
+重载了一些复合赋值操作符，那是其他操作符与 `=` 的自然衍生组合。
+
+#### Json 复合赋值提取 `|=`
+
+**语法**：`scalarT |= jsonT`
 
 **功能**：从 Json 结点提取值并赋给原变量
 
@@ -1836,23 +2012,26 @@ mutDoc / "active" = true;
 - **右侧参数类型**：`jsonT`
 - **返回值类型**：`scalarT&`
 
+从内部实现上讲，`|=` 操作比 `|` 更简捷，那直接调用 `get` 方法，而 `|` 调用
+`getor` 。当类型不匹配时，不影响左参原值。
+
 ```cpp
-int age = 18;
 yyjson::Document doc = R"({"age": 30})"_xyjson;
+int age = 18;
 age |= doc / "age";  // age = 30
 
 /* use method: get() */
 {
     int age = 18;
-    doc / "age".get(age);
+    doc["age"].get(age);
 }
 ```
 
-#### 迭代器加法赋值 `advance`
+#### 迭代器多步前进 `+=`
 
 **语法**：`iteratorT += n`
 
-**功能**：迭代器多步前进
+**功能**：迭代器多步前进，不会拷贝新迭代器
 
 - **左侧参数类型**：`iteratorT&`
 - **右侧参数类型**：`size_t`
@@ -1870,25 +2049,25 @@ iter += 3;  // 跳过 3 个元素
 }
 ```
 
-#### 迭代器取模赋值 `advance`
+#### 迭代器重定位 `%=`
 
 **语法**：`iteratorT %= target`
 
-**功能**：迭代器重定位
+**功能**：迭代器重定位，不会拷贝新迭代器
 
 - **左侧参数类型**：`iteratorT&`
-- **右侧参数类型**：`int` 或 `const char*`
+- **右侧参数类型**：`size_t` 或 `const char*`
 - **返回值类型**：`iteratorT&`
 
 ```cpp
 yyjson::Document doc = R"({"items": [10, 20, 30, 40, 50]})"_xyjson;
-auto iter = doc / "items" % 0;
-iter %= 5;  // 重定位到索引 5
+auto iter = doc / "items" % 4;
+iter %= 2;  // 重定位到索引 2
 
 /* use method: advance() */
 {
-    auto iter = doc / "items" % 0;
-    iter.advance(5);
+    auto iter = doc / "items" % 4;
+    iter.advance(2);
 }
 ```
 
@@ -1908,98 +2087,170 @@ iter %= 5;  // 重定位到索引 5
 
 这些操作符在 Document 上的行为与在 Value 上基本一致，主要用于简化代码。
 
+#### 索引操作符 `[]`
+
+**语法**：`docT[key]` 或 `docT[index]`
+
+**功能**：单层索引根结点，作用于可写文档时会自动创建新字段
+
+- **左侧参数类型**：`docT`
+- **右侧参数类型**：`stringT`（对象键名）或 `size_t`（数组索引）
+- **返回值类型**：`jsonT`（与 docT 对应的 Value 类型）
+
 ```cpp
-// 索引操作符
 yyjson::Document array("[10, 20, 30]");
 yyjson::MutableDocument object("{}");
+
 auto first = array[0];
 object["first"] = 10;
 
-// 一元正号转整数
-{
-    yyjson::Document doc = R"([10, 20, 30])"_xyjson;
-    int size = +doc;  // 3
-}
-
-// 一元负号转字符串
-{
-    yyjson::Document doc = R"({"name": "Alice"})"_xyjson;
-    std::string str = -doc; // {"name":"Alice"}
-}
-
-// 路径访问
-{
-    yyjson::Document doc = R"({"user": {"name": "Alice", "age": 30}})"_xyjson;
-    auto name = doc / "user" / "name";
-}
-
-// 迭代器创建
-{
-    yyjson::Document doc = R"({"items": [10, 20, 30]})"_xyjson;
-    auto iter = doc % 0;
-}
-
-// 序列化输出
-{
-    yyjson::Document doc = R"({"name": "Alice"})"_xyjson;
-    std::cout << doc << std::endl;
-}
-
-// 相等比较
-{
-    yyjson::Document doc1 = R"({"name": "Alice"})"_xyjson;
-    yyjson::Document doc2 = R"({"name": "Alice"})"_xyjson;
-    bool equal = (doc1 == doc2);
-}
-
 /* use method: root() */
 {
-    // 索引操作符
     auto first = array.root()[0];
     object.root()["second"] = 20;
-
-    // 一元正号转整数
-    {
-        yyjson::Document doc = R"([10, 20, 30])"_xyjson;
-        int size = +doc.root();
-    }
-
-    // 一元负号转字符串
-    {
-        yyjson::Document doc = R"({"name": "Alice"})"_xyjson;
-        std::string str = -doc.root();
-    }
-
-    // 路径访问
-    {
-        yyjson::Document doc = R"({"user": {"name": "Alice", "age": 30}})"_xyjson;
-        auto name = doc.root().pathto("user").pathto("name");
-    }
-
-    // 迭代器创建
-    {
-        yyjson::Document doc = R"({"items": [10, 20, 30]})"_xyjson;
-        auto iter = doc.root().iterator(0);
-    }
-
-    // 序列化输出
-    {
-        yyjson::Document doc = R"({"name": "Alice"})"_xyjson;
-        std::cout << doc.root().toString() << std::endl;
-    }
-
-    // 相等比较
-    {
-        yyjson::Document doc1 = R"({"name": "Alice"})"_xyjson;
-        yyjson::Document doc2 = R"({"name": "Alice"})"_xyjson;
-        bool equal = doc1.root().equal(doc2.root());
-    }
 }
 ```
 
-## 类型常量定义
+#### 一元正号 `+` 转整数
 
-xyjson 定义了一系列类型代表值常量，用于类型判断和值提取：
+**语法**：`+docT`
+
+**功能**：或取根结点转整数
+
+- **参数类型**：`docT`
+- **返回值类型**：`int`
+
+```cpp
+yyjson::Document doc = R"([10, 20, 30])"_xyjson;
+int size = +doc;  // 3
+
+/* use method: root() */
+{
+    int size = +doc.root(); // 3
+}
+```
+
+#### 一元负号 `-` 转字符串
+
+**语法**：`-docT`
+
+**功能**：取根结点转字符串
+
+- **参数类型**：`docT`
+- **返回值类型**：`std::string`
+
+
+```cpp
+yyjson::Document doc = R"({"name": "Alice"})"_xyjson;
+std::string str = -doc; // {"name":"Alice"}
+
+/* use method: root() */
+{
+    std::string str = -doc.root();
+}
+```
+
+#### 除法 `/` 路径查找
+
+**语法**：`docT / key` 或 `docT / path` 或 `docT / index`
+
+**功能**：类似 `[]` 索引的单层访问与线性查找，更方便链式逐级访问
+
+- **左侧参数类型**：`docT`，常规 Json 根结点是对象或数组
+- **右侧参数类型**：`stringT`（对象键名）或 `size_t`（数组索引）
+- **返回值类型**：`jsonT`（与文档类型对应的结点类型）
+
+```cpp
+yyjson::Document doc = R"({"user": {"name": "Alice", "age": 30},
+    "items": [10, 20, 30]})"_xyjson;
+
+auto name = doc / "user" / "name";
+auto age = doc / "/user/age";
+auto item = doc / "/items/0";
+
+/* use method: root() */
+{
+    auto name = doc.root() / "user" / "name";
+    auto age = doc.root() / "/user/age";
+    auto item = doc.root() / "items/0";
+}
+```
+
+#### 取模 `%` 创建迭代器
+
+**语法**：`docT % key` 或 `docT % index`
+
+**功能**：为根结点创建迭代器，可指针起始索引或起始键名
+
+- **左侧参数类型**：`docT`，要求对象或数组类型
+- **右侧参数类型**：`const char*`（对象键名）或 `size_t`（数组索引）
+- **返回值类型**：`iteratorT`（根结点对应的迭代器类型）
+
+```cpp
+yyjson::Document array("[10, 20, 30]");
+yyjson::Document object("{"name": "Alice", "age": 30}");
+
+auto arrIt = array % 0;
+auto objIt = object % "";
+
+/* use method: root() */
+{
+    auto arrIt = array.root() % 0;
+    auto objIt = object.root() % "";
+}
+```
+
+#### 左移 `<<` 标准流输出
+
+**语法**：`std::ostream << docT`
+
+**功能**：整个文档序列化输出
+
+- **左侧参数类型**：`std::ostream&`
+- **右侧参数类型**：`docT`
+- **返回值类型**：`std::ostream&`
+
+```cpp
+yyjson::Document doc = R"({"name": "Alice"})"_xyjson;
+std::cout << doc << std::endl;
+
+/* use method: root() */
+std::cout << doc.root() << std::endl;
+
+// 格式化输出需显式调用 toString(true)
+std::cout << doc.root().toString(true) << std::endl;
+```
+#### 相等操作符 `==` 
+
+**语法**：`docT == docT`
+
+**功能**：两个文档内容是否相等
+
+- **左侧参数类型**：`docT`
+- **右侧参数类型**：`docT`
+- **返回值类型**：`bool`
+
+```cpp
+yyjson::Document doc1 = R"({"name": "Alice"})"_xyjson;
+yyjson::Document doc2 = R"({"name": "Alice"})"_xyjson;
+if (doc1 == doc2) {} // true
+
+/* use method: root() */
+if (doc1.root() == doc2.root()) {}
+```
+
+注意：比较两个 doc 相等的条件是它们的根结点内容相同。持有两个相同 yyjson 底层
+的 doc 指针的 Document 类对象不一样相等，因为它们的根结点可能不一样。Document
+的内存池可以创建多个 json 结点，其中任何一个结点都可以被设为根结点，不一定所有
+结点都可以从根结点有路径可达。当然这种情况比较罕见，一般业务中不建议重设根结点
+。那么 doc 指针相同的也往往意味着根结点指针相同，那么其内容也一定可以快速判断
+为相等。
+
+## 类型常量应用
+
+xyjson 定义了一系列类型代表值常量，可以用于一些操作符的右侧参数。因为操作数只
+能是值，不能是类型，所以定义一些具名的有意义常量，比直接用字面量增加可读性。当
+然也需要交换简洁性，可考虑使用 `using` 引入命名空间。
 
 ```cpp
 namespace yyjson {
@@ -2030,74 +2281,380 @@ namespace yyjson {
 }
 ```
 
+注意几点：
+- 字面量 `0` 相当于 `kInt` ，如果想表达大整数，推荐使用 `kSint` 与 `kUint` ，
+  这也与 yyjson 底层结点内存储整数的命名更一致。
+- 字面量 `0.0` 只对应对实数或 `double` 类型的 `kReal` ，而 `kNumber` 是对应
+  Json 类型的 Number 概念，它是实数与整数的统称；在 C/C++ 中尽量用更强的类型。
+- 字面量 `""` 相当于 `kString` 。但有两个特殊字面 `"[]"` 与 `"{}"` 在一些操作
+  中分别表示数组与对象类型。为了更强类型的区分，额外定义了三个空类的常量。
+
 ### 类型判断
 
 ```cpp
-// 使用字面量
-bool isString = doc / "name" & "";
-bool isNumber = doc / "age" & 0;
-bool isObject = doc / "config" & "{}";
-bool isArray = doc / "items" & "[]";
+yyjson::Document doc = R"({"name": "Alice", "age": 30})"_xyjson;
 
-// 使用类型常量（推荐）
-bool isString2 = doc / "name" & kString;
-bool isNumber2 = doc / "age" & kInt;
-bool isObject2 = doc / "config" & kObject;
-bool isArray2 = doc / "items" & kArray;
+// 使用类型常量
+{
+    using namespace yyjson;
+    bool isString = doc / "name" & kString; // true
+    bool isInt = doc / "age" & kInt;        // true
+    bool isNumber = doc / "age" & kNumber;  // true
+    bool isDouble = doc / "age" & kReal;    // false
+}
+
+// 使用字面量
+{
+    bool isString = doc / "name" & "";   // true
+    bool isInt = doc / "age" & 0;        // true
+    // isNumber 只能用 kNumber 判断
+    bool isDouble = doc / "age" & 0.0;   // false
+}
+
 ```
 
 ### 值提取
 
+在大部分情况下，`getor` 的操作符 `|` 右侧都是某个类型的零值，这适合用类型常量
+。如果要提供其他默认值，可用字面量或变量。
+
 ```cpp
-// 使用字面量
-std::string name = doc / "name" | "";
-int age = doc / "age" | 0;
-double score = doc / "score" | 0.0;
+yyjson::Document doc = R"({"name": "Alice", "age": 30})"_xyjson;
 
 // 使用类型常量
-std::string name2 = doc / "name" | kString;
-int age2 = doc / "age" | kInt;
-double score2 = doc / "score" | kReal;
+{
+    using namespace yyjson;
+    const char* pszName = doc / "name" | kString; // Alice
+    int iAge = doc / "age" | kInt;      // 30
+    double fAage = doc / "age" | kReal; // 0.0
+    double nAage = doc / "age" | kNumber; // 30.0
+}
+
+// 使用字面量
+{
+    const char* pszName = doc / "name" | ""; // Alice
+    int iAge = doc / "age" | 0;      // 30
+    double fAage = doc / "age" | 0.0; // 0.0
+    // kNumber 没有对应的字面量，或者可以用 ZeroNumber 构造函数
+    double nAage = doc / "age" | ZeroNumber(); // 30.0
+}
 ```
 
-### 特殊容器类型
+### 赋值修改
+
+类型常量代表值都是各个类型的零值或空值，所以用于 `=` 右侧时将 json 内容改为对
+应类型的零值或空值。
 
 ```cpp
-// kArray 和 kObject 返回容器包装类
-auto arr = doc / "items" | kArray;      // 返回 ConstArray
-auto obj = doc / "config" | kObject;    // 返回 ConstObject
+yyjson::Document mutDoc(R"({"name": "Alice", "age": 30})");
+
+// 使用类型常量
+{
+    using namespace yyjson;
+    doc / "name" = kString;
+    doc / "age" = kInt;
+}
+
+// 使用字面量
+{
+    doc / "name" = "";
+    doc / "age" = 0;
+}
+```
+
+### 特殊容器类型 kArray kObject
+
+为 json 容器类型定义了两个常量，`kArray` 表示数组，`kObject` 表示对象。它们相
+对其他标量类型常量更复杂些。`Value` 与 `MutableValue` 的数组与对象也有些不同要
+注意。
+
+除了 `|` 操作特殊外，在其他一些操作符或方法中，也可以用 `"[]"` 代替 `kArray`，
+用 `"{}"` 代替 `kObject`。但这两个特殊字面量是运行期作特殊判断的，`kArray` 与
+`kObject` 是编译期决定类型的。所以在性能敏感的地方最好使用类型常量，能略微提升
+性能。
+
+#### 容器类型判断
+
+```cpp
+yyjson::Document doc = R"({"user": {"name": "Alice", "age": 30},
+    "items": [10, 20, 30]})"_xyjson;
+
+// 使用类型常量
+{
+    using namespace yyjson;
+    bool isArray = doc / "items" & kArray;    // true
+    bool isObject = doc / "user" & kObject;   // true
+}
+
+// 使用字面量
+{
+    bool isArray = doc / "items" & "[]"; // true
+    bool isObject = doc / "user" & "{};    // true
+}
+```
+
+#### 容器类型转换
+
+在值提取操作符 `|` 右侧，不能用 `"[]"` 表示数组。因为 `"[]"` 与 `"{}"` 这两个
+特殊字符串字面量的类型其实还是字符串，调用 `getor(const char\*)` 的重载，故与
+`| ""` 一样表示提取字符串类型的 json 值。`json | "[]"` 操作的意义是，当 json
+不是字符串类型时，返回默认值长度为 2 的字符串 `"[]"` 。
+
+但是在 `|` 右侧可以使用 `kArray` 与 `kObject` ，当类型匹配时，它返回 `Value`
+或 `MutableValue` 的一个子类专门用于表示数组或对象。
+
+- `Value | kArray` 返回 `ConstArray`
+- `Value | kObject` 返回 `ConstObject`
+- `MutableValue | kArray` 返回 `MutableArray`
+- `MutableValue | kObject` 返回 `MutableObject`
+
+这四个子类分别继承了父类的所有方法，可以当作 `Value` 或 `MutableValue` 使用。
+只额外增加两个方法 `begin` 与 `end` 分别表示创建起始与结束迭代器，使之能适配标
+准容器迭代器的接口，能够使用范围 `for` 与一些标准库算法。
+
+也就是说，`Value` 类只能用 `beginArray` 与 `endArray` 方法创建数组迭代器，这是
+非标准接口。而 `ConstArray` 可以使用 `begin` 与 `end` 标准接口创建数组迭代器，
+因为这个类只表示数组。其他子类的意义类似。
+
+在这个操作下，`| kArray` 对应 `array()` 方法，`| kObject` 对应 `object()` 方法
+。
+
+
+```cpp
+yyjson::Document doc = R"({"user": {"name": "Alice", "age": 30},
+    "items": [10, 20, 30]})"_xyjson;
+
+auto array = doc / "items" | yyjson::kArray;
+auto object = doc / "user" | yyjson::kObject;
+
+// 使用具名方法
+{
+    auto array = doc["items"].array();
+    auto object = doc["user"].object();
+}
 
 // 支持标准容器操作
-for (auto& item : arr) {
-    // 遍历数组
+for (auto& value : array) { }
+for (auto& value : obj) { } // 只能隐式取到值结点，不能取到键结点
+
+// 等效显式使用 begin/end 迭代器对
+for (auto it = array.begin(); it != array.end(); ++it) {
+    auto value = *it;
 }
-for (auto& [key, value] : obj) {
-    // 遍历对象
+
+for (auto it = object.begin(); it != object.end(); ++it) {
+    auto value = *it;
 }
 ```
 
-## 操作符命名常量
+#### 变更容器类型
 
-为了方便理解和文档编写，xyjson 定义了操作符的命名常量：
+当 `kArray` 或 `kObject` 用于 `=` 右侧时，表示将左侧的可写 json 重设为空数组或
+空对象。
 
 ```cpp
-namespace yyjson {
-    constexpr const char* okExtract = "|";
-    constexpr const char* okPipe = "|";
-    constexpr const char* okType = "&";
-    constexpr const char* okPath = "/";
-    constexpr const char* okAssign = "=";
-    constexpr const char* okInput = "<<";
-    constexpr const char* okOutput = ">>";
-    constexpr const char* okEqual = "==";
-    constexpr const char* okCreate = "*";
-    constexpr const char* okRoot = "*";
-    constexpr const char* okNumberify = "+";
-    constexpr const char* okStringify = "-";
-    constexpr const char* okConvert = "~";
-    constexpr const char* okIterator = "%";
-    constexpr const char* okIncreace = "++";
+yyjson::Document mutDoc(R"({"name": "Alice", "age": 30})");
+mutDoc / "name" = yyjson::kOjbect;
+mutDoc / "age" = yyjson::kArray;
+//^ 结果：{"name":{},"age":[]}
+
+// 使用字面量
+{
+    yyjson::Document mutDoc(R"({"name": "Alice", "age": 30})");
+    mutDoc / "name" = "{}";
+    mutDoc / "age" = "[]";
+}
+
+// 使用具名方法
+{
+    yyjson::Document mutDoc(R"({"name": "Alice", "age": 30})");
+    mutDoc["name"].setOjbect();
+    mutDoc["age"].setArray();
 }
 ```
 
-这些常量主要用于文档目的，帮助理解操作符的语义。
+#### 创建空容器
+
+与 `kArray` 或 `kObject` 用于 `=` 右侧表示修改当前左侧参数既有 json 类型不同，
+当它们用于 `<<` 操作符右侧时，将自动调用 `MutableDocument::create()` 方法先创
+建空数组或空对象结点，再插入到当前操作的左侧参数容器中。
+
+```cpp
+yyjson::MutableDocument mutDoc("{}");
+mutDoc << "user" << yyjson::kObject;
+mutDoc << "items" << yyjson::kArray;
+
+// 使用字面量
+{
+    yyjson::MutableDocument mutDoc("{}");
+    mutDoc << "user" << "{}";
+    mutDoc << "items" << "[]";
+}
+
+mutDoc / "user" << "name" << "Alice" << "age" << 25;
+mutDoc / "items" << 10, 20, 30;
+```
+
+注意：`kArray` 与 `kObject` 类型常量是设计为给 Value 类的操作符使用的。
+Document 类的构造函数中传 `"{}"` 就表示解析 json 字符串，恰好它也是表示空对象
+。构造函数不支持 `kObject` 与 `kArray` 参数，但是可写文档在构造之后可以重设
+根结点的类型。
+
+```cpp
+yyjson::MutableDocument mutDoc(); // 默认构造是空对象 "{}"
+mutDoc.root() = yyjson::kArray;
+
+mutDoc.root() << 10 << 20 << 30;
+//^ 结果：[10,20,30]
+```
+
+## 获取 yyjson 底层指针
+
+xyjson 提供了一些方法可以从封装类中获取底层 yyjson 结构体指针，可用于想直接调
+用 C API 的场景。
+
+### 使用无参数的 `get` 方法
+
+- `Value::get()` 返回 `yyjson_val*`
+- `Document::get()` 返回 `yyjson_doc*`
+- `MutableValue::get()` 返回 `yyjson_mut_val*`
+- `MutableValue::getDoc()` 返回 `yyjson_mut_doc*`
+- `MutableDocument::get()` 返回 `yyjson_mut_doc*`
+
+```cpp
+yyjosn::Document doc(R"({"name": "Alice", "age":25})");
+yyjson::MutableDocument mutDoc = ~doc;
+
+yyjson_doc* ptrDoc = nullptr;
+yyjson_val* ptrVal = nullptr;
+ptrDoc = doc.get();             // not null
+ptrVal = doc["name"].get();     // not null
+ptrVal = (doc / "nokey").get(); // nullptr
+ptrVal = (doc["nokey"]).get();  // not null
+
+yyjson_mut_doc* ptrMutDoc = nullptr;
+yyjson_mut_val* ptrMutVal = nullptr;
+ptrMutDoc = mutDoc.get();          // not null
+ptrMutVal = doc["name"].get();     // not null
+ptrMutDoc = doc["name"].getDoc();  // not null
+ptrMutVal = (doc / "nokey").get(); // nullptr
+ptrmutVal = (doc["nokey"]).get();  // not null
+ptrMutVal = (doc / "nokey").get(); // not null
+```
+
+### 使用 `>>` 操作符或 `get` 方法
+
+右侧参数是结构体指针的引用，将修改参数的指针值，返回 `bool` 表示获取成功。
+
+- `Value >> yyjson_val*&` 或 `Value::get(yyjson_val*&)`
+- `MutableValue >> yyjson_mut_val*&` 或 `MutableValue::get(yyjson_mut_val*&)`
+- `MutableValue >> yyjson_mut_doc*&` 或 `MutableValue::get(yyjson_mut_doc*&)`
+
+左侧参数只支持 Value 类，不支持 Document 类，因为 `>>` 操作符的主要目的是提取
+json 叶结点至标量。`MutableValue` 类中也有 `yyjson_mut_doc*` 成员，可以提取。
+但不能从 `Value` 类中提取 `yyjson_doc*` 。
+
+```cpp
+yyjosn::Document doc(R"({"name": "Alice", "age":25})");
+yyjson::MutableDocument mutDoc = ~doc;
+
+yyjson_val* ptrVal = nullptr;
+yyjson_mut_doc* ptrMutDoc = nullptr;
+yyjson_mut_val* ptrMutVal = nullptr;
+
+if (doc / "name" >> ptrVal) { }      // true
+if (mutDoc / "name" >> ptrMutVal) {} // true
+if (mutDoc / "name" >> ptrMutDoc) {} // true
+
+if (doc / "nokey" >> ptrVal) { }      // false
+if (mutDoc / "nokey" >> ptrMutVal) {} // false
+if (mutDoc["nokey"] >> ptrMutVal) {}  // true
+if (mutDoc / "nokey" >> ptrMutVal) {} // true
+```
+
+### 使用 `c_` 系列函数
+
+命名源于 `std::string` 的 `c_str` 方法获取 C-Style 的字符串 `const char*`，
+xyjson 的各个封装类也定义了相应的 `c_` 方法获取底层 C 结构体指针。
+
+- `Value::c_val()` 返回 `yyjson_val*`
+- `Document::c_doc()` 返回 `yyjson_doc*`
+- `MutableValue::c_val()` 返回 `yyjson_mut_val*`
+- `MutableValue::c_doc()` 返回 `yyjson_mut_doc*`
+- `MutableDocument::c_doc()` 返回 `yyjson_mut_doc*`
+- `iteratorT::c_iter()` 返回各迭代器内部的 C 迭代器结构体指针
+- `iteratorT::c_val()` 返回迭代器当前值结点 `yyjson_val*` 或 `yyjson_mut_val*`
+- `iteratorT::c_key()` 返回迭代器当前键结点 `yyjson_val*` 或 `yyjson_mut_val*`
+
+其中，数组迭代器没有定义 `c_key` 方法。失效的迭代器 `c_val` 或 `c_key` 方法返
+回空指针，但 `c_iter` 返回值始终非空。
+
+```cpp
+yyjosn::Document doc(R"({"user":{"name": "Alice", "age":25},
+    "items":[10, 20, 30]})");
+yyjson::MutableDocument mutDoc = ~doc;
+
+yyjson_val* ptrVal = nullptr;
+yyjson_doc* ptrDoc = nullptr;
+yyjson_mut_doc* ptrMutDoc = nullptr;
+yyjson_mut_val* ptrMutVal = nullptr;
+
+// 以下 c_ 方法都返回非空指针
+ptrDoc = doc.c_doc();
+ptrVal = doc["user"].c_val();
+ptrMutDoc = mutDoc.c_doc();
+ptrMutDoc = mutDoc["user"].c_doc();
+ptrMutVal = mutDoc["user"].c_val();
+
+auto ita = doc / "itmes" % 0;
+auto ito = doc / "user" % "";
+auto mita = MutDoc / "itmes" % 0;
+auto mito = MutDoc / "user" % "";
+
+// 以下 c_ 方法也返回非空指针
+if (ita.c_iter() != nullptr) {}
+if (ito.c_iter() != nullptr) {}
+if (mita.c_iter() != nullptr) {}
+if (mito.c_iter() != nullptr) {}
+
+if (ita.c_val() != nullptr) {}
+if (ito.c_val() != nullptr) {}
+if (mita.c_val() != nullptr) {}
+if (mito.c_val() != nullptr) {}
+
+if (ito.c_key() != nullptr) {}
+if (mito.c_key() != nullptr) {}
+
+//! 数组迭代器没有定义 c_key 方法
+//! if (ita.c_key() != nullptr) {}
+//! if (mita.c_key() != nullptr) {}
+```
+
+## 条件编译宏功能控制
+
+xyjson 提供了一些条件编译宏用于在具体项目禁用不必要的功能，默认是所有功能开启
+的。这些宏可以在构建系统（如 CMakeLists.txt）中定义，也可以在
+`#include "xyjson.h"` 之前手动 `#define` 。建议使用前者，能保证在整个项目中使
+用一样的条件编译宏，避免在不同编译单元中包含同一个头文件却实际编译不同的定义而
+出现混乱。
+
+注意，只需定义这些宏，而不必定义其值，其值定义为 `1` 或 `0` 都认为已定义，效果
+都一样，表达禁用的含义。
+
+### 禁用可写模型 `XYJSON_DISABLE_MUTABLE`
+
+若定义了该宏，所有可写模型类，包括 MutableDocumet 、MutableValue 及其相应的迭
+代器类与容器子类，都不可用。
+
+yyjson 库的只读模型效率比可写模型高很多，如果项目没有可写需求，只需用到读 Json
+的功能，可定义该宏。xyjson 的头文件中也有远超一半的代码在处理可写的问题，如果
+禁用可写，将大幅降低实际代码量，编译速度也将有所提升。
+
+### 禁用对象链式插入 `XYJSON_DISABLE_CHAINED_INPUT`
+
+若定义该宏，则不再支持可写对象及其迭代器链式插入，如 `object << key << value`
+与 `objectIterator << key << value` 将不能通过编译。
+
+禁用该功能，可使 `MutableValue` 类的大小从 24 字节降为 16 字节（64位操作系统）
+即两个指针的大小。由于其他许多操作，如路径操作、迭代器解引用操作等都返回
+`MutableValue` 的值，小对象不仅减少内存占用，也能提升运行效率。

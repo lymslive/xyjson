@@ -493,6 +493,10 @@ public:
     bool operator!() const { return hasError(); }
     explicit operator bool() const { return isValid(); }
 
+    // Access underlying yyjson document.
+    yyjson_doc* get() const { return m_doc; }
+    yyjson_doc* c_doc() const { return m_doc; }
+
     // Access root value (returns new Value instance)
     Value root() const { return Value(yyjson_doc_get_root(m_doc)); }
 
@@ -757,18 +761,14 @@ public:
     MutableValue& input(KeyValue&& kv);
 
     // Smart push method, append for array, add for object
-    template <typename T>
-    MutableValue& push(T&& value);
+    template <typename T> MutableValue& push(T&& value);
     MutableValue& push(KeyValue&& kv);
 
-    // Push pending key, only support string type.
 #ifndef XYJSON_DISABLE_CHAINED_INPUT
-    template <typename keyT>
-    bool pushKey(keyT&& key);
-
+    // Push pending key, only support string type.
+    template <typename keyT> bool pushKey(keyT&& key);
     // Push value after pending key.
-    template <typename T>
-    bool pushValue(T&& value);
+    template <typename T> bool pushValue(T&& value);
 #endif
 
     // Pop methods for removing elements from containers
@@ -876,7 +876,9 @@ public:
     bool operator!() const { return hasError(); }
     explicit operator bool() const { return isValid(); }
 
+    // Access underlying yyjson document.
     yyjson_mut_doc* get() const { return m_doc; }
+    yyjson_mut_doc* c_doc() const { return m_doc; }
 
     // Access root value
     MutableValue root() const { return MutableValue(yyjson_mut_doc_get_root(m_doc), m_doc); }
@@ -1329,18 +1331,14 @@ public:
     
     // Insertion methods
     bool insert(yyjson_mut_val* key, yyjson_mut_val* val);
-    template<typename K, typename V>
-    bool insert(K&& key, V&& value);
+    template<typename K, typename V> bool insert(K&& key, V&& value);
     bool insert(KeyValue&& kv_pair);
 #ifndef XYJSON_DISABLE_CHAINED_INPUT
     // Chained insertion support
-    template<typename keyT>
-    bool insertKey(keyT&& key);
-    template<typename valT>
-    bool insertValue(valT&& value);
+    template<typename keyT> bool insertKey(keyT&& key);
+    template<typename valT> bool insertValue(valT&& value);
     // Insert method for chained insertion - handles key/value logic internally
-    template<typename T>
-    bool insert(T&& arg);
+    template<typename T> bool insert(T&& arg);
 #endif
 
     // Remove current key-value pair and return it
