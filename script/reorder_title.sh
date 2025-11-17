@@ -15,5 +15,9 @@ if [ ! -f "$file_path" ]; then
 fi
 
 cat "$file_path" \
-    | ./script/mdtitle_order.pl \
+    | ./script/mdtitle_order.pl --toc \
     | ./script/mdtitle_update.pl --target="$file_path"
+
+# 也可手动备份后只用 mdtitle_order.pl 重定向完成
+# cp $file_path $file_path.bak
+# cat $file_path.bak | mdtitle_order.pl > $file_path
