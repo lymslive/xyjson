@@ -4,4 +4,4 @@
 
 cat docs/operator.csv \
     | ./script/csv2mdtable.pl \
-    | ./script/update_par.pl --begin="<!-- begin operator table -->" --end="<!-- end operator table -->" docs/api.md
+    | ./script/update_par.pl --begin="<!-- begin operator table -->" --end="<!-- end operator table -->" --target=docs/api.md

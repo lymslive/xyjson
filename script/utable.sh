@@ -10,4 +10,4 @@
         printf "%d\t%s\t%s\t%s\t%s\n", NR, $2, $4, $5, $6
     }' \
     | ./script/tsv2mdtable.pl --head="序号,测试用例名称,文件,行号,描述" \
-    | ./script/update_par.pl --begin="<!-- UTABLE_START -->" --end="<!-- UTABLE_END -->" utest/README.md
+    | ./script/update_par.pl --begin="<!-- UTABLE_START -->" --end="<!-- UTABLE_END -->" --target=utest/README.md

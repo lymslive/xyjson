@@ -1834,12 +1834,17 @@ cat docs/api.md | script/mdtitle_order.pl | script/mdtitle_update.pl --target=do
 待优化：mdtitle_update.pl 更新标题的合并算法，可能只支持最后面的标题不对齐，不
 支持中间某级标题下的次级标题不对齐。
 
-## TODO: 优化 update_par.pl 脚本
+## TODO:2025-11-17/2 优化 update_par.pl 脚本
 
 target_file 改为使用 --target=file 必选参数输入，
 --input=file 改为可选位置参数，没有位置参数时从标准输入读入
 
 这更符合管道流工作方式，标准输入与位置参数文件统一处理。
+
+同步修改 script/otable.sh 与 utable.sh 对 update_par 的调用方式。
+测试后可执行 otable.sh 更新 api.md 文档的操作符表格。
+
+### DONE: 20251117-133953
 
 ## TODO: 同步 docs/api.md 文档的示例至单元测试
 

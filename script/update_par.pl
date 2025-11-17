@@ -2,13 +2,13 @@
 # update_par.pl - 更新文档的一个段落，支持指定起始行模式
 #
 # 用法:
-#   update_par.pl [--begin=pattern] [--end=pattern] [--input=file] target_file
+#   update_par.pl --target=file [--begin=pattern] [--end=pattern] [input_file]
 #
 # 参数:
-#   --begin=pattern  起始行标记（支持正则表达式）
-#   --end=pattern    结束行标记（支持正则表达式）
-#   --input=file     输入内容文件（默认从标准输入读取）
-#   target_file      待更新的文件（第一个位置参数）
+#   --target=file    待更新的目标文件（必选）
+#   --begin=pattern 起始行标记（支持正则表达式）
+#   --end=pattern   结束行标记（支持正则表达式）
+#   input_file       可选输入文件（默认从标准输入读取）
 #
 # 行为:
 #   - 查找目标文件中匹配 --begin 和 --end 的行
@@ -19,18 +19,18 @@
 #   - 更新前先备份原文件（添加 .bak 后缀）
 #
 # 示例:
-#   cat new_content.txt | update_par.pl --begin="<!-- UTABLE_START -->" --end="<!-- UTABLE_END -->" README.md
-#   cat table.md | update_par.pl --input=table.md doc.md
-#   echo "new text" | update_par.pl doc.txt
+#   cat new_content.txt | update_par.pl --begin="<!-- UTABLE_START -->" --end="<!-- UTABLE_END -->" --target=README.md
+#   cat table.md | update_par.pl --target=doc.md table.md
+#   echo "new text" | update_par.pl --target=doc.txt
+#   update_par.pl --target=file.txt input.txt
 
 use strict;
 use warnings;
 use File::Copy;
 
 # 处理命令行参数
-my ($begin, $end, $input_file);
+my ($target_file, $begin, $end);
 my $help = 0;
-my @remaining_args;
 
 while (@ARGV) {
     my $arg = shift @ARGV;
@@ -38,38 +38,31 @@ while (@ARGV) {
         $help = 1;
         # 跳过剩余参数，直接进入帮助处理
         last;
+    } elsif ($arg =~ /^--target=(.+)$/) {
+        $target_file = $1;
     } elsif ($arg =~ /^--begin=(.+)$/) {
         $begin = $1;
     } elsif ($arg =~ /^--end=(.+)$/) {
         $end = $1;
-    } elsif ($arg =~ /^--input=(.+)$/) {
-        $input_file = $1;
     } else {
-        # 不是选项参数，停止处理，剩下的都是位置参数
-        push @remaining_args, $arg;
+        # 不是选项参数，放回 @ARGV 并停止处理
+        unshift @ARGV, $arg;
         last;
     }
 }
-
-# 如果还有参数但不是选项，说明是位置参数，继续读取
-while (@ARGV) {
-    push @remaining_args, shift @ARGV;
-}
-
-my $target_file = $remaining_args[0] if @remaining_args;
 
 if ($help) {
     print <<'HELP';
 update_par.pl - 更新文档的一个段落，支持指定起始行模式
 
 用法:
-  update_par.pl [--begin=pattern] [--end=pattern] [--input=file] target_file
+  update_par.pl --target=file [--begin=pattern] [--end=pattern] [input_file]
 
 参数:
+  --target=file    待更新的目标文件（必选）
   --begin=pattern  起始行标记（支持正则表达式）
   --end=pattern    结束行标记（支持正则表达式）
-  --input=file     输入内容文件（默认从标准输入读取）
-  target_file      待更新的文件（第一个位置参数）
+  input_file       可选输入文件（默认从标准输入读取）
 
 行为:
   - 查找目标文件中匹配 --begin 和 --end 的行
@@ -80,9 +73,10 @@ update_par.pl - 更新文档的一个段落，支持指定起始行模式
   - 更新前先备份原文件（添加 .bak 后缀）
 
 示例:
-  cat new_content.txt | update_par.pl --begin="<!-- UTABLE_START -->" --end="<!-- UTABLE_END -->" README.md
-  cat table.md | update_par.pl --input=table.md doc.md
-  echo "new text" | update_par.pl doc.txt
+  cat new_content.txt | update_par.pl --begin="<!-- UTABLE_START -->" --end="<!-- UTABLE_END -->" --target=README.md
+  cat table.md | update_par.pl --target=doc.md table.md
+  echo "new text" | update_par.pl --target=doc.txt
+  update_par.pl --target=file.txt input.txt
 
 更多信息请查看脚本开头的详细注释。
 HELP
@@ -91,8 +85,8 @@ HELP
 
 # 检查目标文件
 if (!$target_file) {
-    print STDERR "错误: 未指定目标文件\n";
-    print STDERR "用法: $0 [--begin=pattern] [--end=pattern] [--input=file] target_file\n";
+    print STDERR "错误: 未指定目标文件，请使用 --target=file 参数\n";
+    print STDERR "用法: $0 --target=file [--begin=pattern] [--end=pattern] [input_file]\n";
     exit 1;
 }
 
@@ -102,16 +96,8 @@ unless (-e $target_file) {
 }
 
 # 读取更新内容
-my @new_content;
-if ($input_file) {
-    # 从指定文件读取
-    open(my $fh, '<', $input_file) or die "错误: 无法打开输入文件 '$input_file': $!\n";
-    @new_content = <$fh>;
-    close($fh);
-} else {
-    # 从标准输入读取
-    @new_content = <STDIN>;
-}
+# 使用 <> 操作符自动处理标准输入或文件名参数
+my @new_content = <>;
 
 # 移除末尾的空行，但保留一个
 while (@new_content > 1 && $new_content[-1] =~ /^\s*$/ && $new_content[-2] =~ /^\s*$/) {

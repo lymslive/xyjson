@@ -2818,3 +2818,27 @@ cat docs/operator.csv \
 - 智能比对更新，保持文档结构
 - 自动备份原文件
 - 测试验证通过，对 docs/api.md 测试成功
+
+## 任务ID: 20251117-133953
+- **任务类型**: 脚本优化
+- **任务状态**: 已完成
+- **执行AI**: DeepSeek-V3.1
+
+### 任务需求
+优化 update_par.pl 脚本的参数处理方式：
+1. 将 --target=file 改为必选参数
+2. 将 --input=file 改为可选位置参数
+3. 同步修改 otable.sh 和 utable.sh 脚本的调用方式
+
+### 执行过程
+1. 分析原脚本参数处理逻辑
+2. 修改 update_par.pl 脚本：
+   - 参数改为 --target=file 必选参数
+   - 移除 --input=file 参数，改为位置参数
+   - 简化代码，使用 <> 操作符自动处理输入
+3. 更新 otable.sh 和 utable.sh 脚本的调用格式
+4. 测试修改后的脚本功能
+
+### 完成成果
+- update_par.pl 脚本参数更符合管道流工作方式
+- otable.sh 和 utable.sh 脚本正常工作

@@ -46,35 +46,37 @@
 | 2 | json->b | Json结点 | jsonT | jsonT 成员方法 | auto | this | 间接成员访问 | ★★☆☆☆ |
 | 2 | json[key] | Json结点 | jsonT | 字符串、整数 | jsonT | index | 常规单层索引 | ★★★★☆ |
 | 2 | it++ | 迭代器 | iteratorT | 无 | iteratorT | next | 后缀自增，返回原拷贝 | ★★☆☆☆ |
-| 2 | it-- | 迭代器 | iteratorT | 无 | iteratorT | prev | 后缀自减，返回原拷贝 | ★★☆☆☆ |
+| 2 | it-- | 迭代器 | iteratorT | 无 | iteratorT | prev | 后缀自减，返回原拷贝 | ★☆☆☆☆ |
 | 2 | bool(a) | 所有核心类 | 无 | T | bool | isValid | 布尔条件上下文直接判断 | ★★★★☆ |
 | 3 | (bool)a |  | 无 | T | bool | isValid | 显式转布尔逻辑值 | ★★★☆☆ |
-| 3 | !a | 所有核心类 | 无 | T | bool | !isValid | 错误判断/无效判断 | ★★★★☆ |
 | 3 | ++it | 迭代器 | iteratorT | 无 | iteratorT& | next | 前缀自增再返回 | ★★★★☆ |
-| 3 | --it | 迭代器 | iteratorT | 无 | iteratorT& | prev | 前缀自减再返回 | ★★★★☆ |
+| 3 | --it | 迭代器 | iteratorT | 无 | iteratorT& | prev | 前缀自减再返回 | ★★★☆☆ |
+| 3 | !a | 所有核心类 | 无 | T | bool | !isValid | 错误判断/无效判断 | ★★★★★ |
+| 3 | (int)json | Json结点 | 无 | jsonT | int | toInteger | 转整数 | ★★★☆☆ |
+| 3 | (double)json | Json结点 | 无 | jsonT | double | toNumber | 转浮点数 | ★★★☆☆ |
+| 3 | (string)json | Json结点 | 无 | jsonT | std::string | toString | 转字符串 | ★★★☆☆ |
 | 3 | ~doc | 只读文档 | 无 | Document | MutableDocument | mutate | 可读写模式转换 | ★★★★☆ |
 | 3 | ~doc | 可写文档 | 无 | MutableDocument | Document | freeze | 可读写模式转换 | ★★★★☆ |
 | 3 | ~it | 迭代器 | 无 | iteratorT | jsonT | key | 迭代器当前键结点 | ★★☆☆☆ |
 | 3 | *it | 迭代器 | 无 | iteratorT | jsonT | value | 迭代器当前值结点 | ★★★★★ |
-| 3 | *doc | Json文档 | 无 | docT | jsonT | root | 取根结点 | ★★★☆☆ |
-| 3 | (double)json | Json结点 | 无 | jsonT | double | toNumber | 转浮点数 | ★★★☆☆ |
-| 3 | (int)json | Json结点 | 无 | jsonT | int | toInteger | 转整数 | ★★★☆☆ |
+| 3 | *doc | Json文档 | 无 | docT | jsonT | root | 取根结点 | ★★★★☆ |
 | 3 | +json | Json结点 | 无 | jsonT | int | toInteger | 转整数 | ★★★☆☆ |
 | 3 | +it | 迭代器 | 无 | iteratorT | size_t | index | 取迭代器当前索引 | ★★☆☆☆ |
-| 3 | (string)json | Json结点 | 无 | jsonT | std::string | toString | 转字符串 | ★★★☆☆ |
 | 3 | -json | Json结点 | 无 | jsonT | std::string | toString | 转字符串 | ★★★☆☆ |
 | 3 | -it | 迭代器 | 无 | iteratorT | const char* | name | 取迭代器当前键名 | ★★☆☆☆ |
 | 5 | json / path | Json结点 | jsonT | 字符串、整数 | jsonT | pathto | 路径访问，支持 JSON Pointer | ★★★★★ |
-| 5 | it / key | 对象迭代器 | iteratorT | 字符串 | jsonT | seek | 连续快速查找固定键 | ★★★★★ |
-| 5 | doc * b | Json文档 | MutableDocument | scalarT | MutableValue | create | 创建 JSON 结点 | ★★★☆☆ |
-| 5 | doc * b | Json文档 | MutableDocument | jsonT docT | MutableValue | create | 复制 JSON 结点 | ★★★☆☆ |
-| 5 | json * key | 可写 Json | MutableValue | keyT | KeyValue | tag | 绑定键值对 | ★★★☆☆ |
+| 5 | it / key | 对象迭代器 | iteratorT | 字符串 | jsonT | seek | 连续快速查找固定键 | ★★★★☆ |
+| 5 | doc * b | 可写文档 | MutableDocument | scalarT | MutableValue | create | 创建 JSON 结点 | ★★★☆☆ |
+| 5 | doc * b | 可写文档 | MutableDocument | jsonT docT | MutableValue | create | 复制 JSON 结点 | ★★★☆☆ |
+| 5 | doc * b | 可写文档 | MutableDocument | MutableValue&& | MutableValue | create | 移动 JSON 结点 | ★★☆☆☆ |
+| 5 | json * json | 可写 Json | MutableValue&& | MutableValue&& | KeyValue | tag | 绑定键值对 | ★★★☆☆ |
+| 5 | json * key | 可写 Json | MutableValue | keyT | KeyValue | tag | 值绑定键名 | ★★★☆☆ |
 | 5 | json % key | Json结点 | jsonT | 字符串、整数 | iteratorT | iterator | 创建迭代器 | ★★★★☆ |
-| 5 | it % key | 迭代器 | iteratorT | 字符串、整数 | iteratorT | advance | 拷贝迭代器重定位 | ★★★☆☆ |
-| 6 | it + n | 迭代器 | iteratorT | size_t | iteratorT | advance | 拷贝迭代器多步前进 | ★★★☆☆ |
+| 5 | it % key | 迭代器 | iteratorT | 字符串、整数 | iteratorT | advance | 拷贝迭代器重定位 | ★★☆☆☆ |
+| 6 | it + n | 迭代器 | iteratorT | size_t | iteratorT | advance | 拷贝迭代器多步前进 | ★★☆☆☆ |
 | 7 | os << json | Json结点 | 输出流 | jsonT | std::ostream& | toString | 序列化输出 | ★★★★☆ |
 | 7 | doc << input | Json文档 | docT | 字符串、文件 | bool | read | 读入json解析 | ★★★★☆ |
-| 7 | json << b | 可写 Json | MutableValue | scalarT 等类型 | MutableValue | push | 数组或对象尾部追加结点 | ★★★★☆ |
+| 7 | json << b | 可写 Json | MutableValue | scalarT 等类型 | MutableValue | push | 数组或对象尾部追加结点 | ★★★★★ |
 | 7 | it << b | 可写迭代器 | iteratorT | scalarT 等类型 | iteratorT& | insert | 数组或对象迭代器定点插入 | ★★★★☆ |
 | 7 | doc >> output | Json文档 | docT | 字符串、文件 | bool | write | 序列化输出 | ★★★★☆ |
 | 7 | json >> b | Json结点 | jsonT | scalartT& | bool | get | 值提取并判断是否成功 | ★★★★☆ |
@@ -83,9 +85,9 @@
 | 7 | it >> json | 可写迭代器 | iteratorT | MutableValue& | iteratorT& | remove | 数组迭代器定点删除 | ★★★☆☆ |
 | 7 | it >> kv | 可写迭代器 | iteratorT | KeyValue& | iteratorT& | remove | 对象迭代器定点删除 | ★★★☆☆ |
 | 9 | a < b | Json结点 | jsonT | jsonT | bool | less | json 有序性定义 | ★★★☆☆ |
-| 9 | a <= b | Json结点 | jsonT | jsonT | bool | less | json 有序性定义 | ★★★☆☆ |
-| 9 | a > b | Json结点 | jsonT | jsonT | bool | less | json 有序性定义 | ★★★☆☆ |
-| 9 | a >= b | Json结点 | jsonT | jsonT | bool | less | json 有序性定义 | ★★★☆☆ |
+| 9 | a <= b | Json结点 | jsonT | jsonT | bool | less | json 有序性定义 | ★★☆☆☆ |
+| 9 | a > b | Json结点 | jsonT | jsonT | bool | less | json 有序性定义 | ★★☆☆☆ |
+| 9 | a >= b | Json结点 | jsonT | jsonT | bool | less | json 有序性定义 | ★★☆☆☆ |
 | 10 | a == b | 所有核心类 | T | T | bool | equal | 相等性判断 | ★★★★☆ |
 | 10 | a != b | 所有核心类 | T | T | bool | !equal | 不等性判断 | ★★★★☆ |
 | 11 | json & b | Json结点 | jsonT | scalarT | bool | isType | 类型判断 | ★★★★☆ |
