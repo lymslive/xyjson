@@ -222,6 +222,78 @@ DEF_TAST(stream_file_ops, "test FILE* and std::fstream stream operations")
     }
 }
 
+DEF_TAST(stream_file_nonexistent, "test file operations with non-existent files")
+{
+    DESC("Test Document read operations with non-existent files");
+    {
+        yyjson::Document doc;
+        
+        // Test readFile with non-existent file
+        bool result = doc.readFile("/non/existent/path.json");
+        COUT(result, false);
+        COUT(!doc.isValid(), true);
+        
+        // Test read with std::ifstream of non-existent file
+        std::ifstream ifs("/non/existent/file.json");
+        result = doc.read(ifs);
+        COUT(result, false);
+        COUT(!doc.isValid(), true);
+        
+        // Test read with << operator and non-existent file
+        std::ifstream ifs2("/another/non/existent.json");
+        doc << ifs2;
+        COUT(!doc.isValid(), true);
+        
+        // Test read with FILE* of non-existent file
+        FILE* fp = fopen("/non/existent/file.json", "r");
+        COUT(fp == nullptr, true);
+        
+        if (fp == nullptr)
+        {
+            // File should not exist, so fp should be null
+            result = doc.read(fp);
+            COUT(result, false);
+            COUT(!doc.isValid(), true);
+        }
+    }
+    
+    DESC("Test MutableDocument read operations with non-existent files");
+    {
+        yyjson::MutableDocument mutDoc;
+        
+        // Test readFile with non-existent file
+        bool result = mutDoc.readFile("/non/existent/mut.json");
+        COUT(result, false);
+        // Document should remain in its previous state (valid with empty object)
+        COUT(mutDoc.isValid(), true);
+        
+        // Test read with std::ifstream of non-existent file
+        std::ifstream ifs("/non/existent/file.json");
+        result = mutDoc.read(ifs);
+        COUT(result, false);
+        // Document should remain in its previous state
+        COUT(mutDoc.isValid(), true);
+        
+        // Test read with << operator and non-existent file
+        std::ifstream ifs2("/another/non/existent.json");
+        mutDoc << ifs2;
+        // Document should remain in its previous state
+        COUT(mutDoc.isValid(), true);
+        
+        // Test read with FILE* of non-existent file
+        FILE* fp = fopen("/non/existent/file.json", "r");
+        COUT(fp == nullptr, true);
+        
+        if (fp == nullptr)
+        {
+            // File should not exist, so fp should be null
+            result = mutDoc.read(fp);
+            COUT(result, false);
+            COUT(!mutDoc.isValid(), true);
+        }
+    }
+}
+
 DEF_TAST(stream_std_output, "test standard output stream operators <<")
 {
     DESC("Test standard output stream operators <<");

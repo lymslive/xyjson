@@ -800,24 +800,51 @@ DEF_TAST(api_2_20_2_doc_read_string, "example from docs/api.md")
 
 DEF_TAST(api_2_20_3_doc_read_file, "example from docs/api.md")
 {
+    // Create a temporary test file before the markdown code snippet
+    const char* temp_file = "/tmp/data.json";
+    
+    // Write test data to temporary file
+    FILE* fp = fopen(temp_file, "w");
+    if (fp)
+    {
+        fprintf(fp, "{\"name\": \"Alice\", \"age\": 30, \"active\": true}");
+        fclose(fp);
+    }
+    
 #ifdef MARKDOWN_CODE_SNIPPET
     yyjson::Document doc;
-    std::ifstream file("data.json");
+    std::ifstream file("/tmp/data.json");
     bool success = doc << file;
+    COUT(success, true);
+    COUT(doc.isValid(), true);
+    COUT(doc / "name" | std::string(), "Alice");
+    COUT(doc / "age" | 0, 30);
+    COUT(doc / "active" | false, true);
     
     /* use method: read() */
     {
         yyjson::Document doc;
-        std::ifstream file("data.json");
+        std::ifstream file("/tmp/data.json");
         bool success = doc.read(file);
+        COUT(success, true);
+        COUT(doc.isValid(), true);
+        COUT(doc / "name" | std::string(), "Alice");
+        COUT(doc / "age" | 0, 30);
     }
     
     // 另有 readFile() 方法接收文件名参数
     {
         yyjson::Document doc;
-        bool success = doc.readFile("data.json");
+        bool success = doc.readFile("/tmp/data.json");
+        COUT(success, true);
+        COUT(doc.isValid(), true);
+        COUT(doc / "name" | std::string(), "Alice");
+        COUT(doc / "age" | 0, 30);
     }
 #endif
+
+    // Clean up temporary file
+    remove(temp_file);
 }
 
 DEF_TAST(api_2_20_4_array_append, "example from docs/api.md")

@@ -464,7 +464,9 @@ public:
         : Document(str.c_str(), str.size()) {}
     
     // Conversion from MutableDocument
+#ifndef XYJSON_DISABLE_MUTABLE
     explicit Document(const MutableDocument& other);
+#endif
     
     // Free the document
     void free();
@@ -2039,12 +2041,14 @@ inline Document::Document(const char* str, size_t len/* = 0*/)
     m_doc = yyjson_read(str, len, 0);
 }
 
+#ifndef XYJSON_DISABLE_MUTABLE
 inline Document::Document(const MutableDocument& other)
 {
     // Use freeze() method to convert mutable document to read-only document
     // This is a copy operation
     *this = other.freeze();
 }
+#endif
 
 inline void Document::free()
 {
@@ -2090,8 +2094,16 @@ inline bool Document::read(FILE* fp)
 
 inline bool Document::read(std::ifstream& ifs)
 {
+    // Check if stream is in a valid state before any operations
+    if (!ifs.good()) return false;
+    
     ifs.seekg(0, std::ios::end);
-    size_t size = ifs.tellg();
+    std::streampos pos = ifs.tellg();
+    
+    // Check if tellg() failed (returns -1 for invalid files)
+    if (pos == -1) return false;
+    
+    size_t size = static_cast<size_t>(pos);
     ifs.seekg(0, std::ios::beg);
     
     if (size == 0) return false;
@@ -2830,8 +2842,16 @@ inline bool MutableDocument::read(FILE* fp)
 
 inline bool MutableDocument::read(std::ifstream& ifs)
 {
+    // Check if stream is in a valid state before any operations
+    if (!ifs.good()) return false;
+    
     ifs.seekg(0, std::ios::end);
-    size_t size = ifs.tellg();
+    std::streampos pos = ifs.tellg();
+    
+    // Check if tellg() failed (returns -1 for invalid files)
+    if (pos == -1) return false;
+    
+    size_t size = static_cast<size_t>(pos);
     ifs.seekg(0, std::ios::beg);
     
     if (size == 0) return false;

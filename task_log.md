@@ -2961,3 +2961,34 @@ perl script/extract_doc_examples.pl README.md
 # 生成完整文件头部
 perl script/extract_doc_examples.pl docs/api.md --target=utest/t_api.cpp --header
 ```
+
+---
+
+## 任务ID: 20251118-174426
+- **任务类型**: 开发
+- **任务状态**: 已完成
+- **执行AI**: DeepSeek-V3.1
+- **对应需求**: 2025-11-18/2
+
+### 任务需求
+核心问题：
+- 当 std::ifstream 打开不存在的文件时，Document::read(std::ifstream& ifs) 和 MutableDocument::read(std::ifstream& ifs) 方法会导致 core dump
+- 具体原因是 ifs.tellg() 返回 -1，被转换为极大的无符号整数，导致 std::string 构造时抛出 std::length_error
+
+### 执行过程
+修复方案：
+1. 在 read(std::ifstream& ifs) 方法开始时检查流状态：if (!ifs.good()) return false;
+2. 使用 std::streampos 正确检查 tellg() 返回值：if (pos == -1) return false;
+3. 将 std::streampos 安全转换为 size_t
+4. 优化 api_2_20_3_doc_read_file 测试用例，预建临时文件保证读取成功
+
+### 完成成果
+修复的文件：
+- include/xyjson.h：修复了 Document::read(std::ifstream& ifs) 和 MutableDocument::read(std::ifstream& ifs) 方法
+- utest/t_stream.cpp：新增了 stream_file_nonexistent 测试用例，全面覆盖文件不存在场景
+
+测试验证：
+- 所有流相关的测试用例通过
+- 新增的文件不存在测试用例通过
+- 文档示例测试 api_2_20_3_doc_read_file 不再 core dump
+

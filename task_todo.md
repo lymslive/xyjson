@@ -1925,6 +1925,18 @@ mdtitle_update.pl 可检测更新，只在必要时备份重写。而且 mdtitle
 
 ### DONE: 20251118-154732
 
+## TODO:2025-11-18/2 修复 Document::read 文件不存在的 bug
+
+在测试文档示例代码中发现一个 bug :
+`./build/utdocs api_2_20_3_doc_read_file` 会 coredump ，可能由于想读取的文件不
+存在。
+
+复查 utxyjson 原有测试用例，`t_stream.cpp` 中的测试用例 `stream_file_ops` 也确
+实没覆盖到文件不存在的场景。请在该测试文用例中添加文件不存在的场景，复现 bug ,
+然后修复 bug 。
+
+### DONE: 20251118-174426
+
 ## TODO: 优化性能测试用例
 
 辅助函数依次接收如下参数：
