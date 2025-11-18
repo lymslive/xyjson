@@ -131,6 +131,7 @@
 也在 `yyjson::` 命名空间定义，但可由 ADL(Argument-Dependent Lookup) 规则找到，
 不定显式引入命名空间。
 
+<!-- example:api_2_2_literal_operator -->
 ```cpp
 using namespace yyjson;
 auto doc = R"({"name": "Alice", "age": 30})"_xyjson;
@@ -162,6 +163,7 @@ auto doc = R"({"name": "Alice", "age": 30})"_xyjson;
 `jsonT`, 而 `jsonT::operator->` 返回 `this` 。客户代码用 `->` 调用成员方法是返
 回值取决于所调用方法。
 
+<!-- example:api_2_3_member_access -->
 ```cpp
 yyjson::Document doc(R"({"name": "Alice", "age": 30})");
 
@@ -207,6 +209,7 @@ if (iter->isInt()) {
 
 #### 2.4.1 对象字段访问 `index`
 
+<!-- example:api_2_4_1_object_field_access -->
 ```cpp
 yyjson::Document doc = R"({"user": {"name": "Alice"}})"_xyjson;
 auto user = doc["user"];
@@ -220,6 +223,7 @@ auto name = user["name"];
 
 #### 2.4.2 数组索引访问 `index`
 
+<!-- example:api_2_4_2_array_index_access -->
 ```cpp
 yyjson::Document doc = R"({"items": [10, 20, 30]})"_xyjson;
 auto items = doc["items"];
@@ -233,6 +237,7 @@ auto first = items[0];
 
 #### 2.4.3 可写对象自动添加字段 `index`
 
+<!-- example:api_2_4_3_mutable_object_add_field -->
 ```cpp
 yyjson::MutableDocument mutDoc;
 mutDoc["new_field"] = "value";
@@ -260,6 +265,7 @@ mutDoc["array"] = "[]";
 - **参数类型**：`iteratorT`
 - **返回值类型**：`iteratorT`
 
+<!-- example:api_2_5_1_iterator_copy_advance -->
 ```cpp
 yyjson::Document doc = R"({"items": [10, 20, 30]})"_xyjson;
 auto iter = doc / "items" % 0;
@@ -286,6 +292,7 @@ auto oldIter = iter++;  // 返回原迭代器，然后iter前进
 - **参数类型**：`iteratorT`
 - **返回值类型**：`iteratorT`
 
+<!-- example:api_2_6_1_iterator_copy_retreat -->
 ```cpp
 yyjson::Document doc = R"({"items": [10, 20, 30]})"_xyjson;
 auto iter = doc / "items" % 1;
@@ -312,6 +319,7 @@ auto oldIter = iter--;  // 返回原迭代器，然后iter后退
 - **参数类型**：`iteratorT&`
 - **返回值类型**：`iteratorT&`
 
+<!-- example:api_2_7_1_iterator_advance -->
 ```cpp
 yyjson::Document doc = R"({"items": [10, 20, 30]})"_xyjson;
 
@@ -335,6 +343,7 @@ auto iter = doc / "items" % 0;
 - **参数类型**：`iteratorT&`
 - **返回值类型**：`iteratorT&`
 
+<!-- example:api_2_8_1_iterator_retreat -->
 ```cpp
 yyjson::Document doc = R"({"items": [10, 20, 30]})"_xyjson;
 
@@ -360,6 +369,7 @@ auto iter = doc / "items" % 0;
 - **参数类型**：jsonT, docT, iteratorT
 - **返回值类型**：`bool`
 
+<!-- example:api_2_9_1_invalid_value_check -->
 ```cpp
 yyjson::Document doc = R"({})"_xyjson;
 
@@ -410,6 +420,7 @@ Value 类支持向 `bool`，`double`, `int` 与 `std::string` 的显式类型转
 - **参数类型**：jsonT, docT, iteratorT
 - **返回值类型**：`bool`
 
+<!-- example:api_2_10_1_bool_conversion -->
 ```cpp
 yyjson::Document doc = R"({"name": "Alice"})"_xyjson;
 
@@ -430,6 +441,7 @@ bool isValid2 = doc["name"].isValid();
 json 结点的内容是否为 `null`, `false`, `0` 或空字符串、空数组、空对象等。如果
 想判断这类空内容可先转整数再与 `0` 比较。
 
+<!-- example:api_2_10_1_bool_conversion_extended -->
 ```cpp
 yyjson::Document doc = R"({"null":null, "bool":false, "number":0, "string":"", "array":[], "object":{}})"_xyjson;
 
@@ -469,6 +481,7 @@ hasValue = (int)doc["object"];
 - array/object: 取容器大小，即子元素个数
 - 无效结点也返回 0
 
+<!-- example:api_2_10_2_int_conversion -->
 ```cpp
 yyjson::Document doc = R"({"null":null, "bool":true, "number":3.14,
 "string":"3.14pi", "array":[null,null], "object":{"x":0, "y":0, "z":0}})"_xyjson;
@@ -505,6 +518,7 @@ int iObject = (int)doc["object"]; // 3
 注意：转实数的 `toNUmber()` 方法只针对 json 的 Number 类型，不像转整数的
 `toInteger()` 方法试图解释所有 json 类型在整数上下文的意义。
 
+<!-- example:api_2_10_3_double_conversion -->
 ```cpp
 yyjson::Document doc = R"({"null":null, "bool":true, "number":3.14, "int":3,
 "string":"3.14pi", "array":[null,null], "object":{"x":0, "y":0, "z":0}})"_xyjson;
@@ -540,6 +554,7 @@ double fObject = (double)doc["object"]; // 0.0
 - **参数类型**：`jsonT`
 - **返回值类型**：`std::string`
 
+<!-- example:api_2_10_4_string_conversion -->
 ```cpp
 yyjson::Document doc = R"({"null":null, "bool":true, "number":3.14,
 "string":"3.14pi", "array":[null,null], "object":{"x":0, "y":0, "z":0}})"_xyjson;
@@ -571,6 +586,7 @@ std::string strRoot   = (std::string)doc.root();
 能接收可选参数 `true` ，表示真序列化，字符串类型会加引号，且容器类型会加缩进，
 适合打印输出给人工阅读。例如：
 
+<!-- example:api_2_10_4_string_conversion_pretty -->
 ```cpp
 yyjson::Document doc = R"({"null":null, "bool":true, "number":3.14,
 "string":"3.14pi", "array":[null,null], "object":{"x":0, "y":0, "z":0}})"_xyjson;
@@ -598,6 +614,7 @@ std::string strObject = doc["object"].toString(true);
 - **参数类型**：`Document`
 - **返回值类型**：`MutableDocument`
 
+<!-- example:api_2_10_5_doc_to_mutabledoc -->
 ```cpp
 yyjson::Document doc("{}");
 yyjson::MutableDocument mutDoc(doc);
@@ -617,6 +634,7 @@ yyjson::MutableDocument mutDoc(doc);
 - **参数类型**：`MutableDocument`
 - **返回值类型**：`Document`
 
+<!-- example:api_2_10_6_mutabledoc_to_doc -->
 ```cpp
 yyjson::MutableDocument mutDoc("{}");
 yyjson::Document doc(mutDoc);
@@ -641,6 +659,7 @@ yyjson::Document doc(mutDoc);
 - **参数类型**：`Document`
 - **返回值类型**：`MutableDocument`
 
+<!-- example:api_2_11_1_doc_to_mutabledoc_bitwise -->
 ```cpp
 yyjson::Document doc("{}");
 yyjson::MutableDocument mutDoc = ~doc;
@@ -660,6 +679,7 @@ yyjson::MutableDocument mutDoc = ~doc;
 - **参数类型**：`MutableDocument`
 - **返回值类型**：`Document`
 
+<!-- example:api_2_11_2_mutabledoc_to_doc_bitwise -->
 ```cpp
 yyjson::MutableDocument mutDoc("{}");
 yyjson::Document doc = ~mutDoc;
@@ -679,6 +699,7 @@ yyjson::Document doc = ~mutDoc;
 - **参数类型**：`iteratorT`
 - **返回值类型**：`jsonT`
 
+<!-- example:api_2_11_3_iterator_get_key -->
 ```cpp
 yyjson::Document doc = R"({"user": {"name": "Alice", "age": 30}})"_xyjson;
 for (auto iter = doc / "user" % ""; iter; ++iter) {
@@ -711,6 +732,7 @@ for (auto iter = doc / "user" % ""; iter; ++iter) {
 - **参数类型**：`iteratorT`
 - **返回值类型**：`jsonT`
 
+<!-- example:api_2_12_1_iterator_get_value -->
 ```cpp
 yyjson::Document doc = R"({"items": [10, 20, 30]})"_xyjson;
 for (auto iter = doc / "items" % 0; iter; ++iter) {
@@ -732,6 +754,7 @@ for (auto iter = doc / "items" % 0; iter; ++iter) {
 - **参数类型**：`docT`
 - **返回值类型**：`jsonT`（Document 对应的 Value 类型）
 
+<!-- example:api_2_12_2_doc_get_root -->
 ```cpp
 yyjson::Document doc = R"({"name": "Alice"})"_xyjson;
 auto root = *doc;
@@ -768,6 +791,7 @@ auto mutRoot = *mutDoc;
 - array/object: 取容器大小，即子元素个数
 - 无效结点也返回 0
 
+<!-- example:api_2_13_1_json_to_int -->
 ```cpp
 yyjson::Document doc = R"({"null":null, "bool":true, "number":3.14,
 "string":"3.14pi", "array":[null,null], "object":{"x":0, "y":0, "z":0}})"_xyjson;
@@ -801,6 +825,7 @@ int iObject = +doc["object"]; // 3
 - **参数类型**：`iteratorT`
 - **返回值类型**：`size_t`
 
+<!-- example:api_2_13_2_iterator_get_index -->
 ```cpp
 yyjson::Document doc = R"({"items": [10, 20, 30]})"_xyjson;
 for (auto iter = doc / "items" % 0; iter; ++iter) {
@@ -828,6 +853,7 @@ for (auto iter = doc / "items" % 0; iter; ++iter) {
 - **参数类型**：`jsonT` 或 `docT`
 - **返回值类型**：`std::string`
 
+<!-- example:api_2_14_1_json_to_string -->
 ```cpp
 yyjson::Document doc = R"({"null":null, "bool":true, "number":3.14,
 "string":"3.14pi", "array":[null,null], "object":{"x":0, "y":0, "z":0}})"_xyjson;
@@ -866,6 +892,7 @@ std::string strRoot   = -doc.root();
 - **参数类型**：`iteratorT`
 - **返回值类型**：`const char*`
 
+<!-- example:api_2_15_1_iterator_get_name -->
 ```cpp
 yyjson::Document doc = R"({"user": {"name": "Alice", "age": 30}})"_xyjson;
 for (auto iter = doc / "user" % ""; iter; ++iter) {
@@ -898,6 +925,7 @@ for (auto iter = doc / "user" % ""; iter; ++iter) {
 参数类型不匹配，或键名不存在，或数组索引越界时，返回无效值。即使可写 json 对象
 路径访问不存在键时返回无效值，不会自动添加新键。
 
+<!-- example:api_2_16_1_path_access -->
 ```cpp
 yyjson::Document doc = R"({"user": {"name": "Alice", "age": 30},
     "items": [10, 20, 30]})"_xyjson;
@@ -914,6 +942,7 @@ auto item = *doc / "items" / 0;
 路径操作符 `/` 优先级比 `.` 的成员访问优先级低，如果想对返回值调用方法，需要加
 括号提升优先级，或者可改用 `[]`。
 
+<!-- example:api_2_16_1_path_access_with_method -->
 ```cpp
 yyjson::Document doc = R"({"user": {"name": "Alice", "age": 30}})"_xyjson;
 int age = (*doc / "user" / "age").toInteger();
@@ -945,6 +974,7 @@ int age = (*doc / "user" / "age").toInteger();
 注意：右侧参数需要遵循 JSON Pointer 标准。尤其要以 `/` 字符开头，否则认为是简
 单的单层键名查找。
 
+<!-- example:api_2_16_2_json_pointer_access -->
 ```cpp
 yyjson::Document doc = R"({"user": {"name": "Alice", "age": 30}})"_xyjson;
 auto node = *doc / "/user/name";
@@ -969,6 +999,7 @@ auto node = *doc / "/user/name";
 个键都一次线性查找。所以在最好情况下，每次查找键是 `O(1)` 时间复杂度。当键名不
 存在或乱序时，会退化为 `O(N)` 查找。
 
+<!-- example:api_2_16_3_iterator_seek -->
 ```cpp
 yyjson::Document doc = R"({"config": {"theme": "dark", "lang": "zh"}})"_xyjson;
 auto iter = doc / "config" % "";
@@ -1009,6 +1040,7 @@ auto lang = iter / "lang";    // 继续在相同对象中查找
 自动挂载到该文档的根结点或其他子树结点，属于独立结点，须由用户再决定如何处理新
 结点，是否要添加到文档已有的某个容器结点中。
 
+<!-- example:api_2_17_1_doc_create_node -->
 ```cpp
 yyjson::MutableDocument mutDoc;
 auto intNode = mutDoc * 314;
@@ -1038,6 +1070,7 @@ auto newObject = mutDoc * "{}";
 复制结点不会影响右侧参数的结点，如果是容器结点将深度复制。复制结点与新建结点一
 样使用目标文档的内存池，但不会自动挂载到根结点或子树结点。
 
+<!-- example:api_2_17_2_doc_copy_node -->
 ```cpp
 yyjson::MutableDocument dstDoc;
 yyjson::MutableDocument srcDocMut(R"({"name": "Alice", "age": 30})");
@@ -1081,6 +1114,7 @@ auto copyDocMut = dstDoc * srcDocMut;
 移动结点不会在文档的内存池中创建新结点，仍用 `create` 方法命名主要是内部实现中
 上层模板方法转调底层方法时统一命名比较方便，只用参数重载表达语义的差异。
 
+<!-- example:api_2_17_3_doc_move_node -->
 ```cpp
 yyjson::MutableDocument mutDoc(R"(["Alice", 30])");
 
@@ -1112,6 +1146,7 @@ mutDoc.root() << std::move(level);   // level 失效
 那它们正好是右值，但如果保存了中间变量成了左值，就要显式使用 `std::move` 才可
 以绑定。
 
+<!-- example:api_2_17_4_bind_key_value -->
 ```cpp
 yyjson::MutableDocument mutDoc("{}");
 auto intNode = mutDoc * 314;
@@ -1140,6 +1175,7 @@ mutDoc.root() << std::move(kv); // 结果：{"key":314}
 。这时的 `*` 支持交换律，字符串可写在左边，更符合键值对阅读顺序。但使用对应的
 方法名时，字符串参数只能写在右边的括号内。
 
+<!-- example:api_2_17_5_bind_key_name -->
 ```cpp
 yyjson::MutableDocument mutDoc;
 auto keyValue = mutDoc * "value" * "key";
@@ -1176,6 +1212,7 @@ mutDoc.root() << std::move(keyValue) << std::move(kvConfig);
 - **右侧参数类型**：`size_t`（起始索引）
 - **返回值类型**：`ArrayIterator` 或 `MutableArrayIterator`
 
+<!-- example:api_2_18_1_array_iterator_create -->
 ```cpp
 yyjson::Document doc = R"({"items": [10, 20, 30]})"_xyjson;
 for (auto iter = doc / "items" % 0; iter; ++iter) {
@@ -1202,6 +1239,7 @@ for (auto iter = doc["items"].iterator(0); iter; ++iter) {
 因为从特定键名开始迭代的需求场景比较罕见，所以右侧参数暂时只支持 `const char*`
 类型的字符串，简单实现。
 
+<!-- example:api_2_18_2_object_iterator_create -->
 ```cpp
 yyjson::Document doc = R"({"user": {"name": "Alice", "age": 30}})"_xyjson;
 for (auto iter = doc / "user" % ""; iter; ++iter) {
@@ -1228,6 +1266,7 @@ for (auto iter = doc["user"].iterator(""); iter; ++iter) {
 数创建迭代器时得到相同的迭代器状态。重载该操作符主要为符号语义一致性，实用场景
 可能并不多，而且 `%` 会拷贝新值，效率上也不如 `%=`。
 
+<!-- example:api_2_18_3_iterator_relocate -->
 ```cpp
 yyjson::Document doc = R"({"user": {"name": "Alice", "age": 30},
     "items": [10, 20, 30]})"_xyjson;
@@ -1264,6 +1303,7 @@ auto itObjectCopy = itObject % "user"; // 重定位到 "user" 位置
 该操作符返回新的迭代器，原迭代器不变。另外由于 yyjson 的迭代器不支持随机定位，
 `it + n` 是通过循环 `++` 操作实现的，因而是 O(N) 时间复杂度。
 
+<!-- example:api_2_19_1_iterator_advance_multistep -->
 ```cpp
 yyjson::Document doc = R"({"items": [10, 20, 30, 40, 50]})"_xyjson;
 auto iter = doc / "items" % 0;
@@ -1291,6 +1331,7 @@ auto iterCopy = iter + 3;  // 前进3步，指向第4个元素
 - **右侧参数类型**：`jsonT`
 - **返回值类型**：`std::ostream&` 原左参引用
 
+<!-- example:api_2_20_1_stream_output -->
 ```cpp
 yyjson::Document doc = R"({"name": "Alice"})"_xyjson;
 std::cout << doc / "name" << std::endl;
@@ -1311,6 +1352,7 @@ std::cout << doc / "name" << std::endl;
 - **右侧参数类型**：`stringT`
 - **返回值类型**：`bool`（解析是否成功）
 
+<!-- example:api_2_20_2_doc_read_string -->
 ```cpp
 yyjson::Document doc;
 bool success = doc << R"({"name": "Alice"})";
@@ -1341,6 +1383,7 @@ bool success = doc << R"({"name": "Alice"})";
 - **右侧参数类型**：`std::istream&` 或 `FILE*`
 - **返回值类型**：`bool`（解析是否成功）
 
+<!-- example:api_2_20_3_doc_read_file -->
 ```cpp
 yyjson::Document doc;
 std::ifstream file("data.json");
@@ -1370,6 +1413,7 @@ bool success = mutDoc << file;
 - **右侧参数类型**：各种能用 `MutableDocument` 创建结点的参数类型
 - **返回值类型**：`MutableValue&` 原左参引用
 
+<!-- example:api_2_20_4_array_append -->
 ```cpp
 yyjson::MutableDocument mutDoc;
 mutDoc["items"] = "[]";
@@ -1401,6 +1445,7 @@ mutDoc / "items" << 1 << "two" << 3.14;
 - **右侧参数类型**：各种能用 `MutableDocument`创建结点的参数类型
 - **返回值类型**：`MutableValue&` 原左参引用
 
+<!-- example:api_2_20_5_object_insert -->
 ```cpp
 yyjson::MutableDocument mutDoc;
 auto root = *mutDoc;
@@ -1430,6 +1475,7 @@ root << "key1" << "value1" << "key2" << 42;
 接与 `<<` 联用。在禁用了交换插入键与值的情况下可用该操作方式。或者从其他对象删
 除的键值对也可保存为 `KeyValue` ，再用 `<<` 或 `add` 方法再插入到其他地方。
 
+<!-- example:api_2_20_5_object_insert_keyvalue -->
 ```cpp
 yyjson::MutableDocument mutDoc;
 *mutDoc << mutDoc * "Alice" * "name" << "age" * (mutDoc * 25);
@@ -1464,6 +1510,7 @@ mutDoc << std::move(age) << std::move(name);
 `x -> y -> 原来的当前元素` 。因此，操作符 `<<` 在调用 `insert` 方法后，还会自
 动前进一步。
 
+<!-- example:api_2_20_6_array_insert -->
 ```cpp
 yyjson::MutableDocument mutDoc;
 mutDoc["items"] = "[]";
@@ -1485,6 +1532,7 @@ iter << 10 << 20 << 30;
 `XYJSON_DISABLE_CHAINED_INPUT` 条件编译宏禁用该功能时，可以插入一个 `KeyValue`
 右值参数，另外 `insert` 方法也支持直接传入键与值两个参数。
 
+<!-- example:api_2_20_6_object_insert -->
 ```cpp
 yyjson::MutableDocument mutDoc;
 mutDoc["user"] = "{}";
@@ -1525,6 +1573,7 @@ xyjson 重载了 `>>` 操作，基本满足 `<<` 操作的逆运算。但是不�
 与 `<<` 或 `read` 方法不一样的是，`>>` 或 `write` 的目标只能是 `std::string`
 这种拥有字符串所有权的字符串类，不能是 `const char*` 。
 
+<!-- example:api_2_21_1_doc_write_string -->
 ```cpp
 yyjson::Document doc = R"({"name": "Alice"})"_xyjson;
 std::string str;
@@ -1547,6 +1596,7 @@ doc >> str;
 - **右侧参数类型**：`std::ostream&` 或 `FILE*`
 - **返回值类型**：`bool`（是否成功）
 
+<!-- example:api_2_21_2_doc_write_file -->
 ```cpp
 yyjson::Document doc = R"({"name": "Alice"})"_xyjson;
 std::ofstream file("output.json");
@@ -1582,6 +1632,7 @@ bool success = doc >> file;
 表示该操作是否成功。该操作适用于需要显式判断提取是否成功的场景，如果希望在失败
 时能回滚一个默认值时，使用 `|` 更为常见。
 
+<!-- example:api_2_21_3_value_extract -->
 ```cpp
 yyjosn::Document doc(R"({"name": "Alice", "age":25})");
 
@@ -1622,6 +1673,7 @@ if (doc / "age" >> age) {
 从尾部删除，支持链式调用。方法要求有 `MutableValue` 左值接收被删除的结点，实际
 业务可弃用。
 
+<!-- example:api_2_21_4_array_pop -->
 ```cpp
 yyjosn::Document mutDoc(R"({"items":[10, 20, 30]})");
 yyjson::MutableValue p1, p2,p3;
@@ -1647,6 +1699,7 @@ mutDoc / "items" >> p2 >> p1;
 - **右侧参数类型**：`KeyValue&`
 - **返回值类型**：`MutableValue&` 左参自身引用
 
+<!-- example:api_2_21_5_object_pop -->
 ```cpp
 yyjosn::Document mutDoc(R"({"user":{"name": "Alice", "age":25}})");
 yyjson::KeyValue name, age;
@@ -1674,6 +1727,7 @@ mutDoc / "user" >> age >> name;
 如果链式调用 `it.remove().remove()` ，第二个 `remove` 其实是尝试对第一个删除
 返回的临时值（将其视为数组）再作删除，往往不是想要的。
 
+<!-- example:api_2_21_6_array_iterator_remove -->
 ```cpp
 yyjosn::Document mutDoc(R"({"items":[10, 20, 30]})");
 yyjson::MutableValue p1, p2,p3;
@@ -1704,6 +1758,7 @@ it >> p2 >> p3;
 对应的 `remove` 方法返回 `KeyValue` ，但 `>>` 返回自身引用支持链式删除。
 `KeyValue` 没有 `remove` 方法，所以尝试对此链式调用 `remove` 将编译错误。
 
+<!-- example:api_2_21_7_object_iterator_remove -->
 ```cpp
 yyjosn::Document mutDoc(R"({"user":{"name": "Alice", "age":25}})");
 yyjson::KeyValue name, age;
@@ -1738,6 +1793,7 @@ it >> name >> age;
   `strcmp` 比较，Bool 值的 `false` 比 `true` 比，Null 值只有一个是相等的；
 - 容器类型，只比较容器大小，不递归比较，如果容器大小相同，按内存地址比较。
 
+<!-- example:api_2_22_1_json_less -->
 ```cpp
 yyjson::Document doc = R"({"a": 10, "b": 20})"_xyjson;
 if (doc / "a" < doc / "b") { } // true
@@ -1772,6 +1828,7 @@ if (doc / "a" < doc / "b") { } // true
 - **右侧参数类型**：`jsonT`
 - **返回值类型**：`bool`
 
+<!-- example:api_2_23_1_json_equal -->
 ```cpp
 yyjson::Document doc1 = R"({"name": "Alice"})"_xyjson;
 yyjson::Document doc2 = R"({"name": "Alice"})"_xyjson;
@@ -1794,6 +1851,7 @@ if (root1.equal(root2)) { }
 - **右侧参数类型**：`scalarT`
 - **返回值类型**：`bool`
 
+<!-- example:api_2_23_2_json_scalar_equal -->
 ```cpp
 yyjson::Document doc = R"({"name":"Alice", "age": 25})"_xyjson;
 
@@ -1816,6 +1874,7 @@ if (doc  / "age" == 25.0) {} // false
 创建的迭代器才可能相等，然后比较其当前索引。从相同容器任意起点创建的迭代器，经
 过不断前进的前进，应该都能达到相同的终点失效状态。
 
+<!-- example:api_2_23_3_iterator_equal -->
 ```cpp
 yyjson::Document doc = R"({"user": {"name": "Alice", "age": 30}})"_xyjson;
 
@@ -1838,6 +1897,7 @@ if(doc / "user" % "age") {} // true
 
 这在 begin/end 迭代器对循环中尤为常见。
 
+<!-- example:api_2_23_4_array_iterator_not_equal -->
 ```cpp
 yyjson::Document doc = R"({"items":[10, 20, 30]})"_xyjson;
 
@@ -1863,6 +1923,7 @@ if (auto it = doc["items"].beginArray(); !it.equal(doc["items"].endArray()); ++i
 - **右侧参数类型**：`scalarT` 或类型常量
 - **返回值类型**：`bool`
 
+<!-- example:api_2_24_1_type_check -->
 ```cpp
 yyjson::Document doc = R"({"name": "Alice", "age": 30})"_xyjson;
 bool isString = doc / "name" & ""; // true
@@ -1901,6 +1962,7 @@ bool isArray = doc.root() & "[]";  // false
 操作能转换提取 json 值，否则返回右侧的默认参数值。大部分情况下，没必要显式用
 `&` 额外做类型判断，只要用 `|` 默认提取即可。
 
+<!-- example:api_2_25_1_get_with_default -->
 ```cpp
 yyjson::Document doc = R"({"name": "Alice", "age": 30, "active": true})"_xyjson;
 cons char* pszName = doc / "name" | "";
@@ -1938,6 +2000,7 @@ json 转为基本类型（类型不匹配时返回目标类型的零值）再调
 左侧 json 传给右侧函数。因此，`pipe` 相当于 `getor` 的超集，`getor` 相当于
 `pipe` 的最常用基础版。
 
+<!-- example:api_2_25_2_pipe_function -->
 ```cpp
 yyjson::Document doc = R"({"name": "alice"})"_xyjson;
 std::string upper = doc / "name" | [](const std::string& s) {
@@ -1981,6 +2044,7 @@ std::string upper = doc / "name" | [](const std::string& s) {
 - **右侧参数类型**：`scalarT`、`jsonT`、或类型常量
 - **返回值类型**：`MutableValue&`
 
+<!-- example:api_2_26_2_value_set -->
 ```cpp
 yyjson::MutableDocument mutDoc = R"({"name": "Alice"})"_xyjson;
 mutDoc / "name" = "Bob";
@@ -2017,6 +2081,7 @@ mutDoc / "active" = true; // 无效果
 从内部实现上讲，`|=` 操作比 `|` 更简捷，那直接调用 `get` 方法，而 `|` 调用
 `getor` 。当类型不匹配时，不影响左参原值。
 
+<!-- example:api_2_27_1_composite_assignment_extract -->
 ```cpp
 yyjson::Document doc = R"({"age": 30})"_xyjson;
 int age = 18;
@@ -2039,6 +2104,7 @@ age |= doc / "age";  // age = 30
 - **右侧参数类型**：`size_t`
 - **返回值类型**：`iteratorT&`
 
+<!-- example:api_2_27_2_iterator_multistep_advance -->
 ```cpp
 yyjson::Document doc = R"({"items": [10, 20, 30, 40]})"_xyjson;
 auto iter = doc / "items" % 0;
@@ -2061,6 +2127,7 @@ iter += 3;  // 跳过 3 个元素
 - **右侧参数类型**：`size_t` 或 `const char*`
 - **返回值类型**：`iteratorT&`
 
+<!-- example:api_2_27_3_iterator_relocate_assign -->
 ```cpp
 yyjson::Document doc = R"({"items": [10, 20, 30, 40, 50]})"_xyjson;
 auto iter = doc / "items" % 4;
@@ -2099,6 +2166,7 @@ iter %= 2;  // 重定位到索引 2
 - **右侧参数类型**：`stringT`（对象键名）或 `size_t`（数组索引）
 - **返回值类型**：`jsonT`（与 docT 对应的 Value 类型）
 
+<!-- example:api_2_28_1_doc_index_operator -->
 ```cpp
 yyjson::Document array("[10, 20, 30]");
 yyjson::MutableDocument object("{}");
@@ -2122,6 +2190,7 @@ object["first"] = 10;
 - **参数类型**：`docT`
 - **返回值类型**：`int`
 
+<!-- example:api_2_28_2_doc_unary_plus -->
 ```cpp
 yyjson::Document doc = R"([10, 20, 30])"_xyjson;
 int size = +doc;  // 3
@@ -2141,7 +2210,7 @@ int size = +doc;  // 3
 - **参数类型**：`docT`
 - **返回值类型**：`std::string`
 
-
+<!-- example:api_2_28_3_doc_unary_minus -->
 ```cpp
 yyjson::Document doc = R"({"name": "Alice"})"_xyjson;
 std::string str = -doc; // {"name":"Alice"}
@@ -2162,6 +2231,7 @@ std::string str = -doc; // {"name":"Alice"}
 - **右侧参数类型**：`stringT`（对象键名）或 `size_t`（数组索引）
 - **返回值类型**：`jsonT`（与文档类型对应的结点类型）
 
+<!-- example:api_2_28_4_doc_path_operator -->
 ```cpp
 yyjson::Document doc = R"({"user": {"name": "Alice", "age": 30},
     "items": [10, 20, 30]})"_xyjson;
@@ -2188,6 +2258,7 @@ auto item = doc / "/items/0";
 - **右侧参数类型**：`const char*`（对象键名）或 `size_t`（数组索引）
 - **返回值类型**：`iteratorT`（根结点对应的迭代器类型）
 
+<!-- example:api_2_28_5_doc_iterator_operator -->
 ```cpp
 yyjson::Document array("[10, 20, 30]");
 yyjson::Document object("{"name": "Alice", "age": 30}");
@@ -2212,6 +2283,7 @@ auto objIt = object % "";
 - **右侧参数类型**：`docT`
 - **返回值类型**：`std::ostream&`
 
+<!-- example:api_2_28_6_doc_stream_output -->
 ```cpp
 yyjson::Document doc = R"({"name": "Alice"})"_xyjson;
 std::cout << doc << std::endl;
@@ -2232,6 +2304,7 @@ std::cout << doc.root().toString(true) << std::endl;
 - **右侧参数类型**：`docT`
 - **返回值类型**：`bool`
 
+<!-- example:api_2_28_7_doc_equality -->
 ```cpp
 yyjson::Document doc1 = R"({"name": "Alice"})"_xyjson;
 yyjson::Document doc2 = R"({"name": "Alice"})"_xyjson;
@@ -2254,6 +2327,7 @@ xyjson 定义了一系列类型代表值常量，可以用于一些操作符的�
 能是值，不能是类型，所以定义一些具名的有意义常量，比直接用字面量增加可读性。当
 然也需要交换简洁性，可考虑使用 `using` 引入命名空间。
 
+<!-- example:NO_TEST -->
 ```cpp
 namespace yyjson {
     // 基础类型常量
@@ -2293,6 +2367,7 @@ namespace yyjson {
 
 ### 3.1 类型判断
 
+<!-- example:api_3_1_type_check_with_constants -->
 ```cpp
 yyjson::Document doc = R"({"name": "Alice", "age": 30})"_xyjson;
 
@@ -2320,6 +2395,7 @@ yyjson::Document doc = R"({"name": "Alice", "age": 30})"_xyjson;
 在大部分情况下，`getor` 的操作符 `|` 右侧都是某个类型的零值，这适合用类型常量
 。如果要提供其他默认值，可用字面量或变量。
 
+<!-- example:api_3_2_value_extract_with_constants -->
 ```cpp
 yyjson::Document doc = R"({"name": "Alice", "age": 30})"_xyjson;
 
@@ -2347,6 +2423,7 @@ yyjson::Document doc = R"({"name": "Alice", "age": 30})"_xyjson;
 类型常量代表值都是各个类型的零值或空值，所以用于 `=` 右侧时将 json 内容改为对
 应类型的零值或空值。
 
+<!-- example:api_3_3_assignment_with_constants -->
 ```cpp
 yyjson::Document mutDoc(R"({"name": "Alice", "age": 30})");
 
@@ -2377,6 +2454,7 @@ yyjson::Document mutDoc(R"({"name": "Alice", "age": 30})");
 
 #### 3.4.1 容器类型判断
 
+<!-- example:api_3_4_1_container_type_check -->
 ```cpp
 yyjson::Document doc = R"({"user": {"name": "Alice", "age": 30},
     "items": [10, 20, 30]})"_xyjson;
@@ -2421,7 +2499,7 @@ yyjson::Document doc = R"({"user": {"name": "Alice", "age": 30},
 在这个操作下，`| kArray` 对应 `array()` 方法，`| kObject` 对应 `object()` 方法
 。
 
-
+<!-- example:api_3_4_2_container_type_conversion -->
 ```cpp
 yyjson::Document doc = R"({"user": {"name": "Alice", "age": 30},
     "items": [10, 20, 30]})"_xyjson;
@@ -2454,6 +2532,7 @@ for (auto it = object.begin(); it != object.end(); ++it) {
 当 `kArray` 或 `kObject` 用于 `=` 右侧时，表示将左侧的可写 json 重设为空数组或
 空对象。
 
+<!-- example:api_3_4_3_change_container_type -->
 ```cpp
 yyjson::Document mutDoc(R"({"name": "Alice", "age": 30})");
 mutDoc / "name" = yyjson::kOjbect;
@@ -2481,6 +2560,7 @@ mutDoc / "age" = yyjson::kArray;
 当它们用于 `<<` 操作符右侧时，将自动调用 `MutableDocument::create()` 方法先创
 建空数组或空对象结点，再插入到当前操作的左侧参数容器中。
 
+<!-- example:api_3_4_4_create_empty_container -->
 ```cpp
 yyjson::MutableDocument mutDoc("{}");
 mutDoc << "user" << yyjson::kObject;
@@ -2502,6 +2582,7 @@ Document 类的构造函数中传 `"{}"` 就表示解析 json 字符串，恰好
 。构造函数不支持 `kObject` 与 `kArray` 参数，但是可写文档在构造之后可以重设
 根结点的类型。
 
+<!-- example:api_3_4_4_set_root_container_type -->
 ```cpp
 yyjson::MutableDocument mutDoc(); // 默认构造是空对象 "{}"
 mutDoc.root() = yyjson::kArray;
@@ -2523,6 +2604,7 @@ xyjson 提供了一些方法可以从封装类中获取底层 yyjson 结构体�
 - `MutableValue::getDoc()` 返回 `yyjson_mut_doc*`
 - `MutableDocument::get()` 返回 `yyjson_mut_doc*`
 
+<!-- example:api_4_1_get_pointer_method -->
 ```cpp
 yyjosn::Document doc(R"({"name": "Alice", "age":25})");
 yyjson::MutableDocument mutDoc = ~doc;
@@ -2556,6 +2638,7 @@ ptrMutVal = (doc / "nokey").get(); // not null
 json 叶结点至标量。`MutableValue` 类中也有 `yyjson_mut_doc*` 成员，可以提取。
 但不能从 `Value` 类中提取 `yyjson_doc*` 。
 
+<!-- example:api_4_2_extract_pointer_operator -->
 ```cpp
 yyjosn::Document doc(R"({"name": "Alice", "age":25})");
 yyjson::MutableDocument mutDoc = ~doc;
@@ -2591,6 +2674,7 @@ xyjson 的各个封装类也定义了相应的 `c_` 方法获取底层 C 结构�
 其中，数组迭代器没有定义 `c_key` 方法。失效的迭代器 `c_val` 或 `c_key` 方法返
 回空指针，但 `c_iter` 返回值始终非空。
 
+<!-- example:api_4_3_c_style_functions -->
 ```cpp
 yyjosn::Document doc(R"({"user":{"name": "Alice", "age":25},
     "items":[10, 20, 30]})");

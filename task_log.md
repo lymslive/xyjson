@@ -2903,3 +2903,61 @@ cat docs/operator.csv \
 - **高效性**：使用行号计数器替代循环查找，提升性能
 - **国际化**：准确处理中文显示宽度，支持多语言文档
 
+---
+
+## 任务ID: 20251118-154732
+- **任务类型**: 开发
+- **任务状态**: 已完成
+- **执行AI**: DeepSeek-V3.1
+- **对应需求**: 2025-11-18/1
+
+### 任务需求
+开发文档示例代码提取脚本，从 markdown 文档中自动提取示例代码到测试文件：
+- 每个示例前有 `<!-- example:name -->` 标记
+- 为每个示例生成 DEF_TAST 测试用例
+- 示例代码放在 `MARKDOWN_CODE_SNIPPET` 条件编译块中
+- 跳过标记为 `example:NO_TEST` 的示例
+- 确保示例代码能正确编译
+
+### 执行过程
+**1. 脚本开发**
+- 创建 `script/extract_doc_examples.pl` Perl 脚本
+- 支持从标准输入或文件读取文档
+- 提供 `--target`、`--header`、`--debug` 等参数选项
+
+**2. 功能优化**
+- 修复输出流分离：信息输出到标准错误，测试内容输出到标准输出
+- 数据结构改进：使用数组保持示例原始顺序，避免哈希排序
+- 缩进优化：`#ifdef`/`#endif` 不缩进，中间代码缩进4个空格
+- 文件命名：自动去掉 `.md` 后缀，生成 `t_api.cpp` 而非 `t_api.md.cpp`
+
+**3. 测试验证**
+- 从 `docs/api.md` 成功提取85个示例到 `utest/t_api.cpp`
+- 修复许多手写拼写错误造成的编译错误
+- 修复编译错误：C++17 `if` 语句语法改为 `for` 循环
+- 修复 `MutableDocument` 对象创建语法错误
+- 验证所有示例代码能正确编译通过
+
+### 完成成果
+**脚本功能**：
+- ✅ 支持 markdown 文档解析和示例代码提取
+- ✅ 保持示例原始顺序，避免排序导致功能错乱
+- ✅ 正确的缩进格式和条件编译块处理
+- ✅ 完善的错误处理和调试信息输出
+
+**测试验证**：
+- ✅ 成功提取85个示例（跳过1个 NO_TEST 示例）
+- ✅ 测试文件编译通过，无语法错误
+- ✅ 与现有 couttast 测试框架完美集成
+
+**使用方法**：
+```bash
+# 提取到文件
+perl script/extract_doc_examples.pl docs/api.md --target=utest/t_api.cpp
+
+# 输出到标准输出
+perl script/extract_doc_examples.pl README.md
+
+# 生成完整文件头部
+perl script/extract_doc_examples.pl docs/api.md --target=utest/t_api.cpp --header
+```

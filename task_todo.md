@@ -1884,7 +1884,7 @@ mdtitle_update.pl 可检测更新，只在必要时备份重写。而且 mdtitle
 ### DONE: 20251117-154011
 暂未考虑 bash 代码块的行首 # ，会误认为标题
 
-## TODO: 同步 docs/api.md 文档的示例至单元测试
+## TODO:2025-11-17/4 同步 docs/api.md 文档的示例至单元测试
 
 参考 docs/usage.md 与 utest/t_usage.cpp 的测试用例对应关系。
 
@@ -1894,6 +1894,36 @@ mdtitle_update.pl 可检测更新，只在必要时备份重写。而且 mdtitle
 - 添加一些必要的 COUT 断言语句，测试其运行行为符合预期
 - 调试 t_api.cpp ，可用 `build/utdocs t_api.cpp [--cout=silent]` 命令测试该文
   件内的所有用例
+
+先不修改 xyjson.h 源代码实现。如果有哪个用例测试失败，或经过较大的修改才测试通
+过，请记录并汇报，如果量大，也可写在 doing_plan.tmp 目录下的文件。
+
+### NOTE
+这个任务似乎粒度太多了， codeybuddy 罢工了。只完成了标注示例名，后面再拆分需求。
+
+## TODO:2025-11-18/1 拷贝 api.md 文档示例代码片断至 t_api.cpp 测试文件
+
+在 docs/api.md 文档中，每个示例代码片断前一行都已标注了 `<!-- example:name -->`.
+需要将每个示例拷到 `utest/t_api.cpp` 测试文件中。每个示例定义一个 `DEF_TAST`
+测试用例，第一参数用例名就用 `example:` 后后缀的名字，第二个参数不重要，可以简
+单统一写 `"example from docs/api.md"` 。
+
+在每个测试用例中，再加一对`#ifdef MARKDOWN_CODE_SNIPPET` / `#endif` 条件编译宏，
+来自文档的示例代码拷在这两行中间。为了让用例编译通过，可以在 `#ifdef` 前补充代
+码。文档测试文件的格式可参考 `utest/t_usage.cpp` 。
+
+由于示例代码比较多，也可以考虑写个脚本做这项自动拷贝工作。
+
+已有 `script/sync_doc_examples.pl` 脚本支持将 `t_usage.cpp` 的测试用例反向同步
+回 `usage.md` 文档的示例。可参考其实现逻辑，开发一个逆操作脚本，从 api.md 拷贝
+示例代码至 `t_api.cpp` 。现在 `t_api.cpp` 是空测试文件，只有文件头，还没有任何
+测试用例，需要从 `api.md` 中拷一次。
+
+文档中特殊标注为 `example:NO_TEST` 示例不用拷到测试文件。拷贝示例的基本目的是
+要保证它能正确编译。除了修正简单的拼写错误，如果需要大改才能编译通过的示例，请
+汇总报告，这可能反映了文档描述的功能与当前实现有偏差。
+
+### DONE: 20251118-154732
 
 ## TODO: 优化性能测试用例
 

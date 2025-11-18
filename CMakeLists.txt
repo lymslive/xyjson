@@ -111,6 +111,7 @@ target_link_libraries(utxyjson PRIVATE xyjson couttast)
 set(DOC_TEST_SOURCES
     utest/t_readme.cpp
     utest/t_usage.cpp
+    utest/t_api.cpp
 )
 
 add_executable(utdocs ${DOC_TEST_SOURCES})
