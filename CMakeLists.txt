@@ -112,6 +112,7 @@ set(DOC_TEST_SOURCES
     utest/t_readme.cpp
     utest/t_usage.cpp
     utest/t_api.cpp
+    utest/t_design.cpp
 )
 
 add_executable(utdocs ${DOC_TEST_SOURCES})

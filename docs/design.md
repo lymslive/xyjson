@@ -121,7 +121,7 @@ yyjson::Value name = doc["user"]["name"];
 <!-- example:design_2_index_method -->
 ```cpp
 std::string strName = user["name"].toString();
-std::string strName = (user / "name").toString();
+int age = (user / "age").toInteger();
 ```
 
 虽然 xyjson 的特色是操作符重载，但并不阻止直接调用具名方法，尤其是并不是每个操
@@ -214,8 +214,8 @@ else {
 }
 
 // int iAge = name | 0;
-if (yyjson_is_int(name)) {
-    int iAge = yyjson_get_int(name);
+if (yyjson_is_int(age)) {
+    int iAge = yyjson_get_int(age);
 }
 else {
     int iAge = 0;
@@ -283,7 +283,7 @@ if (age & 0) {
 if (age & 0) { // age.isInt()
     int iAge = age | 0;
 }
-else (age & "") { // age.isString()
+else if (age & "") { // age.isString()
     int iAge = ::atoi(age | "");
 }
 ```
@@ -296,11 +296,11 @@ else (age & "") { // age.isString()
 
 <!-- example:design_4_mutable_set -->
 ```cpp
-yyjson::MutableDocument doc(R"({"user": {"name": "Alice", "age":25})");
+yyjson::MutableDocument doc(R"({"user": {"name": "Alice", "age":25}})");
 
-doc / "name" = "Bob;
-doc / "age" = 20;
-doc["active"] = true; // 用 [] 添加新结点
+doc / "user" / "name" = "Bob";
+doc / "user" / "age" = 20;
+doc["user"]["active"] = true; // 用 [] 添加新结点
 ```
 
 这没有特别意外，因为其他一些 C++ Json 库也支持 `=` 重载，比较符合直觉。
@@ -334,7 +334,7 @@ doc["object"] = "{}";
 
 doc / "array" << 1 << 2 << 3;
 doc / "object" << "first" << 1 << "second" << 2 << "third" << 3;
-//^ 结果：{"array":[1,2,3]","object":{"first":1,"second":2,"third":3}}
+//^ 结果：{"array":[1,2,3],"object":{"first":1,"second":2,"third":3}}
 ```
 
 其中，向对象容器添加元素的链式插入操作有点特殊，它要求键与值交替插入。上例是为
@@ -354,12 +354,12 @@ doc / "object" << "first" << 1 << "second" << 2 << "third" << 3;
 
 <!-- example:design_5_container_remove -->
 ```cpp
-// 接上例 doc = {"array":[1,2,3]","object":{"first":1,"second":2,"third":3}}
+// 接上例 doc = {"array":[1,2,3],"object":{"first":1,"second":2,"third":3}}
 
 yyjson::MutableValue a1, a2, a3;
 doc / "array" >> a3 >> a2 >> a1;
 
-yyjson::KeyValue 01, 02, 03;
+yyjson::KeyValue o1, o2, o3;
 doc / "object" >> o3 >> o2 >> o1;
 ```
 
@@ -372,7 +372,7 @@ doc / "object" >> o3 >> o2 >> o1;
 // 接上例 doc = {"array":[],"object":{}}
 doc / "array" << a3 << a2 << a1;
 doc / "object" << o3 << o2 << o1;
-//^ 结果：{"array":[3,2,1]","object":{"third":3,"second":2,"first":1}}
+//^ 结果：{"array":[3,2,1],"object":{"third":3,"second":2,"first":1}}
 ```
 
 不过 xyjson 的最终实现，在将 `KeyValue` 插回对象时，要求右值的移动语义，避免将
@@ -389,7 +389,7 @@ doc / "object" << o3 << o2 << o1;
 <!-- example:design_5_document_inout -->
 ```cpp
 yyjson::Document doc;
-doc << R"({"array":[1,2,3]","object":{"first":1,"second":2,"third":3}})";
+doc << R"({"array":[1,2,3],"object":{"first":1,"second":2,"third":3}})";
 
 std::string output;
 doc >> output;
@@ -417,7 +417,7 @@ doc >> output;
 <!-- example:design_6_iterator_ops -->
 ```cpp
 yyjson::Document doc;
-doc << R"({"array":[1,2,3]","object":{"first":1,"second":2,"third":3}})";
+doc << R"({"array":[1,2,3],"object":{"first":1,"second":2,"third":3}})";
 
 // (auto it = doc["array"].iterator(0); it.isValid(); it.next())
 for(auto it = doc / "array" % 0; it; ++it) {
