@@ -20,6 +20,7 @@ use open ':std', ':encoding(UTF-8)';
 my %FILE_MAPPING = (
     'utest/t_readme.cpp' => 'README.md',
     'utest/t_usage.cpp'  => 'docs/usage.md',
+    'utest/t_api.cpp'  => 'docs/api.md',
     # 可以在这里添加更多映射
     # 'utest/t_other.cpp' => 'docs/other.md',
 );

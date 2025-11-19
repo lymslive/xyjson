@@ -4,7 +4,7 @@
 
 ## 测试文件结构
 
-单元测试文件按照功能模块进行拆分：
+编译目标 `utxyjson` 的单元测试文件按照功能模块进行拆分：
 
 - `t_experiment.cpp` - 实验性功能和重载规则测试
 - `t_basic.cpp` - 只读 json 模型基础功能测试
@@ -13,6 +13,12 @@
 - `t_iterator.cpp` - 迭代器功能测试
 - `t_conversion.cpp` - 类型转换测试
 - `t_advanced.cpp` - 其他高级功能测试
+
+编译目标 `utdocs` 是从文档中提取同步的测试示例：
+
+- `t_readme.cpp` - 同步 READE.md
+- `t_usage.cpp` - 同步 docs/usage.md
+- `t_api.cpp` - 同步 docs/api.md
 
 ### 贡献指南
 
@@ -59,7 +65,7 @@
 
 ## 测试用例一览表
 
-可由以下命令输出测试用例目录表：
+可由以下命令输出测试用例(utxyjson)目录表：
 
 ```bash
 script/utable.pl # 或 make utable
@@ -96,37 +102,38 @@ script/utable.pl # 或 make utable
 | 26 | mutable_clear | t_mutable.cpp | 1109 | test clear functionality for MutableValue |
 | 27 | stream_document_ops | t_stream.cpp | 10 | test Document stream operators << and >> |
 | 28 | stream_file_ops | t_stream.cpp | 75 | test FILE* and std::fstream stream operations |
-| 29 | stream_std_output | t_stream.cpp | 225 | test standard output stream operators << |
-| 30 | stream_file_operations | t_stream.cpp | 307 | test file read/write operations for Document and MutableDocument |
-| 31 | iterator_basic_loop | t_iterator.cpp | 25 | basic loop with four iterator |
-| 32 | iterator_copy_ctor | t_iterator.cpp | 167 | iterator basic constructor, copying and assignment |
-| 33 | iterator_operators | t_iterator.cpp | 220 | test iterator operators and methods |
-| 34 | iterator_edge_cases | t_iterator.cpp | 338 | test iterator edge cases |
-| 35 | iterator_begin_end | t_iterator.cpp | 490 | test begin/end pattern |
-| 36 | iterator_arithmetic | t_iterator.cpp | 566 | test iterator arithmetic operators % %= + += |
-| 37 | iterator_fast_seek | t_iterator.cpp | 759 | test fast seek functionality with / operator |
-| 38 | iterator_array_insert | t_iterator.cpp | 958 | mutable array iterator insert functionality |
-| 39 | iterator_array_remove | t_iterator.cpp | 1089 | mutable array iterator remove functionality |
-| 40 | iterator_object_insert | t_iterator.cpp | 1226 | mutable object iterator insert functionality |
-| 41 | iterator_object_remove | t_iterator.cpp | 1298 | mutable object iterator remove functionality |
-| 42 | iterator_over_state | t_iterator.cpp | 1392 | test over method and iterator end state |
-| 43 | iterator_standard_interface | t_iterator.cpp | 1552 | standard iterator interface and algorithm compatibility |
-| 44 | iterator_object_chained_insertion | t_iterator.cpp | 1710 | mutable object iterator chained insertion support |
-| 45 | iterator_decrement | t_iterator.cpp | 1845 | test iterator decrement operators -- |
-| 46 | conversion_methods | t_conversion.cpp | 10 | test toString(), toInteger(), and toNumber() conversion methods |
-| 47 | conversion_operators | t_conversion.cpp | 160 | test unary operators - and + for conversion |
-| 48 | conversion_document | t_conversion.cpp | 317 | test Document and MutableDocument conversion methods |
-| 49 | conversion_doc_unary | t_conversion.cpp | 447 | test Document and MutableDocument unary operators |
-| 50 | conversion_user_literals | t_conversion.cpp | 594 | test user-defined literals for direct Document creation |
-| 51 | conversion_explicit | t_conversion.cpp | 701 | test explicit type conversion functions |
-| 52 | advanced_pipe | t_advanced.cpp | 52 | test pipe() method and \| operator with functions |
-| 53 | advanced_trait1 | t_advanced.cpp | 225 | test base type traits for yyjson wrapper classes |
-| 54 | advanced_trait2 | t_advanced.cpp | 320 | test extended type traits: is_scalar, enable_getor, is_callable_with_scalar, is_callable_type |
-| 55 | advanced_pipe_only | t_advanced.cpp | 371 | test pipe() method only without operator\|(json, func) |
-| 56 | advanced_compare_ops | t_advanced.cpp | 414 | test comparison operators |
-| 57 | advanced_sort_mixed_array | t_advanced.cpp | 589 | sort a mixed array of json values |
-| 58 | advanced_string_optimization | t_advanced.cpp | 630 | test string creation optimization strategies |
-| 59 | experiment_overload | t_experiment.cpp | 86 | test overload rule |
-| 60 | experiment_docx | t_experiment.cpp | 135 | test operator usage |
-| 61 | experiment_large_int | t_experiment.cpp | 168 | test yyjson large integer support |
+| 29 | stream_file_nonexistent | t_stream.cpp | 225 | test file operations with non-existent files |
+| 30 | stream_std_output | t_stream.cpp | 297 | test standard output stream operators << |
+| 31 | stream_file_operations | t_stream.cpp | 379 | test file read/write operations for Document and MutableDocument |
+| 32 | iterator_basic_loop | t_iterator.cpp | 25 | basic loop with four iterator |
+| 33 | iterator_copy_ctor | t_iterator.cpp | 167 | iterator basic constructor, copying and assignment |
+| 34 | iterator_operators | t_iterator.cpp | 220 | test iterator operators and methods |
+| 35 | iterator_edge_cases | t_iterator.cpp | 338 | test iterator edge cases |
+| 36 | iterator_begin_end | t_iterator.cpp | 490 | test begin/end pattern |
+| 37 | iterator_arithmetic | t_iterator.cpp | 566 | test iterator arithmetic operators % %= + += |
+| 38 | iterator_fast_seek | t_iterator.cpp | 759 | test fast seek functionality with / operator |
+| 39 | iterator_array_insert | t_iterator.cpp | 958 | mutable array iterator insert functionality |
+| 40 | iterator_array_remove | t_iterator.cpp | 1089 | mutable array iterator remove functionality |
+| 41 | iterator_object_insert | t_iterator.cpp | 1226 | mutable object iterator insert functionality |
+| 42 | iterator_object_remove | t_iterator.cpp | 1298 | mutable object iterator remove functionality |
+| 43 | iterator_over_state | t_iterator.cpp | 1392 | test over method and iterator end state |
+| 44 | iterator_standard_interface | t_iterator.cpp | 1552 | standard iterator interface and algorithm compatibility |
+| 45 | iterator_object_chained_insertion | t_iterator.cpp | 1710 | mutable object iterator chained insertion support |
+| 46 | iterator_decrement | t_iterator.cpp | 1845 | test iterator decrement operators -- |
+| 47 | conversion_methods | t_conversion.cpp | 10 | test toString(), toInteger(), and toNumber() conversion methods |
+| 48 | conversion_operators | t_conversion.cpp | 160 | test unary operators - and + for conversion |
+| 49 | conversion_document | t_conversion.cpp | 317 | test Document and MutableDocument conversion methods |
+| 50 | conversion_doc_unary | t_conversion.cpp | 447 | test Document and MutableDocument unary operators |
+| 51 | conversion_user_literals | t_conversion.cpp | 594 | test user-defined literals for direct Document creation |
+| 52 | conversion_explicit | t_conversion.cpp | 701 | test explicit type conversion functions |
+| 53 | advanced_pipe | t_advanced.cpp | 52 | test pipe() method and \| operator with functions |
+| 54 | advanced_trait1 | t_advanced.cpp | 225 | test base type traits for yyjson wrapper classes |
+| 55 | advanced_trait2 | t_advanced.cpp | 320 | test extended type traits: is_scalar, enable_getor, is_callable_with_scalar, is_callable_type |
+| 56 | advanced_pipe_only | t_advanced.cpp | 371 | test pipe() method only without operator\|(json, func) |
+| 57 | advanced_compare_ops | t_advanced.cpp | 414 | test comparison operators |
+| 58 | advanced_sort_mixed_array | t_advanced.cpp | 589 | sort a mixed array of json values |
+| 59 | advanced_string_optimization | t_advanced.cpp | 630 | test string creation optimization strategies |
+| 60 | experiment_overload | t_experiment.cpp | 86 | test overload rule |
+| 61 | experiment_docx | t_experiment.cpp | 135 | test operator usage |
+| 62 | experiment_large_int | t_experiment.cpp | 168 | test yyjson large integer support |
 <!-- UTABLE_END -->

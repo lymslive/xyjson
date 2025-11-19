@@ -140,7 +140,7 @@ auto doc = R"({"name": "Alice", "age": 30})"_xyjson;
 {
     const char* str = R"({"name": "Alice", "age": 30})";
     size_t len = ::strlen(str);
-    auto doc = yyjson::operator""_xyjson(str, len),
+    auto doc = yyjson::operator""_xyjson(str, len);
 }
 
 // 等效：使用构造函数
@@ -300,7 +300,7 @@ auto oldIter = iter--;  // 返回原迭代器，然后iter后退
 
 /* use method: prev() */
 {
-    auto iter = doc / "items" % 0;
+    auto iter = doc / "items" % 1;
     auto oldIter = iter;
     iter.prev();
 }
@@ -328,6 +328,7 @@ auto iter = doc / "items" % 0;
 
 /* use method: next() */
 {
+    auto iter = doc / "items" % 0;
     iter.next();
 }
 ```
@@ -347,11 +348,12 @@ auto iter = doc / "items" % 0;
 ```cpp
 yyjson::Document doc = R"({"items": [10, 20, 30]})"_xyjson;
 
-auto iter = doc / "items" % 0;
+auto iter = doc / "items" % 1;
 --iter;  // 原迭代器后退并返回
 
 /* use method: prev() */
 {
+    auto iter = doc / "items" % 1;
     iter.prev();
 }
 ```
@@ -372,6 +374,7 @@ auto iter = doc / "items" % 0;
 <!-- example:api_2_9_1_invalid_value_check -->
 ```cpp
 yyjson::Document doc = R"({})"_xyjson;
+
 
 if (!doc) {
     // 文档无效，可能是解析错误
@@ -735,13 +738,17 @@ for (auto iter = doc / "user" % ""; iter; ++iter) {
 <!-- example:api_2_12_1_iterator_get_value -->
 ```cpp
 yyjson::Document doc = R"({"items": [10, 20, 30]})"_xyjson;
+int sum = 0;
 for (auto iter = doc / "items" % 0; iter; ++iter) {
     auto value = *iter;  // 获取当前元素值
+    sum += value | 0;
 }
 
 /* use method: value() */
+sum = 0;
 for (auto iter = doc / "items" % 0; iter; ++iter) {
     auto value = iter.value();  // 获取当前元素值
+    sum += value | 0;
 }
 ```
 
@@ -828,15 +835,23 @@ int iObject = +doc["object"]; // 3
 <!-- example:api_2_13_2_iterator_get_index -->
 ```cpp
 yyjson::Document doc = R"({"items": [10, 20, 30]})"_xyjson;
+size_t lastIndex = 0;
+int sum = 0;
 for (auto iter = doc / "items" % 0; iter; ++iter) {
     size_t idx = +iter;
     auto val = *iter;
+    lastIndex = idx;
+    sum += val | 0;
 }
 
 /* use method: index() */
+lastIndex = 0;
+sum = 0;
 for (auto iter = doc / "items" % 0; iter; ++iter) {
     size_t idx = iter.index();
     auto val = iter.value();
+    lastIndex = idx;
+    sum += val | 0;
 }
 ```
 
@@ -895,15 +910,19 @@ std::string strRoot   = -doc.root();
 <!-- example:api_2_15_1_iterator_get_name -->
 ```cpp
 yyjson::Document doc = R"({"user": {"name": "Alice", "age": 30}})"_xyjson;
+int count = 0;
 for (auto iter = doc / "user" % ""; iter; ++iter) {
     const char* keyName = -iter;
     auto valNode = *iter;
+    count++;
 }
 
 /* use method: name() */
+count = 0;
 for (auto iter = doc / "user" % ""; iter; ++iter) {
     const char* keyName = iter.name();
     auto valNode = iter.value();
+    count++;
 }
 ```
 
@@ -949,12 +968,12 @@ int age = (*doc / "user" / "age").toInteger();
 
 /* use operator[] */
 {
-    int = doc.root()["user"]["age"].toInteger();
+    int age = doc.root()["user"]["age"].toInteger();
 }
 
 /* use method: pathto() */
 {
-    int = doc.root().pathto("user").pathto("age").toInteger();
+    int age = doc.root().pathto("user").pathto("age").toInteger();
 }
 ```
 
@@ -1076,15 +1095,15 @@ yyjson::MutableDocument dstDoc;
 yyjson::MutableDocument srcDocMut(R"({"name": "Alice", "age": 30})");
 yyjson::Document srcDoc(R"({"name": "Alice", "age": 30})");
 
-auto copyName = dstDoc * (srDoc / "name");
-auto copyAge = dstDoc * (srDocMut / "age");
+auto copyName = dstDoc * (srcDoc / "name");
+auto copyAge = dstDoc * (srcDocMut / "age");
 auto copyDoc = dstDoc * srcDoc;
 auto copyDocMut = dstDoc * srcDocMut;
 
 /* use method: create() */
 {
-    auto copyName = dstDoc.create(srDoc / "name");
-    auto copyAge = dstDoc.create(srDocMut / "age");
+    auto copyName = dstDoc.create(srcDoc / "name");
+    auto copyAge = dstDoc.create(srcDocMut / "age");
     auto copyDoc = dstDoc.create(srcDoc);
     auto copyDocMut = dstDoc.create(srcDocMut);
 }
@@ -1215,13 +1234,15 @@ mutDoc.root() << std::move(keyValue) << std::move(kvConfig);
 <!-- example:api_2_18_1_array_iterator_create -->
 ```cpp
 yyjson::Document doc = R"({"items": [10, 20, 30]})"_xyjson;
+int sum = 0;
 for (auto iter = doc / "items" % 0; iter; ++iter) {
-    // 处理数组元素
+    sum += *iter | 0;
 }
 
 /* use method: iterator() */
+sum = 0;
 for (auto iter = doc["items"].iterator(0); iter; ++iter) {
-    // 处理数组元素
+    sum += *iter | 0;
 }
 ```
 
@@ -1242,13 +1263,15 @@ for (auto iter = doc["items"].iterator(0); iter; ++iter) {
 <!-- example:api_2_18_2_object_iterator_create -->
 ```cpp
 yyjson::Document doc = R"({"user": {"name": "Alice", "age": 30}})"_xyjson;
+int count = 0;
 for (auto iter = doc / "user" % ""; iter; ++iter) {
-    // 处理对象键值对
+    count++;
 }
 
 /* use method: iterator() */
+count = 0;
 for (auto iter = doc["user"].iterator(""); iter; ++iter) {
-    // 处理对象键值对
+    count++;
 }
 ```
 
@@ -1271,7 +1294,8 @@ for (auto iter = doc["user"].iterator(""); iter; ++iter) {
 yyjson::Document doc = R"({"user": {"name": "Alice", "age": 30},
     "items": [10, 20, 30]})"_xyjson;
 auto itArray = doc / "items" % 1; // 创建迭代器初始位置 1
-auto itArrayCopy = iter % 3;  // 重定位到索引3的元素
+auto itArrayCopy = itArray % 3;  // 重定位到索引3的元素
+
 auto itObject = *doc % "items"; // 创建迭代器初始位置 "items"
 auto itObjectCopy = itObject % "user"; // 重定位到 "user" 位置
 
@@ -1280,6 +1304,7 @@ auto itObjectCopy = itObject % "user"; // 重定位到 "user" 位置
     auto itArray = doc["items"].iterator(1);
     auto itArrayCopy = itArray;
     itArrayCopy.begin().advance(3);
+    
     auto itObject = doc.root().iterator("items");
     auto itObjectCopy = itObject;
     itObjectCopy.begin().advance("user");
@@ -1311,7 +1336,7 @@ auto iterCopy = iter + 3;  // 前进3步，指向第4个元素
 
 /* use method: advance() */
 {
-    auto iterCopy = iter；
+    auto iterCopy = iter;
     iterCopy.advance(3);
 }
 ```
@@ -1335,10 +1360,14 @@ auto iterCopy = iter + 3;  // 前进3步，指向第4个元素
 ```cpp
 yyjson::Document doc = R"({"name": "Alice"})"_xyjson;
 std::cout << doc / "name" << std::endl;
+std::ostringstream oss;
+oss << doc / "name";
 
 /* use method: toString() */
 {
     std::cout << (doc / "name").toString() << std::endl;
+    std::ostringstream oss;
+    oss << (doc / "name").toString();
 }
 ```
 
@@ -1386,20 +1415,20 @@ bool success = doc << R"({"name": "Alice"})";
 <!-- example:api_2_20_3_doc_read_file -->
 ```cpp
 yyjson::Document doc;
-std::ifstream file("data.json");
-bool success = mutDoc << file;
+std::ifstream file("/tmp/data.json");
+bool success = doc << file;
 
 /* use method: read() */
 {
     yyjson::Document doc;
-    std::ifstream file("data.json");
-    bool success = mutDoc.read(file);
+    std::ifstream file("/tmp/data.json");
+    bool success = doc.read(file);
 }
 
 // 另有 readFile() 方法接收文件名参数
 {
     yyjson::Document doc;
-    bool success = mutDoc.readFile("data.json");
+    bool success = doc.readFile("/tmp/data.json");
 }
 ```
 
@@ -1483,10 +1512,10 @@ yyjson::MutableDocument mutDoc;
 
 // 删除结点
 yyjson::KeyValue age, name;
-mutDoc >> age >> name;
+*mutDoc >> age >> name;
 
 // 换个顺序重新插入
-mutDoc << std::move(age) << std::move(name);
+*mutDoc << std::move(age) << std::move(name);
 //^ 结果：{"age":25,"name":"Alice"}
 ```
 
@@ -1544,7 +1573,7 @@ iter << "name" << "Alice" << "age" * (mutDoc * 25);
     yyjson::MutableDocument mutDoc;
     mutDoc["user"] = "{}";
     auto iter = mutDoc / "user" % "";
-    iter.insert("name"); iter.insert("Alice); ++iter;
+    iter.insert("name"); iter.insert("Alice"); ++iter;
     iter.insert("age", 25); ++iter;
 }
 ```
@@ -1599,18 +1628,18 @@ doc >> str;
 <!-- example:api_2_21_2_doc_write_file -->
 ```cpp
 yyjson::Document doc = R"({"name": "Alice"})"_xyjson;
-std::ofstream file("output.json");
+std::ofstream file("/tmp/output.json");
 bool success = doc >> file;
 
 /* use method: write() */
 {
-    std::ofstream file("output.json");
+    std::ofstream file("/tmp/output.json");
     bool success = doc.write(file);
 }
 
 // 另有 writeFile() 方法接收文件名参数
 {
-    bool success = doc.writeFile("output.json");
+    bool success = doc.writeFile("/tmp/output.json");
 }
 ```
 
@@ -1634,7 +1663,7 @@ bool success = doc >> file;
 
 <!-- example:api_2_21_3_value_extract -->
 ```cpp
-yyjosn::Document doc(R"({"name": "Alice", "age":25})");
+yyjson::Document doc(R"({"name": "Alice", "age":25})");
 
 std::string name;
 if (doc / "name" >> name) {
@@ -1650,12 +1679,10 @@ if (doc / "age" >> age) {
 {
     std::string name;
     if (doc["name"].get(name)) {
-        // 成功提取
     }
 
     int age;
     if (doc["age"].get(age)) {
-        // 成功提取
     }
 }
 ```
@@ -1675,15 +1702,15 @@ if (doc / "age" >> age) {
 
 <!-- example:api_2_21_4_array_pop -->
 ```cpp
-yyjosn::Document mutDoc(R"({"items":[10, 20, 30]})");
-yyjson::MutableValue p1, p2,p3;
+yyjson::MutableDocument mutDoc(R"({"items":[10, 20, 30]})");
+yyjson::MutableValue p1, p2, p3;
 mutDoc / "items" >> p3;
 mutDoc / "items" >> p2 >> p1;
 
 /* use method: pop() */
 {
-    yyjosn::Document mutDoc(R"({"items":[10, 20, 30]})");
-    MutableValue p1, p2, p3;
+    yyjson::MutableDocument mutDoc(R"({"items":[10, 20, 30]})");
+    yyjson::MutableValue p1, p2, p3;
     mutDoc["items"].pop(p3);
     mutDoc["items"].pop(p2).pop(p1);
 }
@@ -1701,13 +1728,13 @@ mutDoc / "items" >> p2 >> p1;
 
 <!-- example:api_2_21_5_object_pop -->
 ```cpp
-yyjosn::Document mutDoc(R"({"user":{"name": "Alice", "age":25}})");
+yyjson::MutableDocument mutDoc(R"({"user":{"name": "Alice", "age":25}})");
 yyjson::KeyValue name, age;
 mutDoc / "user" >> age >> name;
 
 /* use method: pop() */
 {
-    yyjosn::Document mutDoc(R"({"user":{"name": "Alice", "age":25}})");
+    yyjson::MutableDocument mutDoc(R"({"user":{"name": "Alice", "age":25}})");
     yyjson::KeyValue name, age;
     mutDoc["user"].pop(age).pop(name);
 }
@@ -1729,7 +1756,7 @@ mutDoc / "user" >> age >> name;
 
 <!-- example:api_2_21_6_array_iterator_remove -->
 ```cpp
-yyjosn::Document mutDoc(R"({"items":[10, 20, 30]})");
+yyjson::MutableDocument mutDoc(R"({"items":[10, 20, 30]})");
 yyjson::MutableValue p1, p2,p3;
 auto it = mutDoc / "items" % 0;
 it >> p1;
@@ -1737,11 +1764,11 @@ it >> p2 >> p3;
 
 /* use method: remove() */
 {
-    yyjosn::Document mutDoc(R"({"items":[10, 20, 30]})");
+    yyjson::MutableDocument mutDoc(R"({"items":[10, 20, 30]})");
     auto it = mutDoc / "items" % 0;
-    auto p1 = it.pop();
-    auto p2 = it.pop();
-    auto p3 = it.pop();
+    auto p1 = it.remove();
+    auto p2 = it.remove();
+    auto p3 = it.remove();
 }
 ```
 
@@ -1760,17 +1787,17 @@ it >> p2 >> p3;
 
 <!-- example:api_2_21_7_object_iterator_remove -->
 ```cpp
-yyjosn::Document mutDoc(R"({"user":{"name": "Alice", "age":25}})");
+yyjson::MutableDocument mutDoc(R"({"user":{"name": "Alice", "age":25}})");
 yyjson::KeyValue name, age;
 auto it = mutDoc / "user" % "";
 it >> name >> age;
 
 /* use method: remove() */
 {
-    yyjosn::Document mutDoc(R"({"user":{"name": "Alice", "age":25}})");
+    yyjson::MutableDocument mutDoc(R"({"user":{"name": "Alice", "age":25}})");
     auto it = mutDoc / "user" % "";
-    auto name = it.pop();
-    auto age = it.pop();
+    auto name = it.remove();
+    auto age = it.remove();
 }
 ```
 
@@ -1796,7 +1823,7 @@ it >> name >> age;
 <!-- example:api_2_22_1_json_less -->
 ```cpp
 yyjson::Document doc = R"({"a": 10, "b": 20})"_xyjson;
-if (doc / "a" < doc / "b") { } // true
+bool result = doc / "a" < doc / "b";
 
 /* use method: less() */
 {
@@ -1835,10 +1862,12 @@ yyjson::Document doc2 = R"({"name": "Alice"})"_xyjson;
 auto root1 = *doc1;
 auto root2 = *doc2;
 
-if (root1 == root2) { } // true
+bool result = root1 == root2;
 
 /* use method: equal() */
-if (root1.equal(root2)) { }
+{
+    bool result = root1.equal(root2);
+}
 ```
 
 #### 2.23.2 Json 叶结点与基本标量类型比较
@@ -1855,9 +1884,9 @@ if (root1.equal(root2)) { }
 ```cpp
 yyjson::Document doc = R"({"name":"Alice", "age": 25})"_xyjson;
 
-if (doc  / "name" == "Alice") {} // true
-if (doc  / "age" == 25) {} // true
-if (doc  / "age" == 25.0) {} // false
+bool nameMatch = doc / "name" == "Alice"; // true
+bool ageMatch = doc / "age" == 25; // true
+bool ageFloatMatch = doc / "age" == 25.0; // false
 ```
 
 #### 2.23.3 迭代器比较
@@ -1901,13 +1930,17 @@ if(doc / "user" % "age") {} // true
 ```cpp
 yyjson::Document doc = R"({"items":[10, 20, 30]})"_xyjson;
 
-if (auto it = doc["items"].beginArray(); it != doc["items"].endArray(); ++it)
+int sum = 0;
+for (auto it = doc["items"].beginArray(); it != doc["items"].endArray(); ++it)
 {
+    sum += *it | 0;
 }
 
 /* use method: equal() */
-if (auto it = doc["items"].beginArray(); !it.equal(doc["items"].endArray()); ++it)
+sum = 0;
+for (auto it = doc["items"].beginArray(); !it.equal(doc["items"].endArray()); ++it)
 {
+    sum += *it | 0;
 }
 ```
 
@@ -1926,19 +1959,19 @@ if (auto it = doc["items"].beginArray(); !it.equal(doc["items"].endArray()); ++i
 <!-- example:api_2_24_1_type_check -->
 ```cpp
 yyjson::Document doc = R"({"name": "Alice", "age": 30})"_xyjson;
-bool isString = doc / "name" & ""; // true
-bool isInt = doc / "age" & 0;      // true
-bool isReal = doc / "age" & 0.0;   // false
-bool isObject = doc.root() & "{}"; // true
-bool isArray = doc.root() & "[]";  // false
+bool isString = doc / "name" & "";
+bool isInt = doc / "age" & 0;
+bool isReal = doc / "age" & 0.0;
+bool isObject = doc.root() & "{}";
+bool isArray = doc.root() & "[]";
 
 /* use method: isType() */
 {
-    bool isString = doc["name].isType("");   // true
-    bool isInt = doc["age"].isType(0);       // true
-    bool isReal = doc["age"].isType(0.0);    // false
-    bool isObject = doc.root().isType("{}"); // true
-    bool isArray = doc.root().isType("[]");  // false
+    bool isString = doc["name"].isType("");
+    bool isInt = doc["age"].isType(0);
+    bool isReal = doc["age"].isType(0.0);
+    bool isObject = doc.root().isType("{}");
+    bool isArray = doc.root().isType("[]");
 }
 ```
 
@@ -1965,14 +1998,14 @@ bool isArray = doc.root() & "[]";  // false
 <!-- example:api_2_25_1_get_with_default -->
 ```cpp
 yyjson::Document doc = R"({"name": "Alice", "age": 30, "active": true})"_xyjson;
-cons char* pszName = doc / "name" | "";
+const char* pszName = doc / "name" | "";
 std::string name = doc / "name" | "";
 int age = doc / "age" | 0;
 bool active = doc / "active" | false;
 
 /* use method: getor() */
 {
-    cons char* pszName = doc["name"].getor("");
+    const char* pszName = doc["name"].getor("");
     std::string name = doc["name"].getor("");
     int age = doc["age"].getor(0);
     bool active = doc["active"].getor(false);
@@ -2046,7 +2079,7 @@ std::string upper = doc / "name" | [](const std::string& s) {
 
 <!-- example:api_2_26_2_value_set -->
 ```cpp
-yyjson::MutableDocument mutDoc = R"({"name": "Alice"})"_xyjson;
+yyjson::MutableDocument mutDoc(R"({"name": "Alice"})");
 mutDoc / "name" = "Bob";
 mutDoc["age"] = 30;
 mutDoc / "active" = true; // 无效果
@@ -2054,7 +2087,7 @@ mutDoc / "active" = true; // 无效果
 
 /* use method: set() */
 {
-    yyjson::MutableDocument mutDoc = R"({"name": "Alice"})"_xyjson;
+    yyjson::MutableDocument mutDoc(R"({"name": "Alice"})");
     (mutDoc / "name").set("Bob");
     mutDoc["age"].set(30);
     (mutDoc / "active").set(true);
@@ -2244,7 +2277,7 @@ auto item = doc / "/items/0";
 {
     auto name = doc.root() / "user" / "name";
     auto age = doc.root() / "/user/age";
-    auto item = doc.root() / "items/0";
+    auto item = doc.root() / "/items/0";
 }
 ```
 
@@ -2261,7 +2294,7 @@ auto item = doc / "/items/0";
 <!-- example:api_2_28_5_doc_iterator_operator -->
 ```cpp
 yyjson::Document array("[10, 20, 30]");
-yyjson::Document object("{"name": "Alice", "age": 30}");
+yyjson::Document object(R"({"name": "Alice", "age": 30})");
 
 auto arrIt = array % 0;
 auto objIt = object % "";
@@ -2287,12 +2320,18 @@ auto objIt = object % "";
 ```cpp
 yyjson::Document doc = R"({"name": "Alice"})"_xyjson;
 std::cout << doc << std::endl;
+std::ostringstream oss1;
+oss1 << doc;
 
 /* use method: root() */
 std::cout << doc.root() << std::endl;
+std::ostringstream oss2;
+oss2 << doc.root();
 
 // 格式化输出需显式调用 toString(true)
 std::cout << doc.root().toString(true) << std::endl;
+std::ostringstream oss3;
+oss3 << doc.root().toString(true);
 ```
 #### 2.28.7 相等操作符 `==` 
 
@@ -2308,10 +2347,12 @@ std::cout << doc.root().toString(true) << std::endl;
 ```cpp
 yyjson::Document doc1 = R"({"name": "Alice"})"_xyjson;
 yyjson::Document doc2 = R"({"name": "Alice"})"_xyjson;
-if (doc1 == doc2) {} // true
+bool docEqual = doc1 == doc2;
 
 /* use method: root() */
-if (doc1.root() == doc2.root()) {}
+{
+    bool rootEqual = doc1.root() == doc2.root();
+}
 ```
 
 注意：比较两个 doc 相等的条件是它们的根结点内容相同。持有两个相同 yyjson 底层
@@ -2387,7 +2428,6 @@ yyjson::Document doc = R"({"name": "Alice", "age": 30})"_xyjson;
     // isNumber 只能用 kNumber 判断
     bool isDouble = doc / "age" & 0.0;   // false
 }
-
 ```
 
 ### 3.2 值提取
@@ -2425,19 +2465,19 @@ yyjson::Document doc = R"({"name": "Alice", "age": 30})"_xyjson;
 
 <!-- example:api_3_3_assignment_with_constants -->
 ```cpp
-yyjson::Document mutDoc(R"({"name": "Alice", "age": 30})");
+yyjson::MutableDocument mutDoc(R"({"name": "Alice", "age": 30})");
 
 // 使用类型常量
 {
     using namespace yyjson;
-    doc / "name" = kString;
-    doc / "age" = kInt;
+    mutDoc / "name" = kString;
+    mutDoc / "age" = kInt;
 }
 
 // 使用字面量
 {
-    doc / "name" = "";
-    doc / "age" = 0;
+    mutDoc / "name" = "";
+    mutDoc / "age" = 0;
 }
 ```
 
@@ -2469,7 +2509,7 @@ yyjson::Document doc = R"({"user": {"name": "Alice", "age": 30},
 // 使用字面量
 {
     bool isArray = doc / "items" & "[]"; // true
-    bool isObject = doc / "user" & "{};    // true
+    bool isObject = doc / "user" & "{}";    // true
 }
 ```
 
@@ -2514,16 +2554,31 @@ auto object = doc / "user" | yyjson::kObject;
 }
 
 // 支持标准容器操作
-for (auto& value : array) { }
-for (auto& value : obj) { } // 只能隐式取到值结点，不能取到键结点
-
-// 等效显式使用 begin/end 迭代器对
-for (auto it = array.begin(); it != array.end(); ++it) {
-    auto value = *it;
+int arraySum = 0;
+for (auto value : array) {
+    arraySum += value | 0;
 }
 
-for (auto it = object.begin(); it != object.end(); ++it) {
-    auto value = *it;
+int objectCount = 0;
+for (auto value : object) {
+    objectCount++;
+}
+
+// 等效显式使用 begin/end 迭代器对
+{
+    int arraySum = 0;
+    for (auto it = array.begin(); it != array.end(); ++it) {
+        auto value = *it;
+        arraySum += value | 0;
+    }
+}
+
+{
+    int objectCount = 0;
+    for (auto it = object.begin(); it != object.end(); ++it) {
+        auto value = *it;
+        objectCount++;
+    }
 }
 ```
 
@@ -2534,22 +2589,22 @@ for (auto it = object.begin(); it != object.end(); ++it) {
 
 <!-- example:api_3_4_3_change_container_type -->
 ```cpp
-yyjson::Document mutDoc(R"({"name": "Alice", "age": 30})");
-mutDoc / "name" = yyjson::kOjbect;
+yyjson::MutableDocument mutDoc(R"({"name": "Alice", "age": 30})");
+mutDoc / "name" = yyjson::kObject;
 mutDoc / "age" = yyjson::kArray;
 //^ 结果：{"name":{},"age":[]}
 
 // 使用字面量
 {
-    yyjson::Document mutDoc(R"({"name": "Alice", "age": 30})");
+    yyjson::MutableDocument mutDoc(R"({"name": "Alice", "age": 30})");
     mutDoc / "name" = "{}";
     mutDoc / "age" = "[]";
 }
 
 // 使用具名方法
 {
-    yyjson::Document mutDoc(R"({"name": "Alice", "age": 30})");
-    mutDoc["name"].setOjbect();
+    yyjson::MutableDocument mutDoc(R"({"name": "Alice", "age": 30})");
+    mutDoc["name"].setObject();
     mutDoc["age"].setArray();
 }
 ```
@@ -2563,18 +2618,18 @@ mutDoc / "age" = yyjson::kArray;
 <!-- example:api_3_4_4_create_empty_container -->
 ```cpp
 yyjson::MutableDocument mutDoc("{}");
-mutDoc << "user" << yyjson::kObject;
-mutDoc << "items" << yyjson::kArray;
+*mutDoc << "user" << yyjson::kObject;
+*mutDoc << "items" << yyjson::kArray;
 
 // 使用字面量
 {
     yyjson::MutableDocument mutDoc("{}");
-    mutDoc << "user" << "{}";
-    mutDoc << "items" << "[]";
+    *mutDoc << "user" << "{}";
+    *mutDoc << "items" << "[]";
 }
 
 mutDoc / "user" << "name" << "Alice" << "age" << 25;
-mutDoc / "items" << 10, 20, 30;
+mutDoc / "items" << 10 << 20 << 30;
 ```
 
 注意：`kArray` 与 `kObject` 类型常量是设计为给 Value 类的操作符使用的。
@@ -2584,7 +2639,7 @@ Document 类的构造函数中传 `"{}"` 就表示解析 json 字符串，恰好
 
 <!-- example:api_3_4_4_set_root_container_type -->
 ```cpp
-yyjson::MutableDocument mutDoc(); // 默认构造是空对象 "{}"
+yyjson::MutableDocument mutDoc; // 默认构造是空对象 "{}"
 mutDoc.root() = yyjson::kArray;
 
 mutDoc.root() << 10 << 20 << 30;
@@ -2606,7 +2661,7 @@ xyjson 提供了一些方法可以从封装类中获取底层 yyjson 结构体�
 
 <!-- example:api_4_1_get_pointer_method -->
 ```cpp
-yyjosn::Document doc(R"({"name": "Alice", "age":25})");
+yyjson::Document doc(R"({"name": "Alice", "age":25})");
 yyjson::MutableDocument mutDoc = ~doc;
 
 yyjson_doc* ptrDoc = nullptr;
@@ -2614,16 +2669,16 @@ yyjson_val* ptrVal = nullptr;
 ptrDoc = doc.get();             // not null
 ptrVal = doc["name"].get();     // not null
 ptrVal = (doc / "nokey").get(); // nullptr
-ptrVal = (doc["nokey"]).get();  // not null
+ptrVal = (doc["nokey"]).get();  // nullptr
 
 yyjson_mut_doc* ptrMutDoc = nullptr;
 yyjson_mut_val* ptrMutVal = nullptr;
 ptrMutDoc = mutDoc.get();          // not null
-ptrMutVal = doc["name"].get();     // not null
-ptrMutDoc = doc["name"].getDoc();  // not null
-ptrMutVal = (doc / "nokey").get(); // nullptr
-ptrmutVal = (doc["nokey"]).get();  // not null
-ptrMutVal = (doc / "nokey").get(); // not null
+ptrMutVal = mutDoc["name"].get();     // not null
+ptrMutDoc = mutDoc["name"].getDoc();  // not null
+ptrMutVal = (mutDoc / "nokey").get(); // nullptr
+ptrMutVal = (mutDoc["nokey"]).get();  // not null, auto insert
+ptrMutVal = (mutDoc / "nokey").get(); // not null
 ```
 
 ### 4.2 使用 `>>` 操作符或 `get` 方法
@@ -2640,7 +2695,7 @@ json 叶结点至标量。`MutableValue` 类中也有 `yyjson_mut_doc*` 成员�
 
 <!-- example:api_4_2_extract_pointer_operator -->
 ```cpp
-yyjosn::Document doc(R"({"name": "Alice", "age":25})");
+yyjson::Document doc(R"({"name": "Alice", "age":25})");
 yyjson::MutableDocument mutDoc = ~doc;
 
 yyjson_val* ptrVal = nullptr;
@@ -2676,7 +2731,7 @@ xyjson 的各个封装类也定义了相应的 `c_` 方法获取底层 C 结构�
 
 <!-- example:api_4_3_c_style_functions -->
 ```cpp
-yyjosn::Document doc(R"({"user":{"name": "Alice", "age":25},
+yyjson::Document doc(R"({"user":{"name": "Alice", "age":25},
     "items":[10, 20, 30]})");
 yyjson::MutableDocument mutDoc = ~doc;
 
@@ -2692,24 +2747,24 @@ ptrMutDoc = mutDoc.c_doc();
 ptrMutDoc = mutDoc["user"].c_doc();
 ptrMutVal = mutDoc["user"].c_val();
 
-auto ita = doc / "itmes" % 0;
+auto ita = doc / "items" % 0;
 auto ito = doc / "user" % "";
-auto mita = MutDoc / "itmes" % 0;
-auto mito = MutDoc / "user" % "";
+auto mita = mutDoc / "items" % 0;
+auto mito = mutDoc / "user" % "";
 
 // 以下 c_ 方法也返回非空指针
-if (ita.c_iter() != nullptr) {}
-if (ito.c_iter() != nullptr) {}
-if (mita.c_iter() != nullptr) {}
-if (mito.c_iter() != nullptr) {}
+bool itaIter = (ita.c_iter() != nullptr);
+bool itoIter = (ito.c_iter() != nullptr);
+bool mitaIter = (mita.c_iter() != nullptr);
+bool mitoIter = (mito.c_iter() != nullptr);
 
-if (ita.c_val() != nullptr) {}
-if (ito.c_val() != nullptr) {}
-if (mita.c_val() != nullptr) {}
-if (mito.c_val() != nullptr) {}
+bool itaVal = (ita.c_val() != nullptr);
+bool itoVal = (ito.c_val() != nullptr);
+bool mitaVal = (mita.c_val() != nullptr);
+bool mitoVal = (mito.c_val() != nullptr);
 
-if (ito.c_key() != nullptr) {}
-if (mito.c_key() != nullptr) {}
+bool itoKey = (ito.c_key() != nullptr);
+bool mitoKey = (mito.c_key() != nullptr);
 
 //! 数组迭代器没有定义 c_key 方法
 //! if (ita.c_key() != nullptr) {}
