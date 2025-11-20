@@ -2054,11 +2054,22 @@ couttast 测试框架支持这样从命令行读取参数。要求 `#include "co
 
 ### DONE: 20251120-152409
 
-## TODO: 优化内联宏
+## TODO:2025-11-20/3 分析哪些 inline 可优化为内联宏
 
-分析哪些 inline 适合改用 yyjson_inline 宏，哪些最少就保持默认的 inline 。
+底层库 yyjson.h 提供了一个 `yyjson_inline` 宏，似乎是能在编译器支持时强制 inline。
+请分析 xyjson.h 实现中哪些 inline 适合改用 `yyjson_inline` 宏，哪些应该保持默认的 inline 。
 
-观察性能测试是否有所改进
+并且分析一下，类方法有些在类外定义，那么应该在声明处使用 inline 还是在定义处使
+用。目前类方法声明中有些有 inline ，有些没 inline ，这风格不一致，也请统一调整
+。还有，一些模板方法有没必要使用 inline ？
+
+修改 `yyjson_inline` 前后，观察性能测试是否有所变化。
+
+相对性能测试命令 `./build/perf_test --runtime_ms=500` ，注意每次运行可能有浮动误差。
+
+### DONE: 20251120-163803
+
+决定还是不用强制内联宏，保持代码简洁，让编译器优化自行合理内联。
 
 ## TODO: 优化分支预测
 

@@ -359,7 +359,7 @@ public:
     
     // Pipe function for custom transformations
     template<typename funcT>
-    inline auto pipe(funcT&& func) const;
+    auto pipe(funcT&& func) const;
 
     // Array/Object size and access by index or key
     size_t size() const;
@@ -373,7 +373,7 @@ public:
     template <size_t N>
     Value index(const char(&key)[N]) const { return index(key, N-1); }
     template<typename T>
-    inline typename std::enable_if<trait::is_cstr_type<T>(), Value>::type
+    typename std::enable_if<trait::is_cstr_type<T>(), Value>::type
     index(T key) const { return index(key, key ? ::strlen(key) : 0); }
     
     // Array and object access operator
@@ -393,7 +393,7 @@ public:
     template <size_t N>
     Value pathto(const char(&path)[N]) const { return pathto(path, N-1); }
     template<typename T>
-    inline typename std::enable_if<trait::is_cstr_type<T>(), Value>::type
+    typename std::enable_if<trait::is_cstr_type<T>(), Value>::type
     pathto(T path) const {
         return pathto(path, path ? ::strlen(path) : 0);
     }
@@ -640,7 +640,7 @@ public:
     
     // Pipe function for custom transformations
     template<typename funcT>
-    inline auto pipe(funcT&& func) const;
+    auto pipe(funcT&& func) const;
 
     // Array/Object size and access by index or key
     size_t size() const;
@@ -658,7 +658,7 @@ public:
     template <size_t N>
     MutableValue index(const char(&key)[N]) const { return index(key, N-1); }
     template<typename T>
-    inline typename std::enable_if<trait::is_cstr_type<T>(), MutableValue>::type
+    typename std::enable_if<trait::is_cstr_type<T>(), MutableValue>::type
     index(T key) const { return index(key, key ? ::strlen(key) : 0); }
 
     // non-const version for automatic object insertion
@@ -672,7 +672,7 @@ public:
     template <size_t N>
     MutableValue index(const char(&key)[N]) { return index(key, N-1); }
     template<typename T>
-    inline typename std::enable_if<trait::is_cstr_type<T>(), MutableValue>::type
+    typename std::enable_if<trait::is_cstr_type<T>(), MutableValue>::type
     index(T key) { return index(key, key ? ::strlen(key) : 0); }
 
     // Array and object access operator (const version)
@@ -697,7 +697,7 @@ public:
     template <size_t N>
     MutableValue pathto(const char(&path)[N]) const { return pathto(path, N-1); }
     template<typename T>
-    inline typename std::enable_if<trait::is_cstr_type<T>(), MutableValue>::type
+    typename std::enable_if<trait::is_cstr_type<T>(), MutableValue>::type
     pathto(T path) const {
         return pathto(path, path ? ::strlen(path) : 0);
     }
@@ -734,7 +734,7 @@ public:
     
     // C-Style string: const char* value
     template<typename T>
-    inline typename std::enable_if<trait::is_cstr_type<T>(), MutableValue&>::type
+    typename std::enable_if<trait::is_cstr_type<T>(), MutableValue&>::type
     set(T value);
 
     // Assignment operators
