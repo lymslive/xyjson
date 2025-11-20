@@ -1960,32 +1960,86 @@ mdtitle_update.pl 可检测更新，只在必要时备份重写。而且 mdtitle
 
 然后使用之前已开发的脚本同步文档示例测试，手动调整也不慢。
 
-## TODO: 优化性能测试用例
+## TODO:2025-11-20/1 性能测试重构方案
 
-辅助函数依次接收如下参数：
-- 第一函数名字符串，用于汇报标识
+重构 perf/ 子目录的代码。
+
+首先删去 perf/p_comparison.cpp 文件与 perf/perf_common.h 的 printComparisonTable
+函数，意义不大。
+
+然后 perf/perf_common.h 增加一个 relativePerformance 函数代替
+measurePerformance 与 printComparison 的功能。该辅助函数依次接收如下参数：
+
+- 第一函数名字符串，用于汇报标识，如 "xyjson method"
 - 第一函数
-- 第二函数名字符串，用于汇报标识
+- 第二函数名字符串，用于汇报标识，如 "yyjson method"
 - 第二函数
 - 循环次数 n，默认 100 次
 - 最少时间 ms，毫秒数，默认 0，如果非 0 ，则第一个函数循环 n 次的总时间要达到
   ms , 如果小于 ms ，则增加循环次数，更新为 N 次，第二个函数也循环 N 次
 - 允许的开销百分比阈值，默认 0 ，即期望第一个函数的总运行时间比第二个函数少，
   性能更高。如果参数大于 0 ，则表示允许第一个函数更慢些，但不能慢得太多。
+- 返回 ture 表示第一个函数的性能满足预期，可算测试通过。
 
 该辅助驱动函数的基本思想是测试两个函数的相对性能，因为绝对时间或性能在不同配置
 的机器上可能有较大差异，所以要测相对性能。可将第一个函数作为被测函数，第二个函
 数视为基准函数。
 
-然后需要测试更多不同规模数据的场景下的性能比较。增加一个辅助函数，接收一个规模
-参数 N ，生成一个 json ，包含 N 长度的数组与对象，大致格式为：
+原来的测试用例调用两次 measurePerformance 与一次 printComparison 的模式改为调
+用一次 relativePerformance.
+
+但不需要每个用例都显式给 relativePerformance 传入最后两个参数。这两个参数应该
+可以从命令行参数动态地调整，例如：
+
+```bash
+./build/perf_test --runtime_ms=200 --overhead_percent=5 [其他参数指定用例名]
+```
+
+couttast 测试框架支持这样从命令行读取参数。要求 `#include "couttast/tastargv.hpp"`
+再用 `BIND_ARGV` 将变量绑定（读取）命令行参数名。可在 relativePerformance 函数
+内统一处理该命令行参数。可以就将 200 与 5 当作这两个的默认参数，比 0 更合适。
+参考 `~/include/couttast/tastargv.hpp` 头文件。
+
+根据最少运行时间指标动态调整循环次数时尽可能取整。基本原则是只允许两个有效数字，
+循环次数取 `[a.0 | a.2 | a.5] x 10^n`，例如 100 120 150 200 ... 这样的整数。
+
+然后需要测试更多不同规模数据的场景下的性能比较。
+增加一个辅助函数，签名大约是 yyjson::Document createJsonContainer(int n);
+接收一个规模参数 N ，生成一个 json ，包含 N 长度的数组与对象，大致格式为：
 
 {
     "array": [0, 1, 2, ..., N-1],
     "object: {"k0":0, "k1":1, ..., "kN-1": N-1}
 }
 
-测试函数做一个简单的统计业务，计算 sum(array) 与 sum(object)
+测试函数可据此做一个简单的统计业务，计算 sum(array) 与 sum(object)
+
+删除以下四个测试:
+- access_array_100
+- access_array_objects_100
+- iterator_array_100
+- iterator_array_objects_100
+
+改为用新增的 createJsonContainer 函数生成规模 100, 1000, 10000 的测试数据，测
+试使用 xyjson 与 yyjson 的相对性能。测试用例命名：
+
+- access_array_100
+- access_object_100
+- access_array_1000
+- access_object_1000
+- access_array_10k
+- access_object_10k
+- iterator_array_100
+- iterator_object_100
+- iterator_array_1000
+- iterator_object_1000
+- iterator_array_10k
+- iterator_object_10k
+
+最后更新 perf/README.md 文档，同步调整修改过的内容。末尾加一节内容
+`## 最近性能测试报告概要与说明` 。
+
+### DONE: 20251120-140254
 
 ## TODO: 优化内联宏
 

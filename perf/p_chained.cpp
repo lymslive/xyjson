@@ -36,6 +36,7 @@ DEF_TAST(chained_deep_path, "深度链式访问对比")
 
     long long xyjson_total = measurePerformance("xyjson", [&doc]() {
         int value = doc / "level1" / "level2" / "level3" / "level4" / "level5" / "value" | 0;
+        COUTF(value, 42);
     }, 10000);
 
     yyjson_doc* yy_doc = yyjson_read(jsonText.c_str(), jsonText.size(), 0);
@@ -49,6 +50,7 @@ DEF_TAST(chained_deep_path, "深度链式访问对比")
         yyjson_val* l5 = l4 ? yyjson_obj_get(l4, "level5") : NULL;
         yyjson_val* value = l5 ? yyjson_obj_get(l5, "value") : NULL;
         long long val = value ? yyjson_get_sint(value) : 0;
+        COUTF(val, 42);
     }, 10000);
 
     yyjson_doc_free(yy_doc);
@@ -68,6 +70,7 @@ DEF_TAST(chained_parse_and_access, "解析+访问组合对比")
     long long xyjson_total = measurePerformance("xyjson", [&jsonText]() {
         Document doc(jsonText);
         int value = doc / "data" / "value" | 0;
+        COUTF(value, 42);
     }, 10000);
 
     long long yyjson_total = measurePerformance("yyjson", [&jsonText]() {
@@ -78,6 +81,7 @@ DEF_TAST(chained_parse_and_access, "解析+访问组合对比")
             yyjson_val* value = data ? yyjson_obj_get(data, "value") : NULL;
             long long val = value ? yyjson_get_sint(value) : 0;
             yyjson_doc_free(doc);
+            COUTF(val, 42);
         }
     }, 10000);
 

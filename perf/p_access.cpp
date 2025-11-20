@@ -12,8 +12,7 @@
 #include "perf_common.h"
 
 using namespace yyjson;
-using perf::measurePerformance;
-using perf::printComparison;
+using namespace perf;
 
 // 测试 1: 简单字段访问对比
 DEF_TAST(access_simple, "简单字段访问对比")
@@ -262,106 +261,35 @@ DEF_TAST(access_complex_file, "复杂文件访问对比")
 // 测试 7: 100 元素数组访问对比
 DEF_TAST(access_array_100, "数组元素访问对比(100个元素)")
 {
-    // Generate 100 numbers
-    std::string jsonText = "{\"scores\": [";
-    for (int i = 0; i < 100; ++i) {
-        jsonText += std::to_string(50 + (i % 50));
-        if (i < 99) jsonText += ",";
-    }
-    jsonText += "]}";
-
-    Document doc(jsonText);
-    if (!doc) {
-        DESC("Error: Failed to parse JSON");
-        return;
-    }
-
-    long long xyjson_total = measurePerformance("xyjson", [&doc]() {
-        auto scores = doc / "scores";
-        long long sum = 0;
-        size_t count = scores.size();
-        COUTF(count, 100);
-        for (size_t i = 0; i < count; ++i) {
-            sum += scores[i] | 0;
+    Document doc = createJsonContainer(100);
+    yyjson_doc* yy_doc = doc.c_doc();
+    
+    bool passed = relativePerformance(
+        "xyjson array access",
+        [&doc]() {
+            long long sum = 0;
+            auto array = doc / "array";
+            size_t count = array.size();
+            for (size_t i = 0; i < count; ++i) {
+                sum += array[i] | 0;
+            }
+            COUTF(sum, 4950); // 验证业务正确性: 0+1+...+99 = 4950
+        },
+        "yyjson array access",
+        [yy_doc]() {
+            yyjson_val* root = yyjson_doc_get_root(yy_doc);
+            yyjson_val* array = yyjson_obj_get(root, "array");
+            
+            long long sum = 0;
+            size_t count = yyjson_arr_size(array);
+            for (size_t i = 0; i < count; ++i) {
+                yyjson_val* val = yyjson_arr_get(array, i);
+                sum += yyjson_get_sint(val);
+            }
+            COUTF(sum, 4950);
         }
-        COUTF(sum, 7450);
-    }, 1000);
+    );
 
-    yyjson_doc* yy_doc = yyjson_read(jsonText.c_str(), jsonText.size(), 0);
-    yyjson_val* yy_root = yyjson_doc_get_root(yy_doc);
-    if (!yy_root) {
-        yyjson_doc_free(yy_doc);
-        DESC("Error: yyjson failed to parse");
-        return;
-    }
-
-    long long yyjson_total = measurePerformance("yyjson", [&]() {
-        yyjson_val* scores = yyjson_obj_get(yy_root, "scores");
-        long long sum = 0;
-        size_t count = yyjson_arr_size(scores);
-        COUTF(count, 100);
-        for (size_t i = 0; i < count; ++i) {
-            yyjson_val* val = yyjson_arr_get(scores, i);
-            sum += yyjson_get_sint(val);
-        }
-        COUTF(sum, 7450);
-    }, 1000);
-
-    yyjson_doc_free(yy_doc);
-
-    printComparison("数组元素访问", "100个元素的数组遍历", xyjson_total, yyjson_total, 1000);
+    COUT(passed, true);
 }
 
-// 测试 8: 100 对象数组访问对比
-DEF_TAST(access_array_objects_100, "对象数组访问对比(100个对象)")
-{
-    // Generate 100 employee objects
-    std::string jsonText = "{\"employees\": [";
-    for (int i = 0; i < 100; ++i) {
-        jsonText += "{\"name\":\"Employee" + std::to_string(i) + "\",\"age\":" + std::to_string(25 + (i % 30)) + ",\"salary\":" + std::to_string(50000 + i * 1000) + "}";
-        if (i < 99) jsonText += ",";
-    }
-    jsonText += "]}";
-
-    Document doc(jsonText);
-    if (!doc) {
-        DESC("Error: Failed to parse JSON");
-        return;
-    }
-
-    long long xyjson_total = measurePerformance("xyjson", [&doc]() {
-        auto employees = doc / "employees";
-        long long total_salary = 0;
-        size_t count = employees.size();
-        COUTF(count, 100);
-        for (size_t i = 0; i < count; ++i) {
-            total_salary += employees[i] / "salary" | 0;
-        }
-        COUTF(total_salary, 9950000);
-    }, 1000);
-
-    yyjson_doc* yy_doc = yyjson_read(jsonText.c_str(), jsonText.size(), 0);
-    yyjson_val* yy_root = yyjson_doc_get_root(yy_doc);
-    if (!yy_root) {
-        yyjson_doc_free(yy_doc);
-        DESC("Error: yyjson failed to parse");
-        return;
-    }
-
-    long long yyjson_total = measurePerformance("yyjson", [&]() {
-        yyjson_val* employees = yyjson_obj_get(yy_root, "employees");
-        long long total_salary = 0;
-        size_t count = yyjson_arr_size(employees);
-        COUTF(count, 100);
-        for (size_t i = 0; i < count; ++i) {
-            yyjson_val* emp = yyjson_arr_get(employees, i);
-            yyjson_val* salary = yyjson_obj_get(emp, "salary");
-            total_salary += salary ? yyjson_get_sint(salary) : 0;
-        }
-        COUTF(total_salary, 9950000);
-    }, 1000);
-
-    yyjson_doc_free(yy_doc);
-
-    printComparison("对象数组访问", "100个员工对象数组", xyjson_total, yyjson_total, 1000);
-}

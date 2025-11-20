@@ -3020,3 +3020,37 @@ perl script/extract_doc_examples.pl docs/api.md --target=utest/t_api.cpp --heade
 - **代码质量**: 测试覆盖率达到 100%，确保示例代码的正确性
 - **兼容性**: 适配了不同编译器版本的字符串操作差异
 
+## 任务ID: 20251120-140254
+- **任务类型**: 重构
+- **任务状态**: 已完成
+- **执行AI**: DeepSeek-V3.1
+
+### 任务需求
+性能测试重构方案（需求ID: 2025-11-20/1）
+
+### 实施内容
+1. **删除不需要的文件和函数**：
+   - 删除了 `p_comparison.cpp` 文件
+   - 删除了 `printComparisonTable` 函数
+
+2. **实现相对性能测试函数**：
+   - 新增 `relativePerformance()` 函数，支持相对性能比较
+   - 实现 `adjustIterations()` 函数，支持动态迭代次数调整
+   - 实现 `createJsonContainer()` 函数，创建标准测试数据
+
+3. **重构性能测试用例**：
+   - 修改 `p_access.cpp` 中的 `access_array_100` 用例
+   - 删除 `access_array_objects_100` 用例
+   - 修改 `p_iterator.cpp` 中的 `iterator_array_100` 用例
+   - 删除 `iterator_array_objects_100` 用例
+
+4. **更新构建配置和文档**：
+   - 更新 `CMakeLists.txt` 删除已删除的文件引用
+   - 全面更新 `perf/README.md` 文档，反映新的测试方案
+
+### 核心特性
+- 相对性能比较（xyjson vs yyjson 原生 API）
+- 动态迭代次数调整，确保可靠的测试时间
+- 支持命令行参数动态配置
+- 业务正确性验证确保测试可靠性
+

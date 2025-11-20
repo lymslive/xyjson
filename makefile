@@ -67,16 +67,13 @@ otable: .touch/otable.t
 release: clean
 	@echo "Building in Release mode with performance tests enabled..."
 	mkdir -p build
-	cd build && cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_PERF=ON ..
+	cd build && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DBUILD_PERF=ON ..
 	cd build && make -j4
 
 # Run performance tests (requires perf_test to be built)
 perf: build
 	@echo "Running performance tests..."
-	@if [ ! -f "./build/perf_test" ]; then \
-		echo "Error: perf_test not found. Run 'make release' first."; \
-		exit 1; \
-	fi
+	cd build && make perf_test
 	./build/perf_test
 
 # Alias for help target
