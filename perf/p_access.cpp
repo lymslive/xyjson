@@ -25,31 +25,35 @@ DEF_TAST(access_simple, "简单字段访问对比")
     })json";
 
     Document doc(jsonText);
-
-    long long xyjson_total = measurePerformance("xyjson", [&doc]() {
-        const char* name = doc / "name" | "";
-        int age = doc / "age" | 0;
-        const char* email = doc / "email" | "";
-        bool active = doc / "is_active" | false;
-    }, 10000);
-
     yyjson_doc* yy_doc = yyjson_read(jsonText.c_str(), jsonText.size(), 0);
-    yyjson_val* yy_root = yyjson_doc_get_root(yy_doc);
-
-    long long yyjson_total = measurePerformance("yyjson", [&]() {
-        yyjson_val* name = yyjson_obj_get(yy_root, "name");
-        yyjson_val* age = yyjson_obj_get(yy_root, "age");
-        yyjson_val* email = yyjson_obj_get(yy_root, "email");
-        yyjson_val* is_active = yyjson_obj_get(yy_root, "is_active");
-        const char* name_str = name ? yyjson_get_str(name) : "";
-        long long age_val = age ? yyjson_get_sint(age) : 0;
-        const char* email_str = email ? yyjson_get_str(email) : "";
-        bool active_val = is_active ? yyjson_get_bool(is_active) : false;
-    }, 10000);
+    
+    bool passed = relativePerformance(
+        "xyjson simple access",
+        [&doc]() {
+            const char* name = doc / "name" | "";
+            int age = doc / "age" | 0;
+            const char* email = doc / "email" | "";
+            bool active = doc / "is_active" | false;
+            COUTF(age, 30);
+        },
+        "yyjson simple access",
+        [yy_doc]() {
+            yyjson_val* root = yyjson_doc_get_root(yy_doc);
+            yyjson_val* name = yyjson_obj_get(root, "name");
+            yyjson_val* age = yyjson_obj_get(root, "age");
+            yyjson_val* email = yyjson_obj_get(root, "email");
+            yyjson_val* is_active = yyjson_obj_get(root, "is_active");
+            const char* name_str = name ? yyjson_get_str(name) : "";
+            long long age_val = age ? yyjson_get_int(age) : 0;
+            const char* email_str = email ? yyjson_get_str(email) : "";
+            bool active_val = is_active ? yyjson_get_bool(is_active) : false;
+            COUTF(age_val, 30);
+        },
+        10000
+    );
 
     yyjson_doc_free(yy_doc);
-
-    printComparison("简单字段访问", "4个字段(name,age,email,active)", xyjson_total, yyjson_total, 10000);
+    COUT(passed, true);
 }
 
 // 测试 2: 嵌套字段访问对比
@@ -69,34 +73,38 @@ DEF_TAST(access_nested, "嵌套字段访问对比")
     })json";
 
     Document doc(jsonText);
-
-    long long xyjson_total = measurePerformance("xyjson", [&doc]() {
-        const char* name = doc / "user" / "profile" / "name" | "";
-        int age = doc / "user" / "profile" / "age" | 0;
-        const char* city = doc / "user" / "profile" / "address" / "city" | "";
-        const char* zip = doc / "user" / "profile" / "address" / "zip" | "";
-    }, 10000);
-
     yyjson_doc* yy_doc = yyjson_read(jsonText.c_str(), jsonText.size(), 0);
-    yyjson_val* yy_root = yyjson_doc_get_root(yy_doc);
-
-    long long yyjson_total = measurePerformance("yyjson", [&]() {
-        yyjson_val* user = yyjson_obj_get(yy_root, "user");
-        yyjson_val* profile = user ? yyjson_obj_get(user, "profile") : NULL;
-        yyjson_val* name = profile ? yyjson_obj_get(profile, "name") : NULL;
-        yyjson_val* age = profile ? yyjson_obj_get(profile, "age") : NULL;
-        yyjson_val* address = profile ? yyjson_obj_get(profile, "address") : NULL;
-        yyjson_val* city = address ? yyjson_obj_get(address, "city") : NULL;
-        yyjson_val* zip = address ? yyjson_obj_get(address, "zip") : NULL;
-        const char* name_str = name ? yyjson_get_str(name) : "";
-        long long age_val = age ? yyjson_get_sint(age) : 0;
-        const char* city_str = city ? yyjson_get_str(city) : "";
-        const char* zip_str = zip ? yyjson_get_str(zip) : "";
-    }, 10000);
+    
+    bool passed = relativePerformance(
+        "xyjson nested access",
+        [&doc]() {
+            const char* name = doc / "user" / "profile" / "name" | "";
+            int age = doc / "user" / "profile" / "age" | 0;
+            const char* city = doc / "user" / "profile" / "address" / "city" | "";
+            const char* zip = doc / "user" / "profile" / "address" / "zip" | "";
+            COUTF(age, 30);
+        },
+        "yyjson nested access",
+        [yy_doc]() {
+            yyjson_val* root = yyjson_doc_get_root(yy_doc);
+            yyjson_val* user = yyjson_obj_get(root, "user");
+            yyjson_val* profile = user ? yyjson_obj_get(user, "profile") : NULL;
+            yyjson_val* name = profile ? yyjson_obj_get(profile, "name") : NULL;
+            yyjson_val* age = profile ? yyjson_obj_get(profile, "age") : NULL;
+            yyjson_val* address = profile ? yyjson_obj_get(profile, "address") : NULL;
+            yyjson_val* city = address ? yyjson_obj_get(address, "city") : NULL;
+            yyjson_val* zip = address ? yyjson_obj_get(address, "zip") : NULL;
+            const char* name_str = name ? yyjson_get_str(name) : "";
+            long long age_val = age ? yyjson_get_int(age) : 0;
+            const char* city_str = city ? yyjson_get_str(city) : "";
+            const char* zip_str = zip ? yyjson_get_str(zip) : "";
+            COUTF(age_val, 30);
+        },
+        10000
+    );
 
     yyjson_doc_free(yy_doc);
-
-    printComparison("嵌套字段访问", "4层嵌套访问", xyjson_total, yyjson_total, 10000);
+    COUT(passed, true);
 }
 
 // 测试 3: 数组元素访问对比
@@ -107,32 +115,34 @@ DEF_TAST(access_array_10, "数组元素访问对比(10个元素)")
     })json";
 
     Document doc(jsonText);
-
-    long long xyjson_total = measurePerformance("xyjson", [&doc]() {
-        auto scores = doc / "scores";
-        int sum = 0;
-        size_t count = scores.size();
-        for (size_t i = 0; i < count; ++i) {
-            sum += scores[i] | 0;
-        }
-    }, 10000);
-
     yyjson_doc* yy_doc = yyjson_read(jsonText.c_str(), jsonText.size(), 0);
-    yyjson_val* yy_root = yyjson_doc_get_root(yy_doc);
-
-    long long yyjson_total = measurePerformance("yyjson", [&]() {
-        yyjson_val* scores = yyjson_obj_get(yy_root, "scores");
-        long long sum = 0;
-        size_t count = yyjson_arr_size(scores);
-        for (size_t i = 0; i < count; ++i) {
-            yyjson_val* val = yyjson_arr_get(scores, i);
-            sum += yyjson_get_sint(val);
-        }
-    }, 10000);
+    
+    bool passed = relativePerformance(
+        "xyjson array access",
+        [&doc]() {
+            auto scores = doc / "scores";
+            int sum = 0;
+            size_t count = scores.size();
+            for (size_t i = 0; i < count; ++i) {
+                sum += scores[i] | 0;
+            }
+        },
+        "yyjson array access",
+        [yy_doc]() {
+            yyjson_val* root = yyjson_doc_get_root(yy_doc);
+            yyjson_val* scores = yyjson_obj_get(root, "scores");
+            long long sum = 0;
+            size_t count = yyjson_arr_size(scores);
+            for (size_t i = 0; i < count; ++i) {
+                yyjson_val* val = yyjson_arr_get(scores, i);
+                sum += yyjson_get_int(val);
+            }
+        },
+        10000
+    );
 
     yyjson_doc_free(yy_doc);
-
-    printComparison("数组元素访问", "10个元素的数组遍历", xyjson_total, yyjson_total, 10000);
+    COUT(passed, true);
 }
 
 // 测试 4: 对象数组访问对比
@@ -147,33 +157,35 @@ DEF_TAST(access_array_objects_3, "对象数组访问对比(3个对象)")
     })json";
 
     Document doc(jsonText);
-
-    long long xyjson_total = measurePerformance("xyjson", [&doc]() {
-        auto employees = doc / "employees";
-        int total_age = 0;
-        size_t count = employees.size();
-        for (size_t i = 0; i < count; ++i) {
-            total_age += employees[i] / "age" | 0;
-        }
-    }, 10000);
-
     yyjson_doc* yy_doc = yyjson_read(jsonText.c_str(), jsonText.size(), 0);
-    yyjson_val* yy_root = yyjson_doc_get_root(yy_doc);
-
-    long long yyjson_total = measurePerformance("yyjson", [&]() {
-        yyjson_val* employees = yyjson_obj_get(yy_root, "employees");
-        long long total_age = 0;
-        size_t count = yyjson_arr_size(employees);
-        for (size_t i = 0; i < count; ++i) {
-            yyjson_val* emp = yyjson_arr_get(employees, i);
-            yyjson_val* age = yyjson_obj_get(emp, "age");
-            total_age += age ? yyjson_get_sint(age) : 0;
-        }
-    }, 10000);
+    
+    bool passed = relativePerformance(
+        "xyjson object array access",
+        [&doc]() {
+            auto employees = doc / "employees";
+            int total_age = 0;
+            size_t count = employees.size();
+            for (size_t i = 0; i < count; ++i) {
+                total_age += employees[i] / "age" | 0;
+            }
+        },
+        "yyjson object array access",
+        [yy_doc]() {
+            yyjson_val* root = yyjson_doc_get_root(yy_doc);
+            yyjson_val* employees = yyjson_obj_get(root, "employees");
+            long long total_age = 0;
+            size_t count = yyjson_arr_size(employees);
+            for (size_t i = 0; i < count; ++i) {
+                yyjson_val* emp = yyjson_arr_get(employees, i);
+                yyjson_val* age = yyjson_obj_get(emp, "age");
+                total_age += age ? yyjson_get_int(age) : 0;
+            }
+        },
+        10000
+    );
 
     yyjson_doc_free(yy_doc);
-
-    printComparison("对象数组访问", "3个员工对象数组", xyjson_total, yyjson_total, 10000);
+    COUT(passed, true);
 }
 
 // 测试 5: 类型转换对比
@@ -187,31 +199,33 @@ DEF_TAST(access_type_conversion, "类型转换对比")
     })json";
 
     Document doc(jsonText);
-
-    long long xyjson_total = measurePerformance("xyjson", [&doc]() {
-        int int_val = doc / "int_val" | 0;
-        double double_val = doc / "double_val" | 0.0;
-        bool bool_val = doc / "bool_val" | false;
-        const char* string_val = doc / "string_val" | "";
-    }, 10000);
-
     yyjson_doc* yy_doc = yyjson_read(jsonText.c_str(), jsonText.size(), 0);
-    yyjson_val* yy_root = yyjson_doc_get_root(yy_doc);
-
-    long long yyjson_total = measurePerformance("yyjson", [&]() {
-        yyjson_val* int_val = yyjson_obj_get(yy_root, "int_val");
-        yyjson_val* double_val = yyjson_obj_get(yy_root, "double_val");
-        yyjson_val* bool_val = yyjson_obj_get(yy_root, "bool_val");
-        yyjson_val* string_val = yyjson_obj_get(yy_root, "string_val");
-        long long int_v = int_val ? yyjson_get_sint(int_val) : 0;
-        double double_v = double_val ? yyjson_get_real(double_val) : 0.0;
-        bool bool_v = bool_val ? yyjson_get_bool(bool_val) : false;
-        const char* string_v = string_val ? yyjson_get_str(string_val) : "";
-    }, 10000);
+    
+    bool passed = relativePerformance(
+        "xyjson type conversion",
+        [&doc]() {
+            int int_val = doc / "int_val" | 0;
+            double double_val = doc / "double_val" | 0.0;
+            bool bool_val = doc / "bool_val" | false;
+            const char* string_val = doc / "string_val" | "";
+        },
+        "yyjson type conversion",
+        [yy_doc]() {
+            yyjson_val* root = yyjson_doc_get_root(yy_doc);
+            yyjson_val* int_val = yyjson_obj_get(root, "int_val");
+            yyjson_val* double_val = yyjson_obj_get(root, "double_val");
+            yyjson_val* bool_val = yyjson_obj_get(root, "bool_val");
+            yyjson_val* string_val = yyjson_obj_get(root, "string_val");
+            long long int_v = int_val ? yyjson_get_int(int_val) : 0;
+            double double_v = double_val ? yyjson_get_real(double_val) : 0.0;
+            bool bool_v = bool_val ? yyjson_get_bool(bool_val) : false;
+            const char* string_v = string_val ? yyjson_get_str(string_val) : "";
+        },
+        10000
+    );
 
     yyjson_doc_free(yy_doc);
-
-    printComparison("类型转换", "int, double, bool, string", xyjson_total, yyjson_total, 10000);
+    COUT(passed, true);
 }
 
 // 测试 6: 复杂文件访问对比
@@ -221,41 +235,44 @@ DEF_TAST(access_complex_file, "复杂文件访问对比")
     std::stringstream buffer;
     buffer << file.rdbuf();
     Document doc(buffer.str());
-
-    long long xyjson_total = measurePerformance("xyjson", [&doc]() {
-        int total_employees = doc / "metrics" / "total_employees" | 0;
-        auto employees = doc / "employees";
-        int count = 0;
-        for (size_t i = 0; i < employees.size() && i < 10; ++i) {
-            int salary = employees[i] / "salary" | 0;
-            count += salary > 0 ? 1 : 0;
-        }
-    }, 1000);
-
+    
     std::string jsonText = buffer.str();
     yyjson_doc* yy_doc = yyjson_read(jsonText.c_str(), jsonText.size(), 0);
-    yyjson_val* yy_root = yyjson_doc_get_root(yy_doc);
-
-    long long yyjson_total = measurePerformance("yyjson", [&]() {
-        yyjson_val* metrics = yyjson_obj_get(yy_root, "metrics");
-        long long total_employees = metrics ? yyjson_get_sint(yyjson_obj_get(metrics, "total_employees")) : 0;
-        yyjson_val* employees = yyjson_obj_get(yy_root, "employees");
-        size_t count = 0;
-        if (employees) {
-            size_t emp_count = yyjson_arr_size(employees);
-            for (size_t i = 0; i < emp_count && i < 10; ++i) {
-                yyjson_val* emp = yyjson_arr_get(employees, i);
-                yyjson_val* salary = yyjson_obj_get(emp, "salary");
-                if (salary && yyjson_get_sint(salary) > 0) {
-                    count++;
+    
+    bool passed = relativePerformance(
+        "xyjson complex file access",
+        [&doc]() {
+            int total_employees = doc / "metrics" / "total_employees" | 0;
+            auto employees = doc / "employees";
+            int count = 0;
+            for (size_t i = 0; i < employees.size() && i < 10; ++i) {
+                int salary = employees[i] / "salary" | 0;
+                count += salary > 0 ? 1 : 0;
+            }
+        },
+        "yyjson complex file access",
+        [yy_doc]() {
+            yyjson_val* root = yyjson_doc_get_root(yy_doc);
+            yyjson_val* metrics = yyjson_obj_get(root, "metrics");
+            long long total_employees = metrics ? yyjson_get_int(yyjson_obj_get(metrics, "total_employees")) : 0;
+            yyjson_val* employees = yyjson_obj_get(root, "employees");
+            size_t count = 0;
+            if (employees) {
+                size_t emp_count = yyjson_arr_size(employees);
+                for (size_t i = 0; i < emp_count && i < 10; ++i) {
+                    yyjson_val* emp = yyjson_arr_get(employees, i);
+                    yyjson_val* salary = yyjson_obj_get(emp, "salary");
+                    if (salary && yyjson_get_int(salary) > 0) {
+                        count++;
+                    }
                 }
             }
-        }
-    }, 1000);
+        },
+        1000
+    );
 
     yyjson_doc_free(yy_doc);
-
-    printComparison("复杂文件访问", "medium.json (30KB) 实际业务数据", xyjson_total, yyjson_total, 10000);
+    COUT(passed, true);
 }
 
 // 测试 7: 100 元素数组访问对比
@@ -284,10 +301,124 @@ DEF_TAST(access_array_100, "数组元素访问对比(100个元素)")
             size_t count = yyjson_arr_size(array);
             for (size_t i = 0; i < count; ++i) {
                 yyjson_val* val = yyjson_arr_get(array, i);
-                sum += yyjson_get_sint(val);
+                sum += yyjson_get_int(val);
             }
             COUTF(sum, 4950);
         }
+    );
+
+    COUT(passed, true);
+}
+
+// 测试 8: 100 元素对象访问对比
+DEF_TAST(access_object_100, "对象访问对比(100个属性)")
+{
+    Document doc = createJsonContainer(100);
+    yyjson_doc* yy_doc = doc.c_doc();
+    
+    bool passed = relativePerformance(
+        "xyjson object access",
+        [&doc]() {
+            long long sum = 0;
+            auto obj = doc / "object";
+            size_t count = obj.size();
+            for (size_t i = 0; i < count; ++i) {
+                std::string key = "k" + std::to_string(i);
+                sum += obj / key.c_str() | 0; // 通过键名访问对象值
+            }
+            COUTF(sum, 4950); // 验证业务正确性: 0+1+...+99 = 4950
+        },
+        "yyjson object access",
+        [yy_doc]() {
+            yyjson_val* root = yyjson_doc_get_root(yy_doc);
+            yyjson_val* obj = yyjson_obj_get(root, "object");
+            
+            long long sum = 0;
+            size_t count = yyjson_obj_size(obj);
+            for (size_t i = 0; i < count; ++i) {
+                std::string key = "k" + std::to_string(i);
+                yyjson_val* val = yyjson_obj_getn(obj, key.c_str(), key.size());
+                sum += val ? yyjson_get_int(val) : 0;
+            }
+            COUTF(sum, 4950);
+        },
+        100
+    );
+
+    COUT(passed, true);
+}
+
+// 测试 9: 500 元素对象访问对比
+DEF_TAST(access_object_500, "对象访问对比(500个属性)")
+{
+    Document doc = createJsonContainer(500);
+    yyjson_doc* yy_doc = doc.c_doc();
+    
+    bool passed = relativePerformance(
+        "xyjson object access (500)",
+        [&doc]() {
+            long long sum = 0;
+            auto obj = doc / "object";
+            size_t count = obj.size();
+            for (size_t i = 0; i < count; ++i) {
+                std::string key = "k" + std::to_string(i);
+                sum += obj / key.c_str() | 0; // 通过键名访问对象值
+            }
+            COUTF(sum, 124750); // 验证业务正确性: 0+1+...+499 = 124750
+        },
+        "yyjson object access (500)",
+        [yy_doc]() {
+            yyjson_val* root = yyjson_doc_get_root(yy_doc);
+            yyjson_val* obj = yyjson_obj_get(root, "object");
+            
+            long long sum = 0;
+            size_t count = yyjson_obj_size(obj);
+            for (size_t i = 0; i < count; ++i) {
+                std::string key = "k" + std::to_string(i);
+                yyjson_val* val = yyjson_obj_getn(obj, key.c_str(), key.size());
+                sum += val ? yyjson_get_int(val) : 0;
+            }
+            COUTF(sum, 124750);
+        },
+        50
+    );
+
+    COUT(passed, true);
+}
+
+// 测试 10: 1000 元素对象访问对比
+DEF_TAST(access_object_1000, "对象访问对比(1000个属性)")
+{
+    Document doc = createJsonContainer(1000);
+    yyjson_doc* yy_doc = doc.c_doc();
+    
+    bool passed = relativePerformance(
+        "xyjson object access (1000)",
+        [&doc]() {
+            long long sum = 0;
+            auto obj = doc / "object";
+            size_t count = obj.size();
+            for (size_t i = 0; i < count; ++i) {
+                std::string key = "k" + std::to_string(i);
+                sum += obj / key.c_str() | 0; // 通过键名访问对象值
+            }
+            COUTF(sum, 499500); // 验证业务正确性: 0+1+...+999 = 499500
+        },
+        "yyjson object access (1000)",
+        [yy_doc]() {
+            yyjson_val* root = yyjson_doc_get_root(yy_doc);
+            yyjson_val* obj = yyjson_obj_get(root, "object");
+            
+            long long sum = 0;
+            size_t count = yyjson_obj_size(obj);
+            for (size_t i = 0; i < count; ++i) {
+                std::string key = "k" + std::to_string(i);
+                yyjson_val* val = yyjson_obj_getn(obj, key.c_str(), key.size());
+                sum += val ? yyjson_get_int(val) : 0;
+            }
+            COUTF(sum, 499500);
+        },
+        20
     );
 
     COUT(passed, true);

@@ -2041,6 +2041,19 @@ couttast 测试框架支持这样从命令行读取参数。要求 `#include "co
 
 ### DONE: 20251120-140254
 
+## TODO:2025-11-20/2 继续重构性能测试用例
+
+继续 2025-11-20/1 的未完工作。
+
+- 删除 printComparison 函数，将原有用例都参考 `access_array_100`
+  或 `iterator_array_100()` 用例改调 relativePerformance 函数。并在测试函数中加
+  一条 COUUTF 语句验证其工作正确。
+- 补充 `access_object_100` 与 `iterator_object_100` 用例
+- 补充两个更大规模的 `access_object_` 与 `iterator_object_` 用例
+- 编译后运行 ./build/perf_test 分析性能测试输出报告
+
+### DONE: 20251120-152409
+
 ## TODO: 优化内联宏
 
 分析哪些 inline 适合改用 yyjson_inline 宏，哪些最少就保持默认的 inline 。

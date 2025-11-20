@@ -3054,3 +3054,71 @@ perl script/extract_doc_examples.pl docs/api.md --target=utest/t_api.cpp --heade
 - 支持命令行参数动态配置
 - 业务正确性验证确保测试可靠性
 
+---
+
+## 任务ID: 20251120-152409
+- **任务类型**: 重构/测试
+- **任务状态**: 已完成
+- **执行AI**: DeepSeek-V3.1-Terminus
+- **对应需求**: TODO:2025-11-20/2
+
+### 任务需求
+重构性能测试用例，删除 printComparison 函数，改为使用 relativePerformance 函数，并补充新的对象访问和迭代器测试用例。
+
+### 执行过程
+**1. 性能测试框架分析**
+- 分析 perf/ 目录下的文件结构，包含5个测试文件
+- 检查 perf_common.h 和 perf_common.cpp 中的函数定义
+- 确定需要删除 printComparison 函数，迁移到 relativePerformance
+
+**2. 函数重构**
+- 从 perf_common.h 和 perf_common.cpp 中完全删除 printComparison 函数
+- 重构 p_parse.cpp 中的5个解析性能测试用例
+- 重构 p_iterator.cpp 中的迭代器性能测试用例
+- 重构 p_access.cpp 中的访问性能测试用例
+- 重构 p_chained.cpp 中的链式操作性能测试用例
+
+**3. 技术问题修正**
+- 修正对象访问用例：xyjson 和 yyjson 都使用键名访问而非索引访问
+- 修正 lambda 捕获：所有 yyjson lambda 从捕获 yy_root 改为捕获 yy_doc
+- 在函数内部使用 yyjson_doc_get_root(yy_doc) 获取 root 指针
+
+**4. 新增测试用例**
+- 在 p_access.cpp 中添加 access_object_100、access_object_500、access_object_1000
+- 在 p_iterator.cpp 中添加 iterator_object_100、iterator_object_500、iterator_object_1000
+- 所有新用例正确使用 relativePerformance 函数和 COUT 验证
+
+**5. 性能测试验证**
+- 编译性能测试程序：`cd build && make perf_test`
+- 运行3次500ms测试验证结果稳定性
+- 更新 perf/README.md 测试报告概要与说明
+
+### 完成成果
+**重构完成**：
+- ✅ 完全删除 printComparison 函数
+- ✅ 23个测试用例全部迁移到 relativePerformance 函数
+- ✅ 新增6个大规模对象访问和迭代器测试用例
+- ✅ 解决技术一致性问题和 lambda 捕获问题
+
+**性能测试结果**：
+- 使用500ms测试时间获得更稳定结果
+- xyjson 在复杂结构处理方面表现优异：
+  - 复杂文件访问：比 yyjson 快75-84%（极其稳定）
+  - 嵌套访问：比 yyjson 快20-42%（性能优势稳定）
+- 简单操作性能：比 yyjson 慢10-26%（需要优化）
+
+**迭代器 vs 普通循环对比**：
+- 数组访问：普通循环略优（1-6%优势）
+- 对象访问：迭代器巨大优势（快数百倍）
+- 推荐：数组用索引，对象用迭代器
+
+**测试验证**：
+- ✅ 编译成功，无错误
+- ✅ 性能测试正常运行，参数调整功能正常
+- ✅ 文档更新完成，包含最新测试结果
+
+### 技术要点
+- **relativePerformance 优势**：支持动态迭代次数调整，运行时参数配置
+- **技术一致性**：确保 xyjson 和 yyjson 测试方法完全对标
+- **大规模测试优化**：为1000个元素的测试调整迭代次数平衡精度和效率
+- **稳定性分析**：500ms测试时间显著减少浮动误差

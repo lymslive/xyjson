@@ -23,12 +23,6 @@ long long measurePerformance(const std::string& name,
                              std::function<void()> test_func,
                              int iterations = 1000);
 
-// 打印性能对比结果
-void printComparison(const std::string& category,
-                     const std::string& test_name,
-                     long long xyjson_total_us,
-                     long long yyjson_total_us,
-                     int iterations);
 
 // 相对性能测试函数
 bool relativePerformance(const std::string& test_name,

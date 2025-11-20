@@ -13,7 +13,7 @@
 
 using namespace yyjson;
 using perf::measurePerformance;
-using perf::printComparison;
+using perf::relativePerformance;
 
 // 测试 1: 深度链式访问对比
 DEF_TAST(chained_deep_path, "深度链式访问对比")
@@ -33,29 +33,32 @@ DEF_TAST(chained_deep_path, "深度链式访问对比")
     })json";
 
     Document doc(jsonText);
-
-    long long xyjson_total = measurePerformance("xyjson", [&doc]() {
-        int value = doc / "level1" / "level2" / "level3" / "level4" / "level5" / "value" | 0;
-        COUTF(value, 42);
-    }, 10000);
-
     yyjson_doc* yy_doc = yyjson_read(jsonText.c_str(), jsonText.size(), 0);
     yyjson_val* yy_root = yyjson_doc_get_root(yy_doc);
-
-    long long yyjson_total = measurePerformance("yyjson", [&]() {
-        yyjson_val* l1 = yyjson_obj_get(yy_root, "level1");
-        yyjson_val* l2 = l1 ? yyjson_obj_get(l1, "level2") : NULL;
-        yyjson_val* l3 = l2 ? yyjson_obj_get(l2, "level3") : NULL;
-        yyjson_val* l4 = l3 ? yyjson_obj_get(l3, "level4") : NULL;
-        yyjson_val* l5 = l4 ? yyjson_obj_get(l4, "level5") : NULL;
-        yyjson_val* value = l5 ? yyjson_obj_get(l5, "value") : NULL;
-        long long val = value ? yyjson_get_sint(value) : 0;
-        COUTF(val, 42);
-    }, 10000);
+    
+    bool passed = relativePerformance(
+        "xyjson deep path",
+        [&doc]() {
+            int value = doc / "level1" / "level2" / "level3" / "level4" / "level5" / "value" | 0;
+            COUTF(value, 42);
+        },
+        "yyjson deep path",
+        [yy_doc]() {
+            yyjson_val* root = yyjson_doc_get_root(yy_doc);
+            yyjson_val* l1 = yyjson_obj_get(root, "level1");
+            yyjson_val* l2 = l1 ? yyjson_obj_get(l1, "level2") : NULL;
+            yyjson_val* l3 = l2 ? yyjson_obj_get(l2, "level3") : NULL;
+            yyjson_val* l4 = l3 ? yyjson_obj_get(l3, "level4") : NULL;
+            yyjson_val* l5 = l4 ? yyjson_obj_get(l4, "level5") : NULL;
+            yyjson_val* value = l5 ? yyjson_obj_get(l5, "value") : NULL;
+            long long val = value ? yyjson_get_int(value) : 0;
+            COUTF(val, 42);
+        },
+        10000
+    );
 
     yyjson_doc_free(yy_doc);
-
-    printComparison("深度链式访问", "5层嵌套链式访问", xyjson_total, yyjson_total, 10000);
+    COUT(passed, true);
 }
 
 // 测试 2: 解析+访问组合对比
@@ -66,24 +69,28 @@ DEF_TAST(chained_parse_and_access, "解析+访问组合对比")
             "value": 42
         }
     })json";
-
-    long long xyjson_total = measurePerformance("xyjson", [&jsonText]() {
-        Document doc(jsonText);
-        int value = doc / "data" / "value" | 0;
-        COUTF(value, 42);
-    }, 10000);
-
-    long long yyjson_total = measurePerformance("yyjson", [&jsonText]() {
-        yyjson_doc* doc = yyjson_read(jsonText.c_str(), jsonText.size(), 0);
-        if (doc) {
-            yyjson_val* root = yyjson_doc_get_root(doc);
-            yyjson_val* data = yyjson_obj_get(root, "data");
-            yyjson_val* value = data ? yyjson_obj_get(data, "value") : NULL;
-            long long val = value ? yyjson_get_sint(value) : 0;
-            yyjson_doc_free(doc);
-            COUTF(val, 42);
-        }
-    }, 10000);
-
-    printComparison("解析+访问组合", "解析后立即访问", xyjson_total, yyjson_total, 10000);
+    
+    bool passed = relativePerformance(
+        "xyjson parse+access",
+        [&jsonText]() {
+            Document doc(jsonText);
+            int value = doc / "data" / "value" | 0;
+            COUTF(value, 42);
+        },
+        "yyjson parse+access",
+        [&jsonText]() {
+            yyjson_doc* doc = yyjson_read(jsonText.c_str(), jsonText.size(), 0);
+            if (doc) {
+                yyjson_val* root = yyjson_doc_get_root(doc);
+                yyjson_val* data = yyjson_obj_get(root, "data");
+                yyjson_val* value = data ? yyjson_obj_get(data, "value") : NULL;
+                long long val = value ? yyjson_get_int(value) : 0;
+                yyjson_doc_free(doc);
+                COUTF(val, 42);
+            }
+        },
+        10000
+    );
+    
+    COUT(passed, true);
 }

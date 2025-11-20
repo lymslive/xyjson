@@ -39,31 +39,8 @@ long long measurePerformance(const std::string& name,
     auto finish = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count();
 
-    DESC("  %s: %ld μs (总时间: %ld μs, 次数: %d, 平均: %.2f μs)",
-          name.c_str(), duration / iterations, duration, iterations, (double)duration / iterations);
     return duration;
 }
-
-// 打印性能对比结果
-void printComparison(const std::string& category,
-                     const std::string& test_name,
-                     long long xyjson_total_us,
-                     long long yyjson_total_us,
-                     int iterations) {
-    double xyjson_avg = (double)xyjson_total_us / iterations;
-    double yyjson_avg = (double)yyjson_total_us / iterations;
-    double overhead = xyjson_avg / yyjson_avg;
-    double overhead_percent = (overhead - 1.0) * 100.0;
-
-    DESC("性能对比 - %s", category.c_str());
-    DESC("  测试: %s (循环 %d 次)", test_name.c_str(), iterations);
-    DESC("  xyjson:  %.2f μs/次 (总: %ld μs)", xyjson_avg, xyjson_total_us);
-    DESC("  yyjson:  %.2f μs/次 (总: %ld μs)", yyjson_avg, yyjson_total_us);
-    DESC("  开销比:  %.2fx", overhead);
-    DESC("  开销%:   %.1f%%", overhead_percent);
-    DESC("");
-}
-
 
 // 调整循环次数到合适的值（取整并保证两个有效数字）
 // 调整循环次数到合适的值（向上圆整，保留两位有效数字）
@@ -108,6 +85,11 @@ int adjustIterations(int base_iterations, long long total_time_us, long long min
 }
 
 // 相对性能测试函数
+// 返回是否通过性能测试
+// 接收命令行参数：
+//   --runtime_ms=N    最小运行时间，默认200ms
+//   --overhead_percent=P 允许的最大开销百分比，默认5.0
+//   --no_loop=1       只运行一次测试，不进行性能对比
 bool relativePerformance(const std::string& test_name,
                         std::function<void()> test_func,
                         const std::string& base_name,
@@ -119,29 +101,46 @@ bool relativePerformance(const std::string& test_name,
     // 从命令行参数读取默认值
     long long runtime_ms = 200;
     double overhead_threshold = 5.0;
+    int no_loop = 0;
     
     // 尝试绑定命令行参数
     BIND_ARGV(runtime_ms, "runtime_ms");
     BIND_ARGV(overhead_threshold, "overhead_percent");
-    
+    BIND_ARGV(no_loop, "no_loop");
+
     // 使用命令行参数或默认值
     if (min_time_ms == 0) min_time_ms = runtime_ms;
     if (overhead_percent == 0.0) overhead_percent = overhead_threshold;
     
+    if (no_loop != 0)
+    {
+        iterations = 1;
+    }
+
+    int final_iterations = iterations;
+
     // 第一次运行测试函数
     long long test_time_us = measurePerformance(test_name, test_func, iterations);
     
     // 如果需要，调整迭代次数
-    int final_iterations = adjustIterations(iterations, test_time_us, min_time_ms);
-    
-    if (final_iterations != iterations) {
-        DESC("调整迭代次数: %d -> %d", iterations, final_iterations);
-        test_time_us = measurePerformance(test_name, test_func, final_iterations);
+    if (no_loop == 0 && min_time_ms > 0)
+    {
+        final_iterations = adjustIterations(iterations, test_time_us, min_time_ms);
+        if (final_iterations != iterations) {
+            DESC("调整迭代次数: %d -> %d", iterations, final_iterations);
+            test_time_us = measurePerformance(test_name, test_func, final_iterations);
+        }
     }
     
     // 运行基准函数
     long long base_time_us = measurePerformance(base_name, base_func, final_iterations);
     
+    // 如果只测试一次， 只测试函数功能，不测性能，直接返回成功
+    if (no_loop != 0)
+    {
+        return true;
+    }
+
     // 计算性能指标
     double test_avg = (double)test_time_us / final_iterations;
     double base_avg = (double)base_time_us / final_iterations;
