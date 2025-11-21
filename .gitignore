@@ -2,6 +2,7 @@
 build/
 Build/
 build_*/
+build-*/
 
 # CMake build artifacts
 CMakeCache.txt

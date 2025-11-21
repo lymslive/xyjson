@@ -2071,12 +2071,23 @@ couttast 测试框架支持这样从命令行读取参数。要求 `#include "co
 
 决定还是不用强制内联宏，保持代码简洁，让编译器优化自行合理内联。
 
-## TODO: 优化分支预测
+## TODO:2025-11-21/1 优化分支预测
 
 yyjson 库提供了 yyjson_likely 与 yyjson_unlikely 两个宏。
-分析 xyjson.h 实现代码中的条件判断，改用合适的分支预测宏。
+分析 xyjson.h 实现代码中的条件判断，哪些可以改用合适的分支预测宏。
 
-观察性能测试是否有所改进
+观察性能测试 `./build/perf_test --runtime_ms=500` 是否有所改进
+
+## DONE: 20251121-173504
+
+## TODO: 分析哪些实现可调用 yyjson unsafe api 优化性能
+
+yyjson.h 本地安装于系统目录 /usr/local/include
+它提借了许多 `unsafe_` 前缀的 api ，大约是在已经判断参数类型时使用。
+
+分析 xyjson.h 现在的封装实现，是否有哪些方法可以直接调用 `unsafe_` api 避免重
+复对参数的安全判断。如果做这样的重构，性价比如何，能否达到进一步提升 xyjson 性
+能的目的。
 
 ## TODO: v1.0.0 封版
 

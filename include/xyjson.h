@@ -327,7 +327,7 @@ public:
     bool isType(EmptyArray) const { return isArray(); }
     bool isType(EmptyObject) const { return isObject(); }
     bool isType(const char* type) const { 
-        if (type != nullptr) {
+        if (yyjson_likely(type != nullptr)) {
             if (::strcmp(type, "{}") == 0) return isObject();
             if (::strcmp(type, "[]") == 0) return isArray();
         }
@@ -481,7 +481,7 @@ public:
         other.m_doc = nullptr;
     }
     Document& operator=(Document&& other) noexcept {
-        if (this != &other) {
+        if (yyjson_likely(this != &other)) {
             free();
             m_doc = other.m_doc;
             other.m_doc = nullptr;
@@ -595,7 +595,7 @@ public:
     bool isType(EmptyObject) const { return isObject(); }
     bool isType(const char* type) const 
     { 
-        if (type != nullptr) {
+        if (yyjson_likely(type != nullptr)) {
             if (strcmp(type, "{}") == 0) return isObject();
             if (strcmp(type, "[]") == 0) return isArray();
         }
@@ -864,7 +864,7 @@ public:
         other.m_doc = nullptr;
     }
     MutableDocument& operator=(MutableDocument&& other) noexcept {
-        if (this != &other) {
+        if (yyjson_likely(this != &other)) {
             free();
             m_doc = other.m_doc;
             other.m_doc = nullptr;
@@ -1018,7 +1018,7 @@ public:
     ArrayIterator& end() { m_iter.idx = m_iter.max; return *this; }
     // Cycle to true end (traverse to the actual end)
     ArrayIterator& end(bool cycle) {
-        if (!cycle) return end();
+        if (yyjson_unlikely(!cycle)) return end();
         while (isValid()) next();
         return *this;
     }
@@ -1099,7 +1099,7 @@ public:
     ObjectIterator& end() { m_iter.idx = m_iter.max; return *this; }
     // Cycle to true end (traverse to the actual end)
     ObjectIterator& end(bool cycle) {
-        if (!cycle) return end();
+        if (yyjson_unlikely(!cycle)) return end();
         while (isValid()) next();
         return *this;
     }
@@ -1188,7 +1188,7 @@ public:
     MutableArrayIterator& end() { m_iter.idx = m_iter.max; return *this; }
     // Cycle to true end (traverse to the actual end)
     MutableArrayIterator& end(bool cycle) {
-        if (!cycle) return end();
+        if (yyjson_unlikely(!cycle)) return end();
         while (isValid()) next();
         return *this;
     }
@@ -1283,7 +1283,7 @@ public:
     MutableObjectIterator& end() { m_iter.idx = m_iter.max; return *this; }
     // Cycle to true end (traverse to the actual end)
     MutableObjectIterator& end(bool cycle) {
-        if (!cycle) return end();
+        if (yyjson_unlikely(!cycle)) return end();
         while (isValid()) next();
         return *this;
     }
@@ -1374,7 +1374,7 @@ public:
     ConstArray() : Value() {}
     explicit ConstArray(const Value& val) : Value(val) 
     {
-        if (!val.isArray()) { set(nullptr); } // Invalidate if not an array
+        if (yyjson_unlikely(!val.isArray())) { set(nullptr); } // Invalidate if not an array
     }
     
     // Standard iterator interface
@@ -1394,7 +1394,7 @@ public:
     ConstObject() : Value() {}
     explicit ConstObject(const Value& val) : Value(val) 
     {
-        if (!val.isObject()) { set(nullptr); } // Invalidate if not an object
+        if (yyjson_unlikely(!val.isObject())) { set(nullptr); } // Invalidate if not an object
     }
     
     // Standard iterator interface
@@ -1415,7 +1415,7 @@ public:
     MutableArray() : MutableValue() {}
     explicit MutableArray(const MutableValue& val) : MutableValue(val) 
     {
-        if (!val.isArray()) { set(nullptr); } // Invalidate if not an array
+        if (yyjson_unlikely(!val.isArray())) { set(nullptr); } // Invalidate if not an array
     }
     
     // Standard iterator interface
@@ -1435,7 +1435,7 @@ public:
     MutableObject() : MutableValue() {}
     explicit MutableObject(const MutableValue& val) : MutableValue(val) 
     {
-        if (!val.isObject()) { set(nullptr); } // Invalidate if not an object
+        if (yyjson_unlikely(!val.isObject())) { set(nullptr); } // Invalidate if not an object
     }
     
     // Standard iterator interface
@@ -1663,10 +1663,10 @@ template<typename T>
 inline typename std::enable_if<trait::is_value<T>::value, bool>::type
 lessCompare(const T& lhs, const T& rhs)
 {
-    if (!lhs.isValid()) {
+    if (yyjson_unlikely(!lhs.isValid())) {
         return rhs.isValid(); // an invalid value is less than a valid one
     }
-    if (!rhs.isValid()) {
+    if (yyjson_unlikely(!rhs.isValid())) {
         return false;
     }
 
@@ -1712,7 +1712,7 @@ template<typename jsonT>
 inline typename std::enable_if<trait::is_value<jsonT>::value, int>::type
 toIntegerCast(const jsonT& val)
 {
-    if (!val.isValid()) return 0;
+    if (yyjson_unlikely(!val.isValid())) return 0;
     
     if (val.isString()) {
         const char* str = val | "";
@@ -1775,7 +1775,7 @@ inline auto pipeApply(const jsonT& json, funcT&& func)
 
 inline bool Value::get(bool& result) const
 {
-    if (isBool()) {
+    if (yyjson_likely(isBool())) {
         result = yyjson_get_bool(m_val);
         return true;
     }
@@ -1784,7 +1784,7 @@ inline bool Value::get(bool& result) const
 
 inline bool Value::get(int& result) const
 {
-    if (isInt()) {
+    if (yyjson_likely(isInt())) {
         result = yyjson_get_int(m_val);
         return true;
     }
@@ -1811,7 +1811,7 @@ inline bool Value::get(uint64_t& result) const
 
 inline bool Value::get(double& result) const
 {
-    if (isReal()) {
+    if (yyjson_likely(isReal())) {
         result = yyjson_get_real(m_val);
         return true;
     }
@@ -1820,7 +1820,7 @@ inline bool Value::get(double& result) const
 
 inline bool Value::get(const char*& result) const
 {
-    if (isString()) {
+    if (yyjson_likely(isString())) {
         result = yyjson_get_str(m_val);
         return true;
     }
@@ -1829,7 +1829,7 @@ inline bool Value::get(const char*& result) const
 
 inline bool Value::get(std::string& result) const
 {
-    if (isString()) {
+    if (yyjson_likely(isString())) {
         result = yyjson_get_str(m_val);
         return true;
     }
@@ -1838,7 +1838,7 @@ inline bool Value::get(std::string& result) const
 
 inline bool Value::get(yyjson_val*& result) const
 {
-    if (isValid()) { result = m_val; return true; }
+    if (yyjson_likely(isValid())) { result = m_val; return true; }
     return false;
 }
 
@@ -1881,7 +1881,7 @@ inline auto Value::pipe(funcT&& func) const
 
 inline size_t Value::size() const
 {
-    if (!m_val) return 0;
+    if (yyjson_unlikely(!m_val)) return 0;
     if (yyjson_is_arr(m_val)) return yyjson_arr_size(m_val);
     if (yyjson_is_obj(m_val)) return yyjson_obj_size(m_val);
     return 0;
@@ -1889,19 +1889,19 @@ inline size_t Value::size() const
 
 inline Value Value::index(size_t idx) const
 {
-    if (!isArray()) return Value(nullptr);
+    if (yyjson_unlikely(!isArray())) return Value(nullptr);
     return Value(yyjson_arr_get(m_val, idx));
 }
 
 inline Value Value::index(const char* key, size_t len) const
 {
-    if (!isObject() || !key) return Value(nullptr);
+    if (yyjson_unlikely(!isObject() || !key)) return Value(nullptr);
     return Value(yyjson_obj_getn(m_val, key, len));
 }
 
 inline Value Value::pathto(const char* path, size_t len) const
 {
-    if (!path || len == 0) return *this;
+    if (yyjson_unlikely(!path || len == 0)) return *this;
     if (path[0] == '/') {
         yyjson_val* result = yyjson_ptr_getn(m_val, path, len);
         return Value(result);
@@ -1914,7 +1914,7 @@ inline Value Value::pathto(const char* path, size_t len) const
 
 inline ArrayIterator Value::iterator(size_t startIndex) const
 {
-    if (isArray()) {
+    if (yyjson_likely(isArray())) {
         ArrayIterator iter(m_val);
         return iter.advance(startIndex);
     }
@@ -1928,7 +1928,7 @@ inline ArrayIterator Value::iterator(int startIndex) const
 
 inline ObjectIterator Value::iterator(const char* startKey) const
 {
-    if (isObject()) {
+    if (yyjson_likely(isObject())) {
         ObjectIterator iter(m_val);
         return iter.advance(startKey);
     }
@@ -1980,8 +1980,8 @@ inline ConstObject Value::object() const
 
 inline std::string Value::toString(bool pretty) const
 {
-    if (!isValid()) return "";
-    
+    if (yyjson_unlikely(!isValid())) return "";
+
     if (isString() && !pretty) {
         return std::string(yyjson_get_str(m_val));
     }
@@ -1993,7 +1993,7 @@ inline std::string Value::toString(bool pretty) const
     
     size_t len = 0;
     char* json_str = yyjson_val_write(m_val, flags, &len);
-    if (!json_str) return "";
+    if (yyjson_unlikely(!json_str)) return "";
     
     std::string result(json_str, len);
     free(json_str);
@@ -2002,7 +2002,7 @@ inline std::string Value::toString(bool pretty) const
 
 inline int Value::toInteger() const
 {
-    if (!isValid()) return 0;
+    if (yyjson_unlikely(!isValid())) return 0;
     if (isArray() || isObject())
     {
         return static_cast<int>(size());
@@ -2052,7 +2052,7 @@ inline Document::Document(const MutableDocument& other)
 
 inline void Document::free()
 {
-    if (m_doc)
+    if (yyjson_likely(m_doc))
     {
         yyjson_doc_free(m_doc);
         m_doc = nullptr;
@@ -2062,7 +2062,7 @@ inline void Document::free()
 #ifndef XYJSON_DISABLE_MUTABLE
 inline MutableDocument Document::mutate() const
 {
-    if (!isValid()) {
+    if (yyjson_unlikely(!isValid())) {
         return MutableDocument((yyjson_mut_doc*)nullptr);
     }
 
@@ -2087,7 +2087,7 @@ inline bool Document::read(FILE* fp)
 {
     free();
     
-    if (!fp) return false;
+    if (yyjson_unlikely(!fp)) return false;
     m_doc = yyjson_read_fp(fp, 0, nullptr, nullptr);
     return isValid();
 }
@@ -2095,7 +2095,7 @@ inline bool Document::read(FILE* fp)
 inline bool Document::read(std::ifstream& ifs)
 {
     // Check if stream is in a valid state before any operations
-    if (!ifs.good()) return false;
+    if (yyjson_unlikely(!ifs.good())) return false;
     
     ifs.seekg(0, std::ios::end);
     std::streampos pos = ifs.tellg();
@@ -2116,9 +2116,9 @@ inline bool Document::read(std::ifstream& ifs)
 
 inline bool Document::readFile(const char* path)
 {
-    if (!path) return false;
+    if (yyjson_unlikely(!path)) return false;
     FILE* fp = fopen(path, "rb");
-    if (!fp) return false;
+    if (yyjson_unlikely(!fp)) return false;
 
     bool result = read(fp);
     fclose(fp);
@@ -2127,9 +2127,9 @@ inline bool Document::readFile(const char* path)
 
 inline bool Document::write(std::string& output) const
 {
-    if (!m_doc) return false;
+    if (yyjson_unlikely(!m_doc)) return false;
     char* json = yyjson_write(m_doc, 0, nullptr);
-    if (!json) return false;
+    if (yyjson_unlikely(!json)) return false;
     output = json;
     std::free(json);
     return true;
@@ -2137,14 +2137,14 @@ inline bool Document::write(std::string& output) const
 
 inline bool Document::write(FILE* fp) const
 {
-    if (!m_doc || !fp) return false;
+    if (yyjson_unlikely(!m_doc || !fp)) return false;
     return yyjson_write_fp(fp, m_doc, 0, nullptr, nullptr);
 }
 
 inline bool Document::write(std::ofstream& ofs) const
 {
     std::string content;
-    if (!write(content)) return false;
+    if (yyjson_unlikely(!write(content))) return false;
     
     ofs.seekp(0, std::ios::beg);
     ofs.write(content.c_str(), content.size());
@@ -2155,9 +2155,9 @@ inline bool Document::write(std::ofstream& ofs) const
 
 inline bool Document::writeFile(const char* path) const
 {
-    if (!path) return false;
+    if (yyjson_unlikely(!path)) return false;
     FILE* fp = fopen(path, "wb");
-    if (!fp) return false;
+    if (yyjson_unlikely(!fp)) return false;
 
     bool result = write(fp);
     fclose(fp);
@@ -2173,7 +2173,7 @@ inline bool Document::writeFile(const char* path) const
 
 inline bool MutableValue::get(bool& result) const
 {
-    if (isBool()) {
+    if (yyjson_likely(isBool())) {
         result = yyjson_mut_get_bool(m_val);
         return true;
     }
@@ -2182,7 +2182,7 @@ inline bool MutableValue::get(bool& result) const
 
 inline bool MutableValue::get(int& result) const
 {
-    if (isInt()) {
+    if (yyjson_likely(isInt())) {
         result = yyjson_mut_get_int(m_val);
         return true;
     }
@@ -2209,7 +2209,7 @@ inline bool MutableValue::get(uint64_t& result) const
 
 inline bool MutableValue::get(double& result) const
 {
-    if (isReal()) {
+    if (yyjson_likely(isReal())) {
         result = yyjson_mut_get_real(m_val);
         return true;
     }
@@ -2218,7 +2218,7 @@ inline bool MutableValue::get(double& result) const
 
 inline bool MutableValue::get(const char*& result) const
 {
-    if (isString()) {
+    if (yyjson_likely(isString())) {
         result = yyjson_mut_get_str(m_val);
         return true;
     }
@@ -2227,7 +2227,7 @@ inline bool MutableValue::get(const char*& result) const
 
 inline bool MutableValue::get(std::string& result) const
 {
-    if (isString()) {
+    if (yyjson_likely(isString())) {
         result = yyjson_mut_get_str(m_val);
         return true;
     }
@@ -2236,13 +2236,13 @@ inline bool MutableValue::get(std::string& result) const
 
 inline bool MutableValue::get(yyjson_mut_val*& result) const
 {
-    if (isValid()) { result = m_val; return true; }
+    if (yyjson_likely(isValid())) { result = m_val; return true; }
     return false;
 }
 
 inline bool MutableValue::get(yyjson_mut_doc*& result) const
 {
-    if (m_doc != nullptr) { result = m_doc; return true; }
+    if (yyjson_likely(m_doc != nullptr)) { result = m_doc; return true; }
     return false;
 }
 
@@ -2285,7 +2285,7 @@ inline auto MutableValue::pipe(funcT&& func) const
 
 inline size_t MutableValue::size() const
 {
-    if (!m_val) return 0;
+    if (yyjson_unlikely(!m_val)) return 0;
     if (yyjson_mut_is_arr(m_val)) return yyjson_mut_arr_size(m_val);
     if (yyjson_mut_is_obj(m_val)) return yyjson_mut_obj_size(m_val);
     return 0;
@@ -2293,7 +2293,7 @@ inline size_t MutableValue::size() const
 
 inline void MutableValue::clear()
 {
-    if (!m_val || !m_doc) return;
+    if (yyjson_unlikely(!m_val || !m_doc)) return;
 
     if (yyjson_mut_is_arr(m_val)) {
         yyjson_mut_arr_clear(m_val);
@@ -2315,27 +2315,27 @@ inline void MutableValue::clear()
 
 inline MutableValue MutableValue::index(size_t idx) const
 {
-    if (!isArray()) return MutableValue(nullptr, m_doc);
+    if (yyjson_unlikely(!isArray())) return MutableValue(nullptr, m_doc);
     return MutableValue(yyjson_mut_arr_get(m_val, idx), m_doc);
 }
 
 inline MutableValue MutableValue::index(const char* key, size_t len) const
 {
-    if (!isObject() || !key) return MutableValue(nullptr, m_doc);
+    if (yyjson_unlikely(!isObject() || !key)) return MutableValue(nullptr, m_doc);
     return MutableValue(yyjson_mut_obj_getn(m_val, key, len), m_doc);
 }
 
 inline MutableValue MutableValue::index(size_t idx)
 {
-    if (!isArray()) return MutableValue(nullptr, m_doc);
+    if (yyjson_unlikely(!isArray())) return MutableValue(nullptr, m_doc);
     return MutableValue(yyjson_mut_arr_get(m_val, idx), m_doc);
 }
 
 inline MutableValue MutableValue::index(const char* key, size_t len)
 {
-    if (!isObject() || !key) return MutableValue(nullptr, m_doc);
+    if (yyjson_unlikely(!isObject() || !key)) return MutableValue(nullptr, m_doc);
     yyjson_mut_val* val = yyjson_mut_obj_getn(m_val, key, len);
-    if (!val) {
+    if (yyjson_unlikely(!val)) {
         // Key doesn't exist, insert null value with explicit length
         val = yyjson_mut_null(m_doc);
         yyjson_mut_val* key_val = yyjson_mut_strncpy(m_doc, key, len);
@@ -2346,7 +2346,7 @@ inline MutableValue MutableValue::index(const char* key, size_t len)
 
 inline MutableValue MutableValue::pathto(const char* path, size_t len) const
 {
-    if (!path || len == 0) return *this;
+    if (yyjson_unlikely(!path || len == 0)) return *this;
     if (path[0] == '/') {
         yyjson_mut_val* result = yyjson_mut_ptr_getn(m_val, path, len);
         return MutableValue(result, m_doc);
@@ -2460,7 +2460,7 @@ MutableValue::set(T value)
 
 inline MutableValue& MutableValue::setArray()
 {
-    if (isValid())
+    if (yyjson_likely(isValid()))
     {
         yyjson_mut_set_arr(m_val);
     }
@@ -2469,7 +2469,7 @@ inline MutableValue& MutableValue::setArray()
 
 inline MutableValue& MutableValue::setObject()
 {
-    if (isValid())
+    if (yyjson_likely(isValid()))
     {
         yyjson_mut_set_obj(m_val);
     }
@@ -2517,9 +2517,9 @@ inline MutableValue& MutableValue::add(KeyValue&& kv)
 template<typename keyT, typename valT>
 inline MutableValue& MutableValue::add(keyT&& key, valT&& value)
 {
-    if (isObject()) {
+    if (yyjson_likely(isObject())) {
         yyjson_mut_val* keyNode = util::createKey(m_doc, std::forward<keyT>(key));
-        if (!keyNode) {
+        if (yyjson_unlikely(!keyNode)) {
             return *this;
         }
         
@@ -2536,7 +2536,7 @@ inline KeyValue MutableValue::tag(MutableValue&& key) &&
 {
     // Require same document pool and string type; do not copy
     yyjson_mut_val* keyNode = nullptr;
-    if (key.m_doc == m_doc && key.isString())
+    if (yyjson_likely(key.m_doc == m_doc && key.isString()))
     {
         keyNode = key.m_val;
     }
@@ -2559,7 +2559,7 @@ inline KeyValue MutableValue::tag(keyT&& key) &&
 // Specialization for KeyValue - can only be added to object
 inline MutableValue& MutableValue::push(KeyValue&& kv)
 {
-    if (isObject())
+    if (yyjson_likely(isObject()))
     {
         return add(std::forward<KeyValue>(kv));
     }
@@ -2577,7 +2577,7 @@ inline bool MutableValue::pushKey(keyT&& key)
 template <typename T>
 inline bool MutableValue::pushValue(T&& value)
 {
-    if (m_pendingKey == nullptr) {
+    if (yyjson_likely(m_pendingKey == nullptr)) {
         return false;
     }
     yyjson_mut_val* succeedVal = util::create(m_doc, std::forward<T>(value));
@@ -2605,9 +2605,9 @@ inline MutableValue& MutableValue::push(T&& value)
 // Pop method for array: remove last element and return it
 inline MutableValue& MutableValue::pop(MutableValue& result)
 {
-    if (isArray()) {
+    if (yyjson_likely(isArray())) {
         size_t n = size();
-        if (n > 0) {
+        if (yyjson_likely(n > 0)) {
             MutableArrayIterator iter = beginArray();
             iter.advance(n - 1);
             result = iter.remove();
@@ -2621,9 +2621,9 @@ inline MutableValue& MutableValue::pop(MutableValue& result)
 // Pop method for object: remove last key-value pair and return it
 inline MutableValue& MutableValue::pop(KeyValue& result)
 {
-    if (isObject()) {
+    if (yyjson_likely(isObject())) {
         size_t n = size();
-        if (n > 0) {
+        if (yyjson_likely(n > 0)) {
             MutableObjectIterator iter = beginObject();
             iter.advance(n - 1);
             result = iter.remove();
@@ -2639,7 +2639,7 @@ inline MutableValue& MutableValue::pop(KeyValue& result)
 
 inline MutableArrayIterator MutableValue::iterator(size_t startIndex) const
 {
-    if (isArray()) {
+    if (yyjson_likely(isArray())) {
         MutableArrayIterator iter(m_val, m_doc);
         return iter.advance(startIndex);
     }
@@ -2653,7 +2653,7 @@ inline MutableArrayIterator MutableValue::iterator(int startIndex) const
 
 inline MutableObjectIterator MutableValue::iterator(const char* startKey) const
 {
-    if (isObject()) {
+    if (yyjson_likely(isObject())) {
         MutableObjectIterator iter(m_val, m_doc);
         return iter.advance(startKey);
     }
@@ -2705,7 +2705,7 @@ inline MutableObject MutableValue::object() const
 
 inline std::string MutableValue::toString(bool pretty) const
 {
-    if (!isValid()) return "";
+    if (yyjson_unlikely(!isValid())) return "";
 
     if (isString() && !pretty) {
         return std::string(yyjson_mut_get_str(m_val));
@@ -2718,7 +2718,7 @@ inline std::string MutableValue::toString(bool pretty) const
 
     size_t len = 0;
     char* json_str = yyjson_mut_val_write(m_val, flags, &len);
-    if (!json_str) return "";
+    if (yyjson_unlikely(!json_str)) return "";
 
     std::string result(json_str, len);
     free(json_str);
@@ -2727,7 +2727,7 @@ inline std::string MutableValue::toString(bool pretty) const
 
 inline int MutableValue::toInteger() const
 {
-    if (!isValid()) return 0;
+    if (yyjson_unlikely(!isValid())) return 0;
     if (isArray() || isObject())
     {
         return static_cast<int>(size());
@@ -2764,7 +2764,7 @@ inline MutableDocument::MutableDocument(const char* str, size_t len/* = 0*/)
 {
     if (len == 0 && str) len = strlen(str);
     yyjson_doc* doc = yyjson_read(str, len, 0);
-    if (doc) {
+    if (yyjson_likely(doc)) {
         m_doc = yyjson_doc_mut_copy(doc, nullptr);
         yyjson_doc_free(doc);
     } else {
@@ -2781,7 +2781,7 @@ inline MutableDocument::MutableDocument(const Document& other)
 
 inline void MutableDocument::free()
 {
-    if (m_doc)
+    if (yyjson_likely(m_doc))
     {
         yyjson_mut_doc_free(m_doc);
         m_doc = nullptr;
@@ -2790,7 +2790,7 @@ inline void MutableDocument::free()
 
 inline Document MutableDocument::freeze() const
 {
-    if (!isValid()) {
+    if (yyjson_unlikely(!isValid())) {
         return Document((yyjson_doc*)nullptr);
     }
     
@@ -2801,7 +2801,7 @@ inline Document MutableDocument::freeze() const
 
 inline void MutableDocument::setRoot(MutableValue val)
 {
-    if (m_doc)
+    if (yyjson_likely(m_doc))
     {
         yyjson_mut_doc_set_root(m_doc, val.get());
     }
@@ -2829,7 +2829,7 @@ inline bool MutableDocument::read(FILE* fp)
 {
     free();
     
-    if (!fp) return false;
+    if (yyjson_unlikely(!fp)) return false;
     yyjson_doc* doc = yyjson_read_fp(fp, 0, nullptr, nullptr);
     if (doc != nullptr)
     {
@@ -2843,7 +2843,7 @@ inline bool MutableDocument::read(FILE* fp)
 inline bool MutableDocument::read(std::ifstream& ifs)
 {
     // Check if stream is in a valid state before any operations
-    if (!ifs.good()) return false;
+    if (yyjson_unlikely(!ifs.good())) return false;
     
     ifs.seekg(0, std::ios::end);
     std::streampos pos = ifs.tellg();
@@ -2864,9 +2864,9 @@ inline bool MutableDocument::read(std::ifstream& ifs)
 
 inline bool MutableDocument::readFile(const char* path)
 {
-    if (!path) return false;
+    if (yyjson_unlikely(!path)) return false;
     FILE* fp = fopen(path, "rb");
-    if (!fp) return false;
+    if (yyjson_unlikely(!fp)) return false;
 
     bool result = read(fp);
     fclose(fp);
@@ -2875,9 +2875,9 @@ inline bool MutableDocument::readFile(const char* path)
 
 inline bool MutableDocument::write(std::string& output) const
 {
-    if (!m_doc) return false;
+    if (yyjson_unlikely(!m_doc)) return false;
     char* json = yyjson_mut_write(m_doc, 0, nullptr);
-    if (!json) return false;
+    if (yyjson_unlikely(!json)) return false;
     output = json;
     std::free(json);
     return true;
@@ -2885,14 +2885,14 @@ inline bool MutableDocument::write(std::string& output) const
 
 inline bool MutableDocument::write(FILE* fp) const
 {
-    if (!m_doc || !fp) return false;
+    if (yyjson_unlikely(!m_doc || !fp)) return false;
     return yyjson_mut_write_fp(fp, m_doc, 0, nullptr, nullptr);
 }
 
 inline bool MutableDocument::write(std::ofstream& ofs) const
 {
     std::string content;
-    if (!write(content)) return false;
+    if (yyjson_unlikely(!write(content))) return false;
     
     ofs.seekp(0, std::ios::beg);
     ofs.write(content.c_str(), content.size());
@@ -2903,9 +2903,9 @@ inline bool MutableDocument::write(std::ofstream& ofs) const
 
 inline bool MutableDocument::writeFile(const char* path) const
 {
-    if (!path) return false;
+    if (yyjson_unlikely(!path)) return false;
     FILE* fp = fopen(path, "wb");
-    if (!fp) return false;
+    if (yyjson_unlikely(!fp)) return false;
     
     bool result = write(fp);
     fclose(fp);
@@ -2917,7 +2917,7 @@ inline bool MutableDocument::writeFile(const char* path) const
 
 inline MutableValue MutableDocument::create(yyjson_mut_val* value) const
 { 
-    if (value && m_doc)
+    if (yyjson_likely(value && m_doc))
     {
         return MutableValue(value, m_doc); 
     }
@@ -2942,7 +2942,7 @@ inline MutableValue MutableDocument::create(T&& value) const
 
 inline ArrayIterator::ArrayIterator(yyjson_val* root) : m_arr(root)
 {
-    if (root) {
+    if (yyjson_likely(root)) {
         yyjson_arr_iter_init(root, &m_iter);
     }
 }
@@ -2956,7 +2956,7 @@ inline ArrayIterator& ArrayIterator::next()
 // Backward iteration is O(N) operation: reset to beginning and advance idx-1 steps
 inline ArrayIterator& ArrayIterator::prev()
 {
-    if (m_iter.idx == 0) {
+    if (yyjson_unlikely(m_iter.idx == 0)) {
         return end(true);
     }
     size_t idx = m_iter.idx - 1;
@@ -2965,7 +2965,7 @@ inline ArrayIterator& ArrayIterator::prev()
 
 inline ArrayIterator& ArrayIterator::begin()
 {
-    if (m_arr) {
+    if (yyjson_likely(m_arr)) {
         yyjson_arr_iter_init(m_arr, &m_iter);
     }
     return *this;
@@ -2985,7 +2985,7 @@ inline ArrayIterator& ArrayIterator::advance(size_t steps)
 
 inline ObjectIterator::ObjectIterator(yyjson_val* root)
 {
-    if (root) {
+    if (yyjson_likely(root)) {
         yyjson_obj_iter_init(root, &m_iter);
     }
 }
@@ -2999,7 +2999,7 @@ inline ObjectIterator& ObjectIterator::next()
 // Backward iteration is O(N) operation: reset to beginning and advance idx-1 steps
 inline ObjectIterator& ObjectIterator::prev()
 {
-    if (m_iter.idx == 0) {
+    if (yyjson_unlikely(m_iter.idx == 0)) {
         return end(true);
     }
     size_t idx = m_iter.idx - 1;
@@ -3008,7 +3008,7 @@ inline ObjectIterator& ObjectIterator::prev()
 
 inline ObjectIterator& ObjectIterator::begin()
 {
-    if (m_iter.obj) {
+    if (yyjson_likely(m_iter.obj)) {
         yyjson_obj_iter_init(m_iter.obj, &m_iter);
     }
     return *this;
@@ -3024,7 +3024,7 @@ inline ObjectIterator& ObjectIterator::advance(size_t steps)
 
 inline ObjectIterator& ObjectIterator::advance(const char* key)
 {
-    if (!key || !*key) return *this;
+    if (yyjson_unlikely(!key || !*key)) return *this;
     
     while (isValid()) {
         const char* currentKey = name();
@@ -3049,9 +3049,9 @@ inline Value ObjectIterator::seek(const char* key, size_t key_len)
 
 inline MutableArrayIterator::MutableArrayIterator(yyjson_mut_val* root, yyjson_mut_doc* doc) : m_doc(doc)
 {
-    if (root) {
+    if (yyjson_likely(root)) {
         yyjson_mut_arr_iter_init(root, &m_iter);
-        if (m_iter.idx < m_iter.max) {
+        if (yyjson_likely(m_iter.idx < m_iter.max)) {
             m_iter.pre = (yyjson_mut_val*)m_iter.arr->uni.ptr;  // prev = tail element
             m_iter.cur = m_iter.pre->next;                      // cur = first element
         }
@@ -3060,7 +3060,7 @@ inline MutableArrayIterator::MutableArrayIterator(yyjson_mut_val* root, yyjson_m
 
 inline MutableArrayIterator& MutableArrayIterator::next()
 {
-    if (m_iter.idx < m_iter.max) {
+    if (yyjson_likely(m_iter.idx < m_iter.max)) {
         m_iter.pre = m_iter.cur;          // current element becomes previous
         m_iter.cur = m_iter.cur->next;    // advance to next element
         m_iter.idx++;                     // increment index
@@ -3072,7 +3072,7 @@ inline MutableArrayIterator& MutableArrayIterator::next()
 // If at beginning, move to fast end (circular linked list)
 inline MutableArrayIterator& MutableArrayIterator::prev()
 {
-    if (m_iter.idx == 0) {
+    if (yyjson_unlikely(m_iter.idx == 0)) {
         return end();
     }
     size_t idx = m_iter.idx - 1;
@@ -3081,9 +3081,9 @@ inline MutableArrayIterator& MutableArrayIterator::prev()
 
 inline MutableArrayIterator& MutableArrayIterator::begin()
 {
-    if (m_iter.arr) {
+    if (yyjson_likely(m_iter.arr)) {
         yyjson_mut_arr_iter_init(m_iter.arr, &m_iter);
-        if (m_iter.idx < m_iter.max) {
+        if (yyjson_likely(m_iter.idx < m_iter.max)) {
             m_iter.pre = (yyjson_mut_val*)m_iter.arr->uni.ptr;  // prev = tail element
             m_iter.cur = m_iter.pre->next;                      // cur = first element
         }
@@ -3102,7 +3102,7 @@ inline MutableArrayIterator& MutableArrayIterator::advance(size_t steps)
 inline bool MutableArrayIterator::insert(yyjson_mut_val* val)
 {
     // allow idx == max to insert at the end
-    if (!val || !m_iter.arr || m_iter.idx > m_iter.max) {
+    if (yyjson_unlikely(!val || !m_iter.arr || m_iter.idx > m_iter.max)) {
         return false;
     }
 
@@ -3142,7 +3142,7 @@ inline bool MutableArrayIterator::insert(T&& value)
 inline MutableValue MutableArrayIterator::remove()
 {
     yyjson_mut_val* removed_val = nullptr;
-    if (isValid() && m_iter.cur) {
+    if (yyjson_likely(isValid() && m_iter.cur)) {
         removed_val = m_iter.cur;
 
         if (m_iter.max == 1) {
@@ -3169,9 +3169,9 @@ inline MutableValue MutableArrayIterator::remove()
 
 inline MutableObjectIterator::MutableObjectIterator(yyjson_mut_val* root, yyjson_mut_doc* doc) : m_doc(doc)
 {
-    if (root) {
+    if (yyjson_likely(root)) {
         yyjson_mut_obj_iter_init(root, &m_iter);
-        if (m_iter.idx < m_iter.max) {
+        if (yyjson_likely(m_iter.idx < m_iter.max)) {
             m_iter.pre = (yyjson_mut_val*)m_iter.obj->uni.ptr;  // prev = tail key
             m_iter.cur = m_iter.pre->next->next;                // cur = first key
         }
@@ -3181,7 +3181,7 @@ inline MutableObjectIterator::MutableObjectIterator(yyjson_mut_val* root, yyjson
 inline MutableObjectIterator& MutableObjectIterator::next()
 {
     // directly operate on pointers, advance by two steps (key->val->next key)
-    if (m_iter.idx < m_iter.max) {
+    if (yyjson_likely(m_iter.idx < m_iter.max)) {
         m_iter.pre = m_iter.cur;                   // current key becomes previous
         m_iter.cur = m_iter.cur->next->next;       // advance to next key (skip value)
         m_iter.idx++;                              // increment index
@@ -3193,7 +3193,7 @@ inline MutableObjectIterator& MutableObjectIterator::next()
 // If at beginning, move to fast end (circular linked list)
 inline MutableObjectIterator& MutableObjectIterator::prev()
 {
-    if (m_iter.idx == 0) {
+    if (yyjson_unlikely(m_iter.idx == 0)) {
         return end();
     }
     size_t idx = m_iter.idx - 1;
@@ -3202,9 +3202,9 @@ inline MutableObjectIterator& MutableObjectIterator::prev()
 
 inline MutableObjectIterator& MutableObjectIterator::begin()
 {
-    if (m_iter.obj) {
+    if (yyjson_likely(m_iter.obj)) {
         yyjson_mut_obj_iter_init(m_iter.obj, &m_iter);
-        if (m_iter.idx < m_iter.max) {
+        if (yyjson_likely(m_iter.idx < m_iter.max)) {
             m_iter.pre = (yyjson_mut_val*)m_iter.obj->uni.ptr;  // prev = tail key
             m_iter.cur = m_iter.pre->next->next;                // cur = first key
         }
@@ -3222,7 +3222,7 @@ inline MutableObjectIterator& MutableObjectIterator::advance(size_t steps)
 
 inline MutableObjectIterator& MutableObjectIterator::advance(const char* key)
 {
-    if (!key || !*key) return *this;
+    if (yyjson_unlikely(!key || !*key)) return *this;
     
     while (isValid()) {
         const char* currentKey = name();
@@ -3237,8 +3237,8 @@ inline MutableObjectIterator& MutableObjectIterator::advance(const char* key)
 // MutableObjectIterator fast seek implementation using yyjson_mut_obj_iter_getn
 inline MutableValue MutableObjectIterator::seek(const char* key, size_t key_len)
 {
-    // Rewrite: adapt from yyjson_mut_obj_iter_getn to our iterator semantics
-    if (!key || key_len == 0 || !m_iter.obj || m_iter.max == 0) {
+    // adapt from yyjson_mut_obj_iter_getn to our iterator semantics
+    if (yyjson_unlikely(!key || key_len == 0 || m_iter.max == 0)) {
         return MutableValue();
     }
 
@@ -3250,7 +3250,7 @@ inline MutableValue MutableObjectIterator::seek(const char* key, size_t key_len)
             m_iter.pre = cur;
             m_iter.cur = cur->next->next;
             m_iter.idx += i + 1;
-            if (m_iter.idx > m_iter.max) {
+            if (yyjson_unlikely(m_iter.idx > m_iter.max)) {
                 m_iter.idx -= m_iter.max;  // wrap around
             }
             return MutableValue(cur->next, m_doc);
@@ -3265,7 +3265,7 @@ inline MutableValue MutableObjectIterator::seek(const char* key, size_t key_len)
 // MutableObjectIterator insert implementation
 inline bool MutableObjectIterator::insert(yyjson_mut_val* key, yyjson_mut_val* val)
 {
-    if (!key || !val || !m_iter.obj) {
+    if (yyjson_unlikely(!key || !val || !m_iter.obj)) {
         return false;
     }
 
@@ -3308,7 +3308,7 @@ inline bool MutableObjectIterator::insert(K&& key, V&& value)
 inline bool MutableObjectIterator::insert(KeyValue&& kv_pair)
 {
     bool result = insert(kv_pair.key, kv_pair.value);
-    if (result) {
+    if (yyjson_likely(result)) {
         kv_pair.key = nullptr;
         kv_pair.value = nullptr;
     }
@@ -3332,7 +3332,7 @@ inline bool MutableObjectIterator::insertValue(valT&& value)
         return false;
     }
     yyjson_mut_val* valueNode = util::create(m_doc, std::forward<valT>(value));
-    if (!valueNode) {
+    if (yyjson_unlikely(!valueNode)) {
         return false;
     }
     bool result = insert(m_pendingKey, valueNode);
@@ -3356,7 +3356,7 @@ inline KeyValue MutableObjectIterator::remove()
     yyjson_mut_val* removed_key = nullptr;
     yyjson_mut_val* removed_val = nullptr;
 
-    if (isValid() && m_iter.cur) {
+    if (yyjson_likely(isValid() && m_iter.cur)) {
         removed_key = m_iter.cur;
         removed_val = m_iter.cur->next;
 
@@ -3881,7 +3881,7 @@ inline MutableObjectIterator& operator<<(MutableObjectIterator& iter, T&& arg)
     // Call insert method which handles key/value logic internally
     // If insert returns true, it means a value was inserted (advance)
     // If insert returns false, it means a key was stored (don't advance)
-    if (iter.insert(std::forward<T>(arg))) {
+    if (yyjson_likely(iter.insert(std::forward<T>(arg)))) {
         iter.next();
     }
     return iter;

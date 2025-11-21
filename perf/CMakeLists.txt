@@ -11,6 +11,7 @@ add_executable(perf_test
     p_access.cpp
     p_iterator.cpp
     p_chained.cpp
+    p_micro.cpp
 )
 
 # Link libraries

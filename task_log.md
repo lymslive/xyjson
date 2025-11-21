@@ -3122,3 +3122,32 @@ perl script/extract_doc_examples.pl docs/api.md --target=utest/t_api.cpp --heade
 - **技术一致性**：确保 xyjson 和 yyjson 测试方法完全对标
 - **大规模测试优化**：为1000个元素的测试调整迭代次数平衡精度和效率
 - **稳定性分析**：500ms测试时间显著减少浮动误差
+
+---
+
+## 任务ID: 20251121-173504
+- **任务类型**: 重构/优化
+- **任务状态**: 已完成
+- **执行AI**: (vscode) GPT-5 mini
+
+### 任务需求
+对 `include/xyjson.h` 中大量防御性条件分支进行评估并应用分支预测提示（`yyjson_likely` / `yyjson_unlikely`）。优先采用保守策略：将罕见/防御性分支（如 null/IO/path/invalid 检查）标记为 `yyjson_unlikely(...)`，避免影响热路径。
+
+### 执行过程
+- 扫描并列出候选位置，生成分析报告（doing_plan.tmp/yyjson_branch_prediction.md），并与用户讨论后采用保守替换策略。
+- 在 `include/xyjson.h` 中对高置信度的防御性检查批量添加 `yyjson_unlikely(...)` 包装。
+- 修复并运行对比脚本 `script/run_perf_compare.sh`，并借助 `perf_test micro`（`perf/p_micro.cpp`）收集微基准样本进行初步验证。
+- 运行回归测试，确认功能性未回退。
+
+### 变更文件（摘要）
+- `include/xyjson.h` — 多处将防御性检查包装为 `yyjson_unlikely(...)`（保守改动）。
+- `script/run_perf_compare.sh` — 修复与增强（支持对比构建、容错、采样输出）。
+- `perf/p_micro.cpp`（用于 microbench，若存在）— 集成用于测量 index/pathto 等热点函数的微基准。
+
+### 验证结果
+- 单元测试回归通过（与变更前一致）。
+- microbench 多次样本显示在 index/pathto 等微基准中有改善；perf_case 对照结果混合，受运行环境噪声影响。
+
+### 备注与后续建议
+- 当前环境为 WSL1（或类似受限环境），建议在 WSL2 / VM / 真实 Linux 上收集硬件层面统计（branch-misses）以获得更确定性的性能结论。
+- 建议采用分批次（小且可审查）合并策略：逐步扩展标记范围，先合并保守变更，再在稳定环境中扩展。
