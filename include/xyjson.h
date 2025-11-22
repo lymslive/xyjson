@@ -1776,7 +1776,7 @@ inline auto pipeApply(const jsonT& json, funcT&& func)
 inline bool Value::get(bool& result) const
 {
     if (yyjson_likely(isBool())) {
-        result = yyjson_get_bool(m_val);
+        result = unsafe_yyjson_get_bool(m_val);
         return true;
     }
     return false;
@@ -1785,7 +1785,7 @@ inline bool Value::get(bool& result) const
 inline bool Value::get(int& result) const
 {
     if (yyjson_likely(isInt())) {
-        result = yyjson_get_int(m_val);
+        result = unsafe_yyjson_get_int(m_val);
         return true;
     }
     return false;
@@ -1794,7 +1794,7 @@ inline bool Value::get(int& result) const
 inline bool Value::get(int64_t& result) const
 {
     if (isSint()) {
-        result = yyjson_get_sint(m_val);
+        result = unsafe_yyjson_get_sint(m_val);
         return true;
     }
     return false;
@@ -1803,7 +1803,7 @@ inline bool Value::get(int64_t& result) const
 inline bool Value::get(uint64_t& result) const
 {
     if (isUint()) {
-        result = yyjson_get_uint(m_val);
+        result = unsafe_yyjson_get_uint(m_val);
         return true;
     }
     return false;
@@ -1812,7 +1812,7 @@ inline bool Value::get(uint64_t& result) const
 inline bool Value::get(double& result) const
 {
     if (yyjson_likely(isReal())) {
-        result = yyjson_get_real(m_val);
+        result = unsafe_yyjson_get_real(m_val);
         return true;
     }
     return false;
@@ -1821,7 +1821,7 @@ inline bool Value::get(double& result) const
 inline bool Value::get(const char*& result) const
 {
     if (yyjson_likely(isString())) {
-        result = yyjson_get_str(m_val);
+        result = unsafe_yyjson_get_str(m_val);
         return true;
     }
     return false;
@@ -1830,7 +1830,7 @@ inline bool Value::get(const char*& result) const
 inline bool Value::get(std::string& result) const
 {
     if (yyjson_likely(isString())) {
-        result = yyjson_get_str(m_val);
+        result = unsafe_yyjson_get_str(m_val);
         return true;
     }
     return false;
@@ -1852,7 +1852,7 @@ inline std::decay_t<T> Value::getor(T&& defaultValue) const
 
 inline const char* Value::getor(EmptyString) const
 {
-    return isString() ? yyjson_get_str(m_val) : "";
+    return yyjson_likely(isString()) ? unsafe_yyjson_get_str(m_val) : "";
 }
 
 inline double Value::getor(ZeroNumber) const
@@ -1916,6 +1916,7 @@ inline ArrayIterator Value::iterator(size_t startIndex) const
 {
     if (yyjson_likely(isArray())) {
         ArrayIterator iter(m_val);
+        if (yyjson_likely(startIndex == 0)) return iter;
         return iter.advance(startIndex);
     }
     return ArrayIterator();
@@ -1930,6 +1931,7 @@ inline ObjectIterator Value::iterator(const char* startKey) const
 {
     if (yyjson_likely(isObject())) {
         ObjectIterator iter(m_val);
+        if (yyjson_likely(startKey == nullptr || *startKey == '\0')) return iter;
         return iter.advance(startKey);
     }
     return ObjectIterator();
@@ -1937,12 +1939,12 @@ inline ObjectIterator Value::iterator(const char* startKey) const
 
 inline ArrayIterator Value::iterator(EmptyArray) const
 {
-    return isArray() ? iterator(size_t(0)) : ArrayIterator();
+    return yyjson_likely(isArray()) ? iterator(size_t(0)) : ArrayIterator();
 }
 
 inline ObjectIterator Value::iterator(EmptyObject) const
 {
-    return isObject() ? iterator(nullptr) : ObjectIterator();
+    return yyjson_likely(isObject()) ? iterator(nullptr) : ObjectIterator();
 }
 
 inline ArrayIterator Value::beginArray() const
@@ -2044,8 +2046,6 @@ inline Document::Document(const char* str, size_t len/* = 0*/)
 #ifndef XYJSON_DISABLE_MUTABLE
 inline Document::Document(const MutableDocument& other)
 {
-    // Use freeze() method to convert mutable document to read-only document
-    // This is a copy operation
     *this = other.freeze();
 }
 #endif
@@ -2060,6 +2060,7 @@ inline void Document::free()
 }
 
 #ifndef XYJSON_DISABLE_MUTABLE
+// Convert read-only document to mutable document
 inline MutableDocument Document::mutate() const
 {
     if (yyjson_unlikely(!isValid())) {
@@ -2174,7 +2175,7 @@ inline bool Document::writeFile(const char* path) const
 inline bool MutableValue::get(bool& result) const
 {
     if (yyjson_likely(isBool())) {
-        result = yyjson_mut_get_bool(m_val);
+        result = unsafe_yyjson_get_bool((yyjson_val*)m_val); // yyjson_mut_get_bool
         return true;
     }
     return false;
@@ -2183,7 +2184,7 @@ inline bool MutableValue::get(bool& result) const
 inline bool MutableValue::get(int& result) const
 {
     if (yyjson_likely(isInt())) {
-        result = yyjson_mut_get_int(m_val);
+        result = unsafe_yyjson_get_int((yyjson_val*)m_val); // yyjson_mut_get_int
         return true;
     }
     return false;
@@ -2192,7 +2193,7 @@ inline bool MutableValue::get(int& result) const
 inline bool MutableValue::get(int64_t& result) const
 {
     if (isSint()) {
-        result = yyjson_mut_get_sint(m_val);
+        result = unsafe_yyjson_get_sint((yyjson_val*)m_val); // yyjson_mut_get_sint
         return true;
     }
     return false;
@@ -2201,7 +2202,7 @@ inline bool MutableValue::get(int64_t& result) const
 inline bool MutableValue::get(uint64_t& result) const
 {
     if (isUint()) {
-        result = yyjson_mut_get_uint(m_val);
+        result = unsafe_yyjson_get_uint((yyjson_val*)m_val); // yyjson_mut_get_uint
         return true;
     }
     return false;
@@ -2210,7 +2211,7 @@ inline bool MutableValue::get(uint64_t& result) const
 inline bool MutableValue::get(double& result) const
 {
     if (yyjson_likely(isReal())) {
-        result = yyjson_mut_get_real(m_val);
+        result = unsafe_yyjson_get_real((yyjson_val*)m_val); // yyjson_mut_get_real
         return true;
     }
     return false;
@@ -2219,7 +2220,7 @@ inline bool MutableValue::get(double& result) const
 inline bool MutableValue::get(const char*& result) const
 {
     if (yyjson_likely(isString())) {
-        result = yyjson_mut_get_str(m_val);
+        result = unsafe_yyjson_get_str((yyjson_val*)m_val); // yyjson_mut_get_str
         return true;
     }
     return false;
@@ -2228,7 +2229,7 @@ inline bool MutableValue::get(const char*& result) const
 inline bool MutableValue::get(std::string& result) const
 {
     if (yyjson_likely(isString())) {
-        result = yyjson_mut_get_str(m_val);
+        result = unsafe_yyjson_get_str((yyjson_val*)m_val); // yyjson_mut_get_str
         return true;
     }
     return false;
@@ -2256,7 +2257,7 @@ inline std::decay_t<T> MutableValue::getor(T&& defaultValue) const
 
 inline const char* MutableValue::getor(EmptyString) const
 {
-    return isString() ? yyjson_mut_get_str(m_val) : "";
+    return yyjson_likely(isString()) ? unsafe_yyjson_get_str((yyjson_val*)m_val) : "";
 }
 
 inline double MutableValue::getor(ZeroNumber) const
@@ -2460,7 +2461,7 @@ MutableValue::set(T value)
 
 inline MutableValue& MutableValue::setArray()
 {
-    if (yyjson_likely(isValid()))
+    if (yyjson_unlikely(isValid()))
     {
         yyjson_mut_set_arr(m_val);
     }
@@ -2469,7 +2470,7 @@ inline MutableValue& MutableValue::setArray()
 
 inline MutableValue& MutableValue::setObject()
 {
-    if (yyjson_likely(isValid()))
+    if (yyjson_unlikely(isValid()))
     {
         yyjson_mut_set_obj(m_val);
     }
@@ -2481,10 +2482,7 @@ inline MutableValue& MutableValue::setObject()
 
 inline MutableValue& MutableValue::append(yyjson_mut_val* value)
 {
-    if (isArray() && value)
-    {
-        yyjson_mut_arr_append(m_val, value);
-    }
+    yyjson_mut_arr_append(m_val, value); // the C API would check argument
     return *this;
 }
 
@@ -2496,18 +2494,14 @@ inline MutableValue& MutableValue::append(T&& value)
 
 inline MutableValue& MutableValue::add(yyjson_mut_val* key, yyjson_mut_val* value)
 {
-    if (isObject() && key && value)
-    {
-        yyjson_mut_obj_add(m_val, key, value);
-    }
+    yyjson_mut_obj_add(m_val, key, value); // the C API would check argument
     return *this;
 }
 
 inline MutableValue& MutableValue::add(KeyValue&& kv)
 {
-    if (isObject() && kv.isValid())
+    if (yyjson_likely(yyjson_mut_obj_add(m_val, kv.key, kv.value)))
     {
-        add(kv.key, kv.value);
         kv.key = nullptr;
         kv.value = nullptr;
     }
@@ -2550,7 +2544,6 @@ template <typename keyT>
 inline KeyValue MutableValue::tag(keyT&& key) &&
 {
     yyjson_mut_val* keyNode = util::createKey(m_doc, std::forward<keyT>(key));
-    
     auto ret = KeyValue(keyNode, m_val);
     m_val = nullptr;
     return ret;
@@ -2641,6 +2634,7 @@ inline MutableArrayIterator MutableValue::iterator(size_t startIndex) const
 {
     if (yyjson_likely(isArray())) {
         MutableArrayIterator iter(m_val, m_doc);
+        if (yyjson_likely(startIndex == 0)) return iter;
         return iter.advance(startIndex);
     }
     return MutableArrayIterator();
@@ -2655,6 +2649,7 @@ inline MutableObjectIterator MutableValue::iterator(const char* startKey) const
 {
     if (yyjson_likely(isObject())) {
         MutableObjectIterator iter(m_val, m_doc);
+        if (yyjson_likely(startKey == nullptr || *startKey == '\0')) return iter;
         return iter.advance(startKey);
     }
     return MutableObjectIterator();
@@ -2662,12 +2657,12 @@ inline MutableObjectIterator MutableValue::iterator(const char* startKey) const
 
 inline MutableArrayIterator MutableValue::iterator(EmptyArray) const
 {
-    return isArray() ? iterator(size_t(0)) : MutableArrayIterator();
+    return yyjson_likely(isArray()) ? iterator(size_t(0)) : MutableArrayIterator();
 }
 
 inline MutableObjectIterator MutableValue::iterator(EmptyObject) const
 {
-    return isObject() ? iterator(nullptr) : MutableObjectIterator();
+    return yyjson_likely(isObject()) ? iterator(nullptr) : MutableObjectIterator();
 }
 
 inline MutableArrayIterator MutableValue::beginArray() const
@@ -2774,8 +2769,6 @@ inline MutableDocument::MutableDocument(const char* str, size_t len/* = 0*/)
 
 inline MutableDocument::MutableDocument(const Document& other)
 {
-    // Use mutate() method to convert read-only document to mutable document
-    // This is a copy operation
     *this = other.mutate();
 }
 
@@ -2788,13 +2781,13 @@ inline void MutableDocument::free()
     }
 }
 
+// Convert mutable document to read-only document
 inline Document MutableDocument::freeze() const
 {
     if (yyjson_unlikely(!isValid())) {
         return Document((yyjson_doc*)nullptr);
     }
     
-    // Convert mutable document to read-only document
     yyjson_doc* doc = yyjson_mut_doc_imut_copy(m_doc, nullptr);
     return Document(doc);
 }

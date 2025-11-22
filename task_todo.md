@@ -2080,7 +2080,7 @@ yyjson 库提供了 yyjson_likely 与 yyjson_unlikely 两个宏。
 
 ## DONE: 20251121-173504
 
-## TODO: 分析哪些实现可调用 yyjson unsafe api 优化性能
+## TODO:2025-11-22/1 分析哪些实现可调用 yyjson unsafe api 优化性能
 
 yyjson.h 本地安装于系统目录 /usr/local/include
 它提借了许多 `unsafe_` 前缀的 api ，大约是在已经判断参数类型时使用。
@@ -2088,6 +2088,56 @@ yyjson.h 本地安装于系统目录 /usr/local/include
 分析 xyjson.h 现在的封装实现，是否有哪些方法可以直接调用 `unsafe_` api 避免重
 复对参数的安全判断。如果做这样的重构，性价比如何，能否达到进一步提升 xyjson 性
 能的目的。
+
+### AI Prompt:
+
+我尝试将 Value::get(T&) 方法改为调用 `unsafe_yyjson_*` api ，因为可避免重复判
+断类型调用。想验证一下这个改动是否有微小的性能提升。为此在写了个性能测试用例
+`micro_getor` 。修改之前性能测试程序已备份为 `perf_last` ，修改之后编译为
+`perf_test` 。
+
+请分别运行这两个版本 10 次，取统计平均，评估结果：
+
+```bash
+./build/perf_last --loopN=6 micro_getor
+./build/perf_test --loopN=6 micro_getor
+```
+
+每次运行会输出一行信息包含用例运行的微秒数。可先用较小的 loopN 参数观察输出格
+式。
+
+#### AI Report:
+perf_last (修改前)：
+
+  - 平均值：1,220,986.40 微秒
+  - 最小值：1,210,484 微秒
+  - 最大值：1,247,482 微秒
+  - 标准差：10,648.29 微秒
+
+perf_test (修改后)：
+
+  - 平均值：1,218,876.20 微秒
+  - 最小值：1,204,937 微秒
+  - 最大值：1,247,600 微秒
+  - 标准差：13,069.48 微秒
+
+  结论：
+
+  修改后的版本（使用 unsafe_yyjson_* API）比原版本平均快 2,110.20 微秒（约 0.17% 的性能提升）。虽然提升很小，但确实存在预期的性能改进，避免了重复类型判断的优化确实有效果。
+
+### DONE: 20251122-103030
+
+- 修改 Value::get 调用 `unsafe_yyjson_get_*`
+- 修改 MutableValue::get 调用 `unsafe_yyjson_get_*` 参数强转 `yyjson_val*`
+- 修改 MutableValue::append/add 直接调用 yyjson api ，不重复判断参数
+
+## TODO: 优化获取整数体验
+
+原来 C API 中 `yyjson_get_uint` 与 `yyjson_get_sint` 也只判断 `yyjson_is_int`
+而不是 `yyjson_is_sint` 与 `yyjson_is_uint` 。
+
+xyjson 封装 get 方法时反而加强了整数类型的判断，以及关于正负数的论断都有些问题
+。主要是小正数不能用 `get_sint` 取得 `int64_t` 反直觉。应该改过来。
 
 ## TODO: v1.0.0 封版
 
