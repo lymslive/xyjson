@@ -53,7 +53,7 @@ DEF_TAST(access_simple, "简单字段访问对比")
     );
 
     yyjson_doc_free(yy_doc);
-    COUT(passed, true);
+    COUTF(passed, true);
 }
 
 DEF_TAST(access_nested, "嵌套字段访问对比")
@@ -103,7 +103,7 @@ DEF_TAST(access_nested, "嵌套字段访问对比")
     );
 
     yyjson_doc_free(yy_doc);
-    COUT(passed, true);
+    COUTF(passed, true);
 }
 
 DEF_TAST(access_array_10, "数组元素访问对比(10个元素)")
@@ -140,7 +140,7 @@ DEF_TAST(access_array_10, "数组元素访问对比(10个元素)")
     );
 
     yyjson_doc_free(yy_doc);
-    COUT(passed, true);
+    COUTF(passed, true);
 }
 
 DEF_TAST(access_array_objects_3, "对象数组访问对比(3个对象)")
@@ -182,7 +182,7 @@ DEF_TAST(access_array_objects_3, "对象数组访问对比(3个对象)")
     );
 
     yyjson_doc_free(yy_doc);
-    COUT(passed, true);
+    COUTF(passed, true);
 }
 
 DEF_TAST(access_complex_file, "复杂文件访问对比")
@@ -227,7 +227,7 @@ DEF_TAST(access_complex_file, "复杂文件访问对比")
     );
 
     yyjson_doc_free(yy_doc);
-    COUT(passed, true);
+    COUTF(passed, true);
 }
 
 DEF_TAST(access_array_100, "数组元素访问对比(100个元素)")
@@ -261,7 +261,7 @@ DEF_TAST(access_array_100, "数组元素访问对比(100个元素)")
         }
     );
 
-    COUT(passed, true);
+    COUTF(passed, true);
 }
 
 DEF_TAST(access_object_100, "对象访问对比(100个属性)")
@@ -298,7 +298,7 @@ DEF_TAST(access_object_100, "对象访问对比(100个属性)")
         100
     );
 
-    COUT(passed, true);
+    COUTF(passed, true);
 }
 
 DEF_TAST(access_object_500, "对象访问对比(500个属性)")
@@ -335,7 +335,7 @@ DEF_TAST(access_object_500, "对象访问对比(500个属性)")
         50
     );
 
-    COUT(passed, true);
+    COUTF(passed, true);
 }
 
 // 测试 10: 1000 元素对象访问对比
@@ -373,6 +373,285 @@ DEF_TAST(access_object_1000, "对象访问对比(1000个属性)")
         20
     );
 
-    COUT(passed, true);
+    COUTF(passed, true);
+}
+
+DEF_TAST(access_array_500, "数组元素访问对比(500个元素)")
+{
+    Document doc = createJsonContainer(500);
+    yyjson_doc* yy_doc = doc.c_doc();
+    
+    bool passed = relativePerformance(
+        "xyjson array access (500)",
+        [&doc]() {
+            long long sum = 0;
+            auto array = doc / "array";
+            size_t count = array.size();
+            for (size_t i = 0; i < count; ++i) {
+                sum += array[i] | 0;
+            }
+            COUTF(sum, 124750); // 验证业务正确性: 0+1+...+499 = 124750
+        },
+        "yyjson array access (500)",
+        [yy_doc]() {
+            yyjson_val* root = yyjson_doc_get_root(yy_doc);
+            yyjson_val* array = yyjson_obj_get(root, "array");
+            
+            long long sum = 0;
+            size_t count = yyjson_arr_size(array);
+            for (size_t i = 0; i < count; ++i) {
+                yyjson_val* val = yyjson_arr_get(array, i);
+                sum += yyjson_is_int(val) ? yyjson_get_int(val) : 0;
+            }
+            COUTF(sum, 124750);
+        }
+    );
+
+    COUTF(passed, true);
+}
+
+DEF_TAST(access_array_1000, "数组元素访问对比(1000个元素)")
+{
+    Document doc = createJsonContainer(1000);
+    yyjson_doc* yy_doc = doc.c_doc();
+    
+    bool passed = relativePerformance(
+        "xyjson array access (1000)",
+        [&doc]() {
+            long long sum = 0;
+            auto array = doc / "array";
+            size_t count = array.size();
+            for (size_t i = 0; i < count; ++i) {
+                sum += array[i] | 0;
+            }
+            COUTF(sum, 499500); // 验证业务正确性: 0+1+...+999 = 499500
+        },
+        "yyjson array access (1000)",
+        [yy_doc]() {
+            yyjson_val* root = yyjson_doc_get_root(yy_doc);
+            yyjson_val* array = yyjson_obj_get(root, "array");
+            
+            long long sum = 0;
+            size_t count = yyjson_arr_size(array);
+            for (size_t i = 0; i < count; ++i) {
+                yyjson_val* val = yyjson_arr_get(array, i);
+                sum += yyjson_is_int(val) ? yyjson_get_int(val) : 0;
+            }
+            COUTF(sum, 499500);
+        }
+    );
+
+    COUTF(passed, true);
+}
+
+// MutableDocument 访问测试用例
+DEF_TAST(access_mutarr_100, "可变数组访问对比(100个元素)")
+{
+    MutableDocument mutDoc = createMutableJsonContainer(100);
+    yyjson_mut_doc* yy_mut_doc = mutDoc.c_doc();
+    
+    bool passed = relativePerformance(
+        "xyjson mutable array access",
+        [&mutDoc]() {
+            long long sum = 0;
+            auto array = mutDoc / "array";
+            size_t count = array.size();
+            for (size_t i = 0; i < count; ++i) {
+                sum += array[i] | 0;
+            }
+            COUTF(sum, 4950); // 验证业务正确性: 0+1+...+99 = 4950
+        },
+        "yyjson mutable array access",
+        [yy_mut_doc]() {
+            yyjson_mut_val* root = yyjson_mut_doc_get_root(yy_mut_doc);
+            yyjson_mut_val* array = yyjson_mut_obj_get(root, "array");
+            
+            long long sum = 0;
+            size_t count = yyjson_mut_arr_size(array);
+            for (size_t i = 0; i < count; ++i) {
+                yyjson_mut_val* val = yyjson_mut_arr_get(array, i);
+                sum += yyjson_mut_is_int(val) ? yyjson_mut_get_int(val) : 0;
+            }
+            COUTF(sum, 4950);
+        }
+    );
+
+    COUTF(passed, true);
+}
+
+DEF_TAST(access_mutarr_500, "可变数组访问对比(500个元素)")
+{
+    MutableDocument mutDoc = createMutableJsonContainer(500);
+    yyjson_mut_doc* yy_mut_doc = mutDoc.c_doc();
+    
+    bool passed = relativePerformance(
+        "xyjson mutable array access (500)",
+        [&mutDoc]() {
+            long long sum = 0;
+            auto array = mutDoc / "array";
+            size_t count = array.size();
+            for (size_t i = 0; i < count; ++i) {
+                sum += array[i] | 0;
+            }
+            COUTF(sum, 124750); // 验证业务正确性: 0+1+...+499 = 124750
+        },
+        "yyjson mutable array access (500)",
+        [yy_mut_doc]() {
+            yyjson_mut_val* root = yyjson_mut_doc_get_root(yy_mut_doc);
+            yyjson_mut_val* array = yyjson_mut_obj_get(root, "array");
+            
+            long long sum = 0;
+            size_t count = yyjson_mut_arr_size(array);
+            for (size_t i = 0; i < count; ++i) {
+                yyjson_mut_val* val = yyjson_mut_arr_get(array, i);
+                sum += yyjson_mut_is_int(val) ? yyjson_mut_get_int(val) : 0;
+            }
+            COUTF(sum, 124750);
+        }
+    );
+
+    COUTF(passed, true);
+}
+
+DEF_TAST(access_mutarr_1000, "可变数组访问对比(1000个元素)")
+{
+    MutableDocument mutDoc = createMutableJsonContainer(1000);
+    yyjson_mut_doc* yy_mut_doc = mutDoc.c_doc();
+    
+    bool passed = relativePerformance(
+        "xyjson mutable array access (1000)",
+        [&mutDoc]() {
+            long long sum = 0;
+            auto array = mutDoc / "array";
+            size_t count = array.size();
+            for (size_t i = 0; i < count; ++i) {
+                sum += array[i] | 0;
+            }
+            COUTF(sum, 499500); // 验证业务正确性: 0+1+...+999 = 499500
+        },
+        "yyjson mutable array access (1000)",
+        [yy_mut_doc]() {
+            yyjson_mut_val* root = yyjson_mut_doc_get_root(yy_mut_doc);
+            yyjson_mut_val* array = yyjson_mut_obj_get(root, "array");
+            
+            long long sum = 0;
+            size_t count = yyjson_mut_arr_size(array);
+            for (size_t i = 0; i < count; ++i) {
+                yyjson_mut_val* val = yyjson_mut_arr_get(array, i);
+                sum += yyjson_mut_is_int(val) ? yyjson_mut_get_int(val) : 0;
+            }
+            COUTF(sum, 499500);
+        }
+    );
+
+    COUTF(passed, true);
+}
+
+DEF_TAST(access_mutobj_100, "可变对象访问对比(100个属性)")
+{
+    MutableDocument mutDoc = createMutableJsonContainer(100);
+    yyjson_mut_doc* yy_mut_doc = mutDoc.c_doc();
+    
+    bool passed = relativePerformance(
+        "xyjson mutable object access",
+        [&mutDoc]() {
+            long long sum = 0;
+            auto obj = mutDoc / "object";
+            size_t count = obj.size();
+            for (size_t i = 0; i < count; ++i) {
+                std::string key = "k" + std::to_string(i);
+                sum += obj / key.c_str() | 0;
+            }
+            COUTF(sum, 4950); // 验证业务正确性: 0+1+...+99 = 4950
+        },
+        "yyjson mutable object access",
+        [yy_mut_doc]() {
+            yyjson_mut_val* root = yyjson_mut_doc_get_root(yy_mut_doc);
+            yyjson_mut_val* obj = yyjson_mut_obj_get(root, "object");
+            
+            long long sum = 0;
+            size_t count = yyjson_mut_obj_size(obj);
+            for (size_t i = 0; i < count; ++i) {
+                std::string key = "k" + std::to_string(i);
+                yyjson_mut_val* val = yyjson_mut_obj_getn(obj, key.c_str(), key.size());
+                sum += yyjson_mut_is_int(val) ? yyjson_mut_get_int(val) : 0;
+            }
+            COUTF(sum, 4950);
+        }
+    );
+
+    COUTF(passed, true);
+}
+
+DEF_TAST(access_mutobj_500, "可变对象访问对比(500个属性)")
+{
+    MutableDocument mutDoc = createMutableJsonContainer(500);
+    yyjson_mut_doc* yy_mut_doc = mutDoc.c_doc();
+    
+    bool passed = relativePerformance(
+        "xyjson mutable object access (500)",
+        [&mutDoc]() {
+            long long sum = 0;
+            auto obj = mutDoc / "object";
+            size_t count = obj.size();
+            for (size_t i = 0; i < count; ++i) {
+                std::string key = "k" + std::to_string(i);
+                sum += obj / key.c_str() | 0;
+            }
+            COUTF(sum, 124750); // 验证业务正确性: 0+1+...+499 = 124750
+        },
+        "yyjson mutable object access (500)",
+        [yy_mut_doc]() {
+            yyjson_mut_val* root = yyjson_mut_doc_get_root(yy_mut_doc);
+            yyjson_mut_val* obj = yyjson_mut_obj_get(root, "object");
+            
+            long long sum = 0;
+            size_t count = yyjson_mut_obj_size(obj);
+            for (size_t i = 0; i < count; ++i) {
+                std::string key = "k" + std::to_string(i);
+                yyjson_mut_val* val = yyjson_mut_obj_getn(obj, key.c_str(), key.size());
+                sum += yyjson_mut_is_int(val) ? yyjson_mut_get_int(val) : 0;
+            }
+            COUTF(sum, 124750);
+        }
+    );
+
+    COUTF(passed, true);
+}
+
+DEF_TAST(access_mutobj_1000, "可变对象访问对比(1000个属性)")
+{
+    MutableDocument mutDoc = createMutableJsonContainer(1000);
+    yyjson_mut_doc* yy_mut_doc = mutDoc.c_doc();
+    
+    bool passed = relativePerformance(
+        "xyjson mutable object access (1000)",
+        [&mutDoc]() {
+            long long sum = 0;
+            auto obj = mutDoc / "object";
+            size_t count = obj.size();
+            for (size_t i = 0; i < count; ++i) {
+                std::string key = "k" + std::to_string(i);
+                sum += obj / key.c_str() | 0;
+            }
+            COUTF(sum, 499500); // 验证业务正确性: 0+1+...+999 = 499500
+        },
+        "yyjson mutable object access (1000)",
+        [yy_mut_doc]() {
+            yyjson_mut_val* root = yyjson_mut_doc_get_root(yy_mut_doc);
+            yyjson_mut_val* obj = yyjson_mut_obj_get(root, "object");
+            
+            long long sum = 0;
+            size_t count = yyjson_mut_obj_size(obj);
+            for (size_t i = 0; i < count; ++i) {
+                std::string key = "k" + std::to_string(i);
+                yyjson_mut_val* val = yyjson_mut_obj_getn(obj, key.c_str(), key.size());
+                sum += yyjson_mut_is_int(val) ? yyjson_mut_get_int(val) : 0;
+            }
+            COUTF(sum, 499500);
+        }
+    );
+
+    COUTF(passed, true);
 }
 

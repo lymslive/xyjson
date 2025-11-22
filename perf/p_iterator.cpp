@@ -49,7 +49,7 @@ DEF_TAST(iterator_array_10, "小数组遍历对比(10个元素)")
     );
 
     yyjson_doc_free(yy_doc);
-    COUT(passed, true);
+    COUTF(passed, true);
 }
 
 DEF_TAST(iterator_array_objects_3, "对象数组遍历对比(3个对象)")
@@ -92,7 +92,7 @@ DEF_TAST(iterator_array_objects_3, "对象数组遍历对比(3个对象)")
     );
 
     yyjson_doc_free(yy_doc);
-    COUT(passed, true);
+    COUTF(passed, true);
 }
 
 DEF_TAST(iterator_array_100, "数组迭代器对比(100个元素)")
@@ -126,7 +126,7 @@ DEF_TAST(iterator_array_100, "数组迭代器对比(100个元素)")
         }
     );
 
-    COUT(passed, true);
+    COUTF(passed, true);
 }
 
 DEF_TAST(iterator_object_100, "对象迭代器对比(100个属性)")
@@ -160,7 +160,7 @@ DEF_TAST(iterator_object_100, "对象迭代器对比(100个属性)")
         100
     );
 
-    COUT(passed, true);
+    COUTF(passed, true);
 }
 
 DEF_TAST(iterator_object_500, "对象迭代器对比(500个属性)")
@@ -194,7 +194,7 @@ DEF_TAST(iterator_object_500, "对象迭代器对比(500个属性)")
         50
     );
 
-    COUT(passed, true);
+    COUTF(passed, true);
 }
 
 DEF_TAST(iterator_object_1000, "对象迭代器对比(1000个属性)")
@@ -228,6 +228,271 @@ DEF_TAST(iterator_object_1000, "对象迭代器对比(1000个属性)")
         20
     );
 
-    COUT(passed, true);
+    COUTF(passed, true);
+}
+
+DEF_TAST(iterator_array_500, "数组迭代器对比(500个元素)")
+{
+    Document doc = createJsonContainer(500);
+    yyjson_doc* yy_doc = doc.c_doc();
+    
+    bool passed = relativePerformance(
+        "xyjson array iterator (500)",
+        [&doc]() {
+            long long sum = 0;
+            auto array = doc / "array" | kArray;
+            for (auto it = array.begin(); it; ++it) {
+                sum += *it | 0;
+            }
+            COUTF(sum, 124750); // 验证业务正确性: 0+1+...+499 = 124750
+        },
+        "yyjson array iterator (500)",
+        [yy_doc]() {
+            yyjson_val* root = yyjson_doc_get_root(yy_doc);
+            yyjson_val* array = yyjson_obj_get(root, "array");
+            
+            long long sum = 0;
+            size_t idx, max;
+            yyjson_val* val;
+            yyjson_arr_foreach(array, idx, max, val) {
+                sum += yyjson_is_int(val) ? yyjson_get_int(val) : 0;
+            }
+            COUTF(sum, 124750);
+        }
+    );
+
+    COUTF(passed, true);
+}
+
+DEF_TAST(iterator_array_1000, "数组迭代器对比(1000个元素)")
+{
+    Document doc = createJsonContainer(1000);
+    yyjson_doc* yy_doc = doc.c_doc();
+    
+    bool passed = relativePerformance(
+        "xyjson array iterator (1000)",
+        [&doc]() {
+            long long sum = 0;
+            auto array = doc / "array" | kArray;
+            for (auto it = array.begin(); it; ++it) {
+                sum += *it | 0;
+            }
+            COUTF(sum, 499500); // 验证业务正确性: 0+1+...+999 = 499500
+        },
+        "yyjson array iterator (1000)",
+        [yy_doc]() {
+            yyjson_val* root = yyjson_doc_get_root(yy_doc);
+            yyjson_val* array = yyjson_obj_get(root, "array");
+            
+            long long sum = 0;
+            size_t idx, max;
+            yyjson_val* val;
+            yyjson_arr_foreach(array, idx, max, val) {
+                sum += yyjson_is_int(val) ? yyjson_get_int(val) : 0;
+            }
+            COUTF(sum, 499500);
+        }
+    );
+
+    COUTF(passed, true);
+}
+
+// MutableDocument 迭代器测试用例
+DEF_TAST(iterator_mutarr_100, "可变数组迭代器对比(100个元素)")
+{
+    MutableDocument mutDoc = createMutableJsonContainer(100);
+    yyjson_mut_doc* yy_mut_doc = mutDoc.c_doc();
+    
+    bool passed = relativePerformance(
+        "xyjson mutable array iterator",
+        [&mutDoc]() {
+            long long sum = 0;
+            auto array = mutDoc / "array" | kArray;
+            for (auto it = array.begin(); it; ++it) {
+                sum += *it | 0;
+            }
+            COUTF(sum, 4950); // 验证业务正确性: 0+1+...+99 = 4950
+        },
+        "yyjson mutable array iterator",
+        [yy_mut_doc]() {
+            yyjson_mut_val* root = yyjson_mut_doc_get_root(yy_mut_doc);
+            yyjson_mut_val* array = yyjson_mut_obj_get(root, "array");
+            
+            long long sum = 0;
+            size_t idx, max;
+            yyjson_mut_val* val;
+            yyjson_mut_arr_foreach(array, idx, max, val) {
+                sum += yyjson_mut_is_int(val) ? yyjson_mut_get_int(val) : 0;
+            }
+            COUTF(sum, 4950);
+        }
+    );
+
+    COUTF(passed, true);
+}
+
+DEF_TAST(iterator_mutarr_500, "可变数组迭代器对比(500个元素)")
+{
+    MutableDocument mutDoc = createMutableJsonContainer(500);
+    yyjson_mut_doc* yy_mut_doc = mutDoc.c_doc();
+    
+    bool passed = relativePerformance(
+        "xyjson mutable array iterator (500)",
+        [&mutDoc]() {
+            long long sum = 0;
+            auto array = mutDoc / "array" | kArray;
+            for (auto it = array.begin(); it; ++it) {
+                sum += *it | 0;
+            }
+            COUTF(sum, 124750); // 验证业务正确性: 0+1+...+499 = 124750
+        },
+        "yyjson mutable array iterator (500)",
+        [yy_mut_doc]() {
+            yyjson_mut_val* root = yyjson_mut_doc_get_root(yy_mut_doc);
+            yyjson_mut_val* array = yyjson_mut_obj_get(root, "array");
+            
+            long long sum = 0;
+            size_t idx, max;
+            yyjson_mut_val* val;
+            yyjson_mut_arr_foreach(array, idx, max, val) {
+                sum += yyjson_mut_is_int(val) ? yyjson_mut_get_int(val) : 0;
+            }
+            COUTF(sum, 124750);
+        }
+    );
+
+    COUTF(passed, true);
+}
+
+DEF_TAST(iterator_mutarr_1000, "可变数组迭代器对比(1000个元素)")
+{
+    MutableDocument mutDoc = createMutableJsonContainer(1000);
+    yyjson_mut_doc* yy_mut_doc = mutDoc.c_doc();
+    
+    bool passed = relativePerformance(
+        "xyjson mutable array iterator (1000)",
+        [&mutDoc]() {
+            long long sum = 0;
+            auto array = mutDoc / "array" | kArray;
+            for (auto it = array.begin(); it; ++it) {
+                sum += *it | 0;
+            }
+            COUTF(sum, 499500); // 验证业务正确性: 0+1+...+999 = 499500
+        },
+        "yyjson mutable array iterator (1000)",
+        [yy_mut_doc]() {
+            yyjson_mut_val* root = yyjson_mut_doc_get_root(yy_mut_doc);
+            yyjson_mut_val* array = yyjson_mut_obj_get(root, "array");
+            
+            long long sum = 0;
+            size_t idx, max;
+            yyjson_mut_val* val;
+            yyjson_mut_arr_foreach(array, idx, max, val) {
+                sum += yyjson_mut_is_int(val) ? yyjson_mut_get_int(val) : 0;
+            }
+            COUTF(sum, 499500);
+        }
+    );
+
+    COUTF(passed, true);
+}
+
+DEF_TAST(iterator_mutobj_100, "可变对象迭代器对比(100个属性)")
+{
+    MutableDocument mutDoc = createMutableJsonContainer(100);
+    yyjson_mut_doc* yy_mut_doc = mutDoc.c_doc();
+    
+    bool passed = relativePerformance(
+        "xyjson mutable object iterator",
+        [&mutDoc]() {
+            long long sum = 0;
+            auto obj = mutDoc / "object" | kObject;
+            for (auto it = obj.begin(); it; ++it) {
+                sum += *it | 0;
+            }
+            COUTF(sum, 4950); // 验证业务正确性: 0+1+...+99 = 4950
+        },
+        "yyjson mutable object iterator",
+        [yy_mut_doc]() {
+            yyjson_mut_val* root = yyjson_mut_doc_get_root(yy_mut_doc);
+            yyjson_mut_val* obj = yyjson_mut_obj_get(root, "object");
+            
+            long long sum = 0;
+            size_t idx, max;
+            yyjson_mut_val* key, *val;
+            yyjson_mut_obj_foreach(obj, idx, max, key, val) {
+                sum += yyjson_mut_is_int(val) ? yyjson_mut_get_int(val) : 0;
+            }
+            COUTF(sum, 4950);
+        }
+    );
+
+    COUTF(passed, true);
+}
+
+DEF_TAST(iterator_mutobj_500, "可变对象迭代器对比(500个属性)")
+{
+    MutableDocument mutDoc = createMutableJsonContainer(500);
+    yyjson_mut_doc* yy_mut_doc = mutDoc.c_doc();
+    
+    bool passed = relativePerformance(
+        "xyjson mutable object iterator (500)",
+        [&mutDoc]() {
+            long long sum = 0;
+            auto obj = mutDoc / "object" | kObject;
+            for (auto it = obj.begin(); it; ++it) {
+                sum += *it | 0;
+            }
+            COUTF(sum, 124750); // 验证业务正确性: 0+1+...+499 = 124750
+        },
+        "yyjson mutable object iterator (500)",
+        [yy_mut_doc]() {
+            yyjson_mut_val* root = yyjson_mut_doc_get_root(yy_mut_doc);
+            yyjson_mut_val* obj = yyjson_mut_obj_get(root, "object");
+            
+            long long sum = 0;
+            size_t idx, max;
+            yyjson_mut_val* key, *val;
+            yyjson_mut_obj_foreach(obj, idx, max, key, val) {
+                sum += yyjson_mut_is_int(val) ? yyjson_mut_get_int(val) : 0;
+            }
+            COUTF(sum, 124750);
+        }
+    );
+
+    COUTF(passed, true);
+}
+
+DEF_TAST(iterator_mutobj_1000, "可变对象迭代器对比(1000个属性)")
+{
+    MutableDocument mutDoc = createMutableJsonContainer(1000);
+    yyjson_mut_doc* yy_mut_doc = mutDoc.c_doc();
+    
+    bool passed = relativePerformance(
+        "xyjson mutable object iterator (1000)",
+        [&mutDoc]() {
+            long long sum = 0;
+            auto obj = mutDoc / "object" | kObject;
+            for (auto it = obj.begin(); it; ++it) {
+                sum += *it | 0;
+            }
+            COUTF(sum, 499500); // 验证业务正确性: 0+1+...+999 = 499500
+        },
+        "yyjson mutable object iterator (1000)",
+        [yy_mut_doc]() {
+            yyjson_mut_val* root = yyjson_mut_doc_get_root(yy_mut_doc);
+            yyjson_mut_val* obj = yyjson_mut_obj_get(root, "object");
+            
+            long long sum = 0;
+            size_t idx, max;
+            yyjson_mut_val* key, *val;
+            yyjson_mut_obj_foreach(obj, idx, max, key, val) {
+                sum += yyjson_mut_is_int(val) ? yyjson_mut_get_int(val) : 0;
+            }
+            COUTF(sum, 499500);
+        }
+    );
+
+    COUTF(passed, true);
 }
 

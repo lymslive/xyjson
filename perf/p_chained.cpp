@@ -57,7 +57,7 @@ DEF_TAST(chained_deep_path, "深度链式访问对比")
     );
 
     yyjson_doc_free(yy_doc);
-    COUT(passed, true);
+    COUTF(passed, true);
 }
 
 DEF_TAST(chained_parse_and_access, "解析+访问组合对比")
@@ -90,5 +90,5 @@ DEF_TAST(chained_parse_and_access, "解析+访问组合对比")
         10000
     );
     
-    COUT(passed, true);
+    COUTF(passed, true);
 }

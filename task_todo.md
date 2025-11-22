@@ -2138,6 +2138,46 @@ xyjson 的 `|` 操作符，在 yyjson 应该先判断类型再调用 get api 。
 
 改过之后目测通过率似乎有所提升，但浮动仍较大。
 
+### DONE: 20251122-233030
+
+## TODO:2025-11-22/3 补充更多相对性能测试用例
+
+之前一些运行结果显示，数组用迭代器性能反不如循环取索引。理论上 yyjson 的数组
+不支持随机访问，迭代器比循环从头索引会快的。怀疑是小数组的影响，所以增在数组规
+则再观测。
+
+- 在 `p_access.cpp` 增加 access_array_500 access_array_1000 测试用例，参考
+  access_array_100 写法。
+- 在 `p_iterator.cpp` 增加 iterator_array_500 iterator_array_1000 测试用例，参
+  考 iterator_araay_100 写法。
+以上共计增加 4 个用例。
+
+然后增加 MutableDocument 的访问性能对比：
+- 在 `p_access.cpp` 增加 access_mutarr_n 测试用例，参考 access_array_n 写法；
+  增加 access_mutobj_n 测试用例，参数 access_object_n 写法。
+- 在 `p_iterator.cpp` 增加 iterator_mutarr_n 测试用例，参考 iterator_array_n
+  写法；增加 iterator_mutobj_n 测试用例，参考 iterator_object_n。
+以上 n = (100, 500, 100) 三个规模大小，共 3*4=12 个用例。
+
+再新测试文件 `p_mutable.cpp` ，用于测试 MutableDocument/MutableValue 的修改操
+作对比。设计如下用例：
+
+- mutable_set: 测试各基本类型给 MutableValue 标量直接用 `=` ，包括 bool int
+  int64_t uint64_t double 字符串，字符串使用字面量赋值；设计一个简单 json 包含
+  这几个不同类型的字段；int 与 double 可用循环设置 100 次不同的值。
+- mutable_array_n: (n=100,500,1000)，使用 `<<` 操作符从头构造不同规则的数组，
+  结果相当于用 `createJsonContainer(n)` 创建的 `array` 字段；可用一个 COUTF 语
+  句断言其 size()。
+- mutable_object_n: (n=100,500,1000)，使用 `<<` 操作符从头构造不同规则的数组，
+  结果相当于用 `createJsonContainer(n)` 创建的 `object` 字段；可用一个 COUTF
+  语句断言其 size()。
+
+以上新文件共增加 7 个测试用例。
+
+to AI: 注意不要修改原有用例。
+
+### DONE: 20251123-003547
+
 ## TODO: 优化获取整数体验
 
 原来 C API 中 `yyjson_get_uint` 与 `yyjson_get_sint` 也只判断 `yyjson_is_int`

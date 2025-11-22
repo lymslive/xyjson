@@ -200,4 +200,31 @@ yyjson::Document createJsonContainer(int n)
     return yyjson::Document(mutDoc);
 }
 
+// 创建包含数组和对象的可变JSON容器
+yyjson::MutableDocument createMutableJsonContainer(int n)
+{
+    // 创建可变文档
+    yyjson::MutableDocument mutDoc;
+    
+    // 创建数组
+    yyjson::MutableValue array = mutDoc * yyjson::kArray;
+    for (int i = 0; i < n; ++i) {
+        array.append(i);
+    }
+    
+    // 创建对象
+    yyjson::MutableValue obj = mutDoc * yyjson::kObject;
+    for (int i = 0; i < n; ++i) {
+        std::string key = "k" + std::to_string(i);
+        obj.add(key.c_str(), i);
+    }
+    
+    // 构建最终的JSON文档
+    yyjson::MutableValue root = mutDoc.root();
+    root.add("array", array);
+    root.add("object", obj);
+    
+    return mutDoc;
+}
+
 } // namespace perf

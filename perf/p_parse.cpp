@@ -19,7 +19,7 @@ using perf::relativePerformance;
 DEF_TAST(parse_small, "解析小文件对比")
 {
     std::string jsonText = readFile("perf/datasets/small.json");
-    COUT(jsonText.empty() == false, true);
+    COUTF(jsonText.empty() == false, true);
     
     bool passed = relativePerformance(
         "xyjson parse",
@@ -38,13 +38,13 @@ DEF_TAST(parse_small, "解析小文件对比")
         10000
     );
     
-    COUT(passed, true);
+    COUTF(passed, true);
 }
 
 DEF_TAST(parse_medium, "解析中等文件对比")
 {
     std::string jsonText = readFile("perf/datasets/medium.json");
-    COUT(jsonText.empty() == false, true);
+    COUTF(jsonText.empty() == false, true);
     
     bool passed = relativePerformance(
         "xyjson parse",
@@ -63,13 +63,13 @@ DEF_TAST(parse_medium, "解析中等文件对比")
         1000
     );
     
-    COUT(passed, true);
+    COUTF(passed, true);
 }
 
 DEF_TAST(parse_large, "解析大文件对比")
 {
     std::string jsonText = readFile("perf/datasets/large.json");
-    COUT(jsonText.empty() == false, true);
+    COUTF(jsonText.empty() == false, true);
     
     bool passed = relativePerformance(
         "xyjson parse",
@@ -88,7 +88,7 @@ DEF_TAST(parse_large, "解析大文件对比")
         100
     );
     
-    COUT(passed, true);
+    COUTF(passed, true);
 }
 
 DEF_TAST(parse_file, "文件读取+解析对比")
@@ -118,7 +118,7 @@ DEF_TAST(parse_file, "文件读取+解析对比")
         1000
     );
     
-    COUT(passed, true);
+    COUTF(passed, true);
 }
 
 DEF_TAST(parse_complex, "复杂嵌套结构解析对比")
@@ -161,5 +161,5 @@ DEF_TAST(parse_complex, "复杂嵌套结构解析对比")
         10000
     );
     
-    COUT(passed, true);
+    COUTF(passed, true);
 }

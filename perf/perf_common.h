@@ -36,6 +36,9 @@ bool relativePerformance(const std::string& test_name,
 // 创建包含数组和对象的JSON容器
 yyjson::Document createJsonContainer(int n);
 
+// 创建包含数组和对象的可变JSON容器
+yyjson::MutableDocument createMutableJsonContainer(int n);
+
 } // namespace perf
 
 #endif // PERF_COMMON_H
