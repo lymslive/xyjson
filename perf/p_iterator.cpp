@@ -14,7 +14,6 @@
 using namespace yyjson;
 using namespace perf;
 
-// 测试 1: 小数组遍历对比
 DEF_TAST(iterator_array_10, "小数组遍历对比(10个元素)")
 {
     std::string jsonText = R"json({
@@ -42,7 +41,7 @@ DEF_TAST(iterator_array_10, "小数组遍历对比(10个元素)")
             size_t idx, count;
             yyjson_val* val;
             yyjson_arr_foreach(numbers, idx, count, val) {
-                sum += yyjson_get_int(val);
+                sum += yyjson_is_int(val) ? yyjson_get_int(val) : 0;
             }
             COUTF(sum, 55);
         },
@@ -53,7 +52,6 @@ DEF_TAST(iterator_array_10, "小数组遍历对比(10个元素)")
     COUT(passed, true);
 }
 
-// 测试 2: 对象数组遍历对比
 DEF_TAST(iterator_array_objects_3, "对象数组遍历对比(3个对象)")
 {
     std::string jsonText = R"json({
@@ -86,7 +84,7 @@ DEF_TAST(iterator_array_objects_3, "对象数组遍历对比(3个对象)")
             yyjson_val* emp;
             yyjson_arr_foreach(employees, idx, count, emp) {
                 yyjson_val* salary = yyjson_obj_get(emp, "salary");
-                total_salary += salary ? yyjson_get_int(salary) : 0;
+                total_salary += yyjson_is_int(salary) ? yyjson_get_int(salary) : 0;
             }
             COUTF(total_salary, 270000);
         },
@@ -97,7 +95,6 @@ DEF_TAST(iterator_array_objects_3, "对象数组遍历对比(3个对象)")
     COUT(passed, true);
 }
 
-// 测试 3: 100 元素数组迭代器对比
 DEF_TAST(iterator_array_100, "数组迭代器对比(100个元素)")
 {
     Document doc = createJsonContainer(100);
@@ -123,7 +120,7 @@ DEF_TAST(iterator_array_100, "数组迭代器对比(100个元素)")
             size_t idx, max;
             yyjson_val* val;
             yyjson_arr_foreach(array, idx, max, val) {
-                sum += yyjson_get_int(val);
+                sum += yyjson_is_int(val) ? yyjson_get_int(val) : 0;
             }
             COUTF(sum, 4950);
         }
@@ -132,7 +129,6 @@ DEF_TAST(iterator_array_100, "数组迭代器对比(100个元素)")
     COUT(passed, true);
 }
 
-// 测试 4: 100 元素对象迭代器对比
 DEF_TAST(iterator_object_100, "对象迭代器对比(100个属性)")
 {
     Document doc = createJsonContainer(100);
@@ -157,7 +153,7 @@ DEF_TAST(iterator_object_100, "对象迭代器对比(100个属性)")
             size_t idx, max;
             yyjson_val* key, *val;
             yyjson_obj_foreach(obj, idx, max, key, val) {
-                sum += yyjson_get_int(val);
+                sum += yyjson_is_int(val) ? yyjson_get_int(val) : 0;
             }
             COUTF(sum, 4950);
         },
@@ -167,7 +163,6 @@ DEF_TAST(iterator_object_100, "对象迭代器对比(100个属性)")
     COUT(passed, true);
 }
 
-// 测试 5: 500 元素对象迭代器对比
 DEF_TAST(iterator_object_500, "对象迭代器对比(500个属性)")
 {
     Document doc = createJsonContainer(500);
@@ -192,7 +187,7 @@ DEF_TAST(iterator_object_500, "对象迭代器对比(500个属性)")
             size_t idx, max;
             yyjson_val* key, *val;
             yyjson_obj_foreach(obj, idx, max, key, val) {
-                sum += yyjson_get_int(val);
+                sum += yyjson_is_int(val) ? yyjson_get_int(val) : 0;
             }
             COUTF(sum, 124750);
         },
@@ -202,7 +197,6 @@ DEF_TAST(iterator_object_500, "对象迭代器对比(500个属性)")
     COUT(passed, true);
 }
 
-// 测试 6: 1000 元素对象迭代器对比
 DEF_TAST(iterator_object_1000, "对象迭代器对比(1000个属性)")
 {
     Document doc = createJsonContainer(1000);
@@ -227,7 +221,7 @@ DEF_TAST(iterator_object_1000, "对象迭代器对比(1000个属性)")
             size_t idx, max;
             yyjson_val* key, *val;
             yyjson_obj_foreach(obj, idx, max, key, val) {
-                sum += yyjson_get_int(val);
+                sum += yyjson_is_int(val) ? yyjson_get_int(val) : 0;
             }
             COUTF(sum, 499500);
         },

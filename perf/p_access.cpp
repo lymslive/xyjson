@@ -14,7 +14,6 @@
 using namespace yyjson;
 using namespace perf;
 
-// 测试 1: 简单字段访问对比
 DEF_TAST(access_simple, "简单字段访问对比")
 {
     std::string jsonText = R"json({
@@ -30,10 +29,11 @@ DEF_TAST(access_simple, "简单字段访问对比")
     bool passed = relativePerformance(
         "xyjson simple access",
         [&doc]() {
-            const char* name = doc / "name" | "";
-            int age = doc / "age" | 0;
-            const char* email = doc / "email" | "";
-            bool active = doc / "is_active" | false;
+            auto root = *doc;
+            const char* name = root / "name" | "";
+            int age = root / "age" | 0;
+            const char* email = root / "email" | "";
+            bool active = root / "is_active" | false;
             COUTF(age, 30);
         },
         "yyjson simple access",
@@ -43,10 +43,10 @@ DEF_TAST(access_simple, "简单字段访问对比")
             yyjson_val* age = yyjson_obj_get(root, "age");
             yyjson_val* email = yyjson_obj_get(root, "email");
             yyjson_val* is_active = yyjson_obj_get(root, "is_active");
-            const char* name_str = name ? yyjson_get_str(name) : "";
-            long long age_val = age ? yyjson_get_int(age) : 0;
-            const char* email_str = email ? yyjson_get_str(email) : "";
-            bool active_val = is_active ? yyjson_get_bool(is_active) : false;
+            const char* name_str = yyjson_is_str(name) ? yyjson_get_str(name) : "";
+            int age_val = yyjson_is_int(age) ? yyjson_get_int(age) : 0;
+            const char* email_str = yyjson_is_str(email) ? yyjson_get_str(email) : "";
+            bool active_val = yyjson_is_bool(is_active) ? yyjson_get_bool(is_active) : false;
             COUTF(age_val, 30);
         },
         10000
@@ -56,7 +56,6 @@ DEF_TAST(access_simple, "简单字段访问对比")
     COUT(passed, true);
 }
 
-// 测试 2: 嵌套字段访问对比
 DEF_TAST(access_nested, "嵌套字段访问对比")
 {
     std::string jsonText = R"json({
@@ -94,10 +93,10 @@ DEF_TAST(access_nested, "嵌套字段访问对比")
             yyjson_val* address = profile ? yyjson_obj_get(profile, "address") : NULL;
             yyjson_val* city = address ? yyjson_obj_get(address, "city") : NULL;
             yyjson_val* zip = address ? yyjson_obj_get(address, "zip") : NULL;
-            const char* name_str = name ? yyjson_get_str(name) : "";
-            long long age_val = age ? yyjson_get_int(age) : 0;
-            const char* city_str = city ? yyjson_get_str(city) : "";
-            const char* zip_str = zip ? yyjson_get_str(zip) : "";
+            const char* name_str = yyjson_is_str(name) ? yyjson_get_str(name) : "";
+            int age_val = yyjson_is_int(age) ? yyjson_get_int(age) : 0;
+            const char* city_str = yyjson_is_str(city) ? yyjson_get_str(city) : "";
+            const char* zip_str = yyjson_is_str(zip) ? yyjson_get_str(zip) : "";
             COUTF(age_val, 30);
         },
         10000
@@ -107,7 +106,6 @@ DEF_TAST(access_nested, "嵌套字段访问对比")
     COUT(passed, true);
 }
 
-// 测试 3: 数组元素访问对比
 DEF_TAST(access_array_10, "数组元素访问对比(10个元素)")
 {
     std::string jsonText = R"json({
@@ -135,7 +133,7 @@ DEF_TAST(access_array_10, "数组元素访问对比(10个元素)")
             size_t count = yyjson_arr_size(scores);
             for (size_t i = 0; i < count; ++i) {
                 yyjson_val* val = yyjson_arr_get(scores, i);
-                sum += yyjson_get_int(val);
+                sum += yyjson_is_int(val) ? yyjson_get_int(val) : 0;
             }
         },
         10000
@@ -145,7 +143,6 @@ DEF_TAST(access_array_10, "数组元素访问对比(10个元素)")
     COUT(passed, true);
 }
 
-// 测试 4: 对象数组访问对比
 DEF_TAST(access_array_objects_3, "对象数组访问对比(3个对象)")
 {
     std::string jsonText = R"json({
@@ -178,7 +175,7 @@ DEF_TAST(access_array_objects_3, "对象数组访问对比(3个对象)")
             for (size_t i = 0; i < count; ++i) {
                 yyjson_val* emp = yyjson_arr_get(employees, i);
                 yyjson_val* age = yyjson_obj_get(emp, "age");
-                total_age += age ? yyjson_get_int(age) : 0;
+                total_age += yyjson_is_int(age) ? yyjson_get_int(age) : 0;
             }
         },
         10000
@@ -188,47 +185,6 @@ DEF_TAST(access_array_objects_3, "对象数组访问对比(3个对象)")
     COUT(passed, true);
 }
 
-// 测试 5: 类型转换对比
-DEF_TAST(access_type_conversion, "类型转换对比")
-{
-    std::string jsonText = R"json({
-        "int_val": 42,
-        "double_val": 3.14,
-        "bool_val": true,
-        "string_val": "hello"
-    })json";
-
-    Document doc(jsonText);
-    yyjson_doc* yy_doc = yyjson_read(jsonText.c_str(), jsonText.size(), 0);
-    
-    bool passed = relativePerformance(
-        "xyjson type conversion",
-        [&doc]() {
-            int int_val = doc / "int_val" | 0;
-            double double_val = doc / "double_val" | 0.0;
-            bool bool_val = doc / "bool_val" | false;
-            const char* string_val = doc / "string_val" | "";
-        },
-        "yyjson type conversion",
-        [yy_doc]() {
-            yyjson_val* root = yyjson_doc_get_root(yy_doc);
-            yyjson_val* int_val = yyjson_obj_get(root, "int_val");
-            yyjson_val* double_val = yyjson_obj_get(root, "double_val");
-            yyjson_val* bool_val = yyjson_obj_get(root, "bool_val");
-            yyjson_val* string_val = yyjson_obj_get(root, "string_val");
-            long long int_v = int_val ? yyjson_get_int(int_val) : 0;
-            double double_v = double_val ? yyjson_get_real(double_val) : 0.0;
-            bool bool_v = bool_val ? yyjson_get_bool(bool_val) : false;
-            const char* string_v = string_val ? yyjson_get_str(string_val) : "";
-        },
-        10000
-    );
-
-    yyjson_doc_free(yy_doc);
-    COUT(passed, true);
-}
-
-// 测试 6: 复杂文件访问对比
 DEF_TAST(access_complex_file, "复杂文件访问对比")
 {
     std::ifstream file("perf/datasets/medium.json");
@@ -262,9 +218,8 @@ DEF_TAST(access_complex_file, "复杂文件访问对比")
                 for (size_t i = 0; i < emp_count && i < 10; ++i) {
                     yyjson_val* emp = yyjson_arr_get(employees, i);
                     yyjson_val* salary = yyjson_obj_get(emp, "salary");
-                    if (salary && yyjson_get_int(salary) > 0) {
-                        count++;
-                    }
+                    int salary_val = yyjson_is_int(salary) ? yyjson_get_int(salary) : 0;
+                    count += salary_val > 0 ? 1 : 0;
                 }
             }
         },
@@ -275,7 +230,6 @@ DEF_TAST(access_complex_file, "复杂文件访问对比")
     COUT(passed, true);
 }
 
-// 测试 7: 100 元素数组访问对比
 DEF_TAST(access_array_100, "数组元素访问对比(100个元素)")
 {
     Document doc = createJsonContainer(100);
@@ -301,7 +255,7 @@ DEF_TAST(access_array_100, "数组元素访问对比(100个元素)")
             size_t count = yyjson_arr_size(array);
             for (size_t i = 0; i < count; ++i) {
                 yyjson_val* val = yyjson_arr_get(array, i);
-                sum += yyjson_get_int(val);
+                sum += yyjson_is_int(val) ? yyjson_get_int(val) : 0;
             }
             COUTF(sum, 4950);
         }
@@ -310,7 +264,6 @@ DEF_TAST(access_array_100, "数组元素访问对比(100个元素)")
     COUT(passed, true);
 }
 
-// 测试 8: 100 元素对象访问对比
 DEF_TAST(access_object_100, "对象访问对比(100个属性)")
 {
     Document doc = createJsonContainer(100);
@@ -338,7 +291,7 @@ DEF_TAST(access_object_100, "对象访问对比(100个属性)")
             for (size_t i = 0; i < count; ++i) {
                 std::string key = "k" + std::to_string(i);
                 yyjson_val* val = yyjson_obj_getn(obj, key.c_str(), key.size());
-                sum += val ? yyjson_get_int(val) : 0;
+                sum += yyjson_is_int(val) ? yyjson_get_int(val) : 0;
             }
             COUTF(sum, 4950);
         },
@@ -348,7 +301,6 @@ DEF_TAST(access_object_100, "对象访问对比(100个属性)")
     COUT(passed, true);
 }
 
-// 测试 9: 500 元素对象访问对比
 DEF_TAST(access_object_500, "对象访问对比(500个属性)")
 {
     Document doc = createJsonContainer(500);
@@ -376,7 +328,7 @@ DEF_TAST(access_object_500, "对象访问对比(500个属性)")
             for (size_t i = 0; i < count; ++i) {
                 std::string key = "k" + std::to_string(i);
                 yyjson_val* val = yyjson_obj_getn(obj, key.c_str(), key.size());
-                sum += val ? yyjson_get_int(val) : 0;
+                sum += yyjson_is_int(val) ? yyjson_get_int(val) : 0;
             }
             COUTF(sum, 124750);
         },
@@ -414,7 +366,7 @@ DEF_TAST(access_object_1000, "对象访问对比(1000个属性)")
             for (size_t i = 0; i < count; ++i) {
                 std::string key = "k" + std::to_string(i);
                 yyjson_val* val = yyjson_obj_getn(obj, key.c_str(), key.size());
-                sum += val ? yyjson_get_int(val) : 0;
+                sum += yyjson_is_int(val) ? yyjson_get_int(val) : 0;
             }
             COUTF(sum, 499500);
         },

@@ -16,7 +16,6 @@ using perf::readFile;
 using perf::measurePerformance;
 using perf::relativePerformance;
 
-// 测试 1: 小文件解析对比
 DEF_TAST(parse_small, "解析小文件对比")
 {
     std::string jsonText = readFile("perf/datasets/small.json");
@@ -42,7 +41,6 @@ DEF_TAST(parse_small, "解析小文件对比")
     COUT(passed, true);
 }
 
-// 测试 2: 中等文件解析对比
 DEF_TAST(parse_medium, "解析中等文件对比")
 {
     std::string jsonText = readFile("perf/datasets/medium.json");
@@ -68,7 +66,6 @@ DEF_TAST(parse_medium, "解析中等文件对比")
     COUT(passed, true);
 }
 
-// 测试 3: 大文件解析对比
 DEF_TAST(parse_large, "解析大文件对比")
 {
     std::string jsonText = readFile("perf/datasets/large.json");
@@ -94,7 +91,6 @@ DEF_TAST(parse_large, "解析大文件对比")
     COUT(passed, true);
 }
 
-// 测试 4: 文件读取+解析对比
 DEF_TAST(parse_file, "文件读取+解析对比")
 {
     bool passed = relativePerformance(
@@ -125,7 +121,6 @@ DEF_TAST(parse_file, "文件读取+解析对比")
     COUT(passed, true);
 }
 
-// 测试 5: 复杂嵌套解析对比
 DEF_TAST(parse_complex, "复杂嵌套结构解析对比")
 {
     std::string jsonText = R"json({

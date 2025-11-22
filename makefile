@@ -1,7 +1,7 @@
 # Makefile for xyjson project
 # Common commands integration for development workflow
 
-.PHONY: build test build/fast test/fast install clean toc utable otable help release perf
+.PHONY: build test build/perf install clean toc utable otable help release perf
 
 # Default target
 help:
@@ -14,6 +14,7 @@ help:
 	@echo "  utable     - Generate and update unit test table"
 	@echo "  otable     - Generate and update operator table"
 	@echo "  release    - Build in release mode with performance tests"
+	@echo "  build/perf - Build perf_test target"
 	@echo "  perf       - Run performance tests (requires BUILD_PERF)"
 	@echo "  help       - Show this help message"
 	@echo ""
@@ -70,10 +71,12 @@ release: clean
 	cd build && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DBUILD_PERF=ON ..
 	cd build && make -j4
 
-# Run performance tests (requires perf_test to be built)
-perf: build
-	@echo "Running performance tests..."
+build/perf:
 	cd build && make perf_test
+
+# Run performance tests (requires perf_test to be built)
+perf: build/perf
+	@echo "Running performance tests..."
 	./build/perf_test
 
 # Alias for help target

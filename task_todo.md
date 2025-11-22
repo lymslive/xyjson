@@ -2131,6 +2131,13 @@ perf_test (修改后)：
 - 修改 MutableValue::get 调用 `unsafe_yyjson_get_*` 参数强转 `yyjson_val*`
 - 修改 MutableValue::append/add 直接调用 yyjson api ，不重复判断参数
 
+## TODO:2025-11-22/2 优化相对性能测试用例
+
+比较 xyjson 与 yyjson 的相对性能测试，之前生成的不完全对标相同的语义。
+xyjson 的 `|` 操作符，在 yyjson 应该先判断类型再调用 get api 。
+
+改过之后目测通过率似乎有所提升，但浮动仍较大。
+
 ## TODO: 优化获取整数体验
 
 原来 C API 中 `yyjson_get_uint` 与 `yyjson_get_sint` 也只判断 `yyjson_is_int`

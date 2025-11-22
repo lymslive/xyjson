@@ -15,7 +15,6 @@ using namespace yyjson;
 using perf::measurePerformance;
 using perf::relativePerformance;
 
-// 测试 1: 深度链式访问对比
 DEF_TAST(chained_deep_path, "深度链式访问对比")
 {
     std::string jsonText = R"json({
@@ -51,7 +50,7 @@ DEF_TAST(chained_deep_path, "深度链式访问对比")
             yyjson_val* l4 = l3 ? yyjson_obj_get(l3, "level4") : NULL;
             yyjson_val* l5 = l4 ? yyjson_obj_get(l4, "level5") : NULL;
             yyjson_val* value = l5 ? yyjson_obj_get(l5, "value") : NULL;
-            long long val = value ? yyjson_get_int(value) : 0;
+            int val = yyjson_is_int(value) ? yyjson_get_int(value) : 0;
             COUTF(val, 42);
         },
         10000
@@ -61,7 +60,6 @@ DEF_TAST(chained_deep_path, "深度链式访问对比")
     COUT(passed, true);
 }
 
-// 测试 2: 解析+访问组合对比
 DEF_TAST(chained_parse_and_access, "解析+访问组合对比")
 {
     std::string jsonText = R"json({
@@ -84,7 +82,7 @@ DEF_TAST(chained_parse_and_access, "解析+访问组合对比")
                 yyjson_val* root = yyjson_doc_get_root(doc);
                 yyjson_val* data = yyjson_obj_get(root, "data");
                 yyjson_val* value = data ? yyjson_obj_get(data, "value") : NULL;
-                long long val = value ? yyjson_get_int(value) : 0;
+                int val = yyjson_is_int(value) ? yyjson_get_int(value) : 0;
                 yyjson_doc_free(doc);
                 COUTF(val, 42);
             }

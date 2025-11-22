@@ -16,7 +16,8 @@
 namespace perf {
 
 // 读取文件内容
-std::string readFile(const std::string& filename) {
+std::string readFile(const std::string& filename)
+{
     std::ifstream file(filename);
     if (!file.is_open()) {
         return "";
@@ -29,10 +30,11 @@ std::string readFile(const std::string& filename) {
 // 多次运行测试并计算总时间
 long long measurePerformance(const std::string& name,
                              std::function<void()> test_func,
-                             int iterations) {
+                             size_t iterations)
+{
     auto start = std::chrono::high_resolution_clock::now();
 
-    for (int i = 0; i < iterations; ++i) {
+    for (size_t i = 0; i < iterations; ++i) {
         test_func();
     }
 
@@ -44,7 +46,8 @@ long long measurePerformance(const std::string& name,
 
 // 调整循环次数到合适的值（取整并保证两个有效数字）
 // 调整循环次数到合适的值（向上圆整，保留两位有效数字）
-int adjustIterations(int base_iterations, long long total_time_us, long long min_time_ms) {
+int adjustIterations(int base_iterations, long long total_time_us, long long min_time_ms)
+{
     if (min_time_ms <= 0 || total_time_us >= min_time_ms * 1000) {
         return base_iterations;
     }
@@ -56,7 +59,7 @@ int adjustIterations(int base_iterations, long long total_time_us, long long min
     double target_iterations = base_iterations * multiplier;
     
     // 向上取整到整数
-    int rounded = (int)std::ceil(target_iterations);
+    size_t rounded = (size_t)std::ceil(target_iterations);
     
     // 获取数值的位数和幂次
     int power = (int)std::floor(std::log10(rounded));
@@ -94,9 +97,10 @@ bool relativePerformance(const std::string& test_name,
                         std::function<void()> test_func,
                         const std::string& base_name,
                         std::function<void()> base_func,
-                        int iterations,
+                        size_t iterations,
                         long long min_time_ms,
-                        double overhead_percent) {
+                        double overhead_percent)
+{
     
     // 从命令行参数读取默认值
     long long runtime_ms = 200;
@@ -117,7 +121,7 @@ bool relativePerformance(const std::string& test_name,
         iterations = 1;
     }
 
-    int final_iterations = iterations;
+    size_t final_iterations = iterations;
 
     // 第一次运行测试函数
     long long test_time_us = measurePerformance(test_name, test_func, iterations);
@@ -169,7 +173,8 @@ bool relativePerformance(const std::string& test_name,
 }
 
 // 创建包含数组和对象的JSON容器
-yyjson::Document createJsonContainer(int n) {
+yyjson::Document createJsonContainer(int n)
+{
     // 创建可变文档
     yyjson::MutableDocument mutDoc;
     
