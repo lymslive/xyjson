@@ -6,17 +6,17 @@ description: "辅助工具开发 TODO 需求"
 !date +"%Y%m%d-%H%M%S"
 
 需求 ID:
-**$1**
+$1
 
 需求内容（可从 `task_todo.md` 读取如下）：
 =========================
-!perl script/todo.pl **$1**
+!perl script/todo.pl $1
 =========================
 
 请仔细分析如上需求内容，制定更详细的计划方案再开始实施，完成记录日志与提交工作：
 * 以任务 ID 为标题在 `tast_log.md` 文件末尾追加式记录日志，参考已有格式
 * 更新 `task_todo.md` 命令： perl script/todo.pl "需求ID" "任务ID"
-* 提交 git ，提交消息的 scope 为需求ID(**$1**)
+* 提交 git ，提交消息的 scope 为需求ID($1)
 
 如果涉及脚本工具开发，优先使用 perl :
 - 使用 perl5 基本模块，不要依赖 cpan 的额外模块

@@ -3206,3 +3206,25 @@ perl script/extract_doc_examples.pl docs/api.md --target=utest/t_api.cpp --heade
 - **性能分析**: 为优化迭代器性能提供数据支持
 - **规模影响**: 验证不同数据规模对性能的影响
 - **完整性**: 扩展了性能测试覆盖范围，提升测试全面性
+
+---
+
+## 任务ID: 20251123-103345
+- **任务类型**: 性能测试开发
+- **任务状态**: 已完成
+- **执行AI**: DeepSeek-V3.1
+- **需求ID**: 2025-11-23/1
+
+### 任务需求
+开发 script/stat_perf.pl 脚本多次运行 perf_test 并解析输出日志，统计报告。
+
+### 执行过程
+- 开发 stat_perf.pl 脚本
+- 调试优化脚本
+- 运行脚本传入参数 --stat_run=20 --runtime_ms=1000
+- 统计测试结果
+- 更新 perf/README.md
+
+### 完成成果
+- ✅ script/stat_perf.pl
+- ✅ 更新 perf/README.md 反应当前性能测试
