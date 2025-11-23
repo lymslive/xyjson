@@ -1,13 +1,32 @@
-/** 
- * @file xyjson.h 
- * @author lymslive 
- * @date 2025-09-15 
+/**
+ * @file xyjson.h
+ * @author lymslive
+ * @date 2025-09-15
  *
- * @details 
- * C++ wrapper for yyjson library with operator overloading.
- * Provides simple path operator(/), value extraction operator(|), 
- * and extra assignment operator(=), input operator(<<) for mutable json model.
- * */
+ * @brief C++ wrapper for yyjson library with advanced operator overloading
+ *
+ * @details
+ * This header provides a comprehensive C++ wrapper for the yyjson library,
+ * featuring extensive operator overloading for intuitive JSON manipulation.
+ * 
+ * Key features include:
+ * - Read-only and mutable JSON models
+ * - Path access using '/' operator
+ * - Value extraction using '|' operator
+ * - Assignment and input operators for mutable JSON
+ * - Iterator support with standard C++ interface
+ * - Template metaprogramming for type safety
+ * 
+ * The design prioritizes both performance and usability, maintaining
+ * compatibility with the underlying yyjson library while providing
+ * a more natural C++ interface.
+ *
+ * @note For best performance, use the read-only models when modification
+ *       is not required. Mutable operations involve additional memory
+ *       management overhead.
+ *
+ * @see yyjson library documentation for underlying implementation details
+ */
 #ifndef XYJSON_H__
 #define XYJSON_H__
 
@@ -21,55 +40,55 @@
 
 /* Table of Content (TOC) */
 /* ======================================================================== */
-/* Part 1: Front Definitions                                       Line: 78 */
-/*   Section 1.1: Conditional Compilation Macros                   Line: 81 */
-/*   Section 1.2: Forward Class Declarations                       Line: 93 */
-/*   Section 1.2: Type and Operator Constants                     Line: 113 */
-/*   Section 1.3: Type Traits                                     Line: 156 */
-/* Part 2: Class Definitions                                      Line: 260 */
-/*   Section 2.1: Read-only Json Model                            Line: 263 */
-/*   Section 2.2: Mutable Json Model                              Line: 516 */
-/*   Section 2.3: Helper Class for Mutable Json                   Line: 908 */
-/*   Section 2.4: Iterator Json                                   Line: 955 */
-/*   Section 2.5: Container-specific Wrapper Classes             Line: 1320 */
-/* Part 3: Non-Class Functions                                   Line: 1405 */
-/*   Section 3.1: Underlying mut_val Creation                    Line: 1411 */
-/*   Section 3.2: Conversion Helper Functions                    Line: 1607 */
-/* Part 4: Class Implementations                                 Line: 1718 */
-/*   Section 4.1: Value Methods                                  Line: 1721 */
-/*     Group 4.1.1: get and getor                                Line: 1724 */
-/*     Group 4.1.2: size and index/path                          Line: 1830 */
-/*     Group 4.1.3: create iterator                              Line: 1863 */
-/*     Group 4.1.4: others                                       Line: 1919 */
-/*   Section 4.2: Document Methods                               Line: 1969 */
-/*     Group 4.2.1: primary manage                               Line: 1972 */
-/*     Group 4.2.2: read and write                               Line: 2006 */
-/*   Section 4.3: MutableValue Methods                           Line: 2092 */
-/*     Group 4.3.1: get and getor                                Line: 2095 */
-/*     Group 4.3.2: size and index/path                          Line: 2207 */
-/*     Group 4.3.3: assignment set                               Line: 2281 */
-/*     Group 4.3.4: array and object add                         Line: 2403 */
-/*     Group 4.3.5: smart input and tag                          Line: 2456 */
-/*     Group 4.3.6: create iterator                              Line: 2570 */
-/*     Group 4.3.7: others                                       Line: 2626 */
-/*   Section 4.4: MutableDocument Methods                        Line: 2676 */
-/*     Group 4.4.1: primary manage                               Line: 2679 */
-/*     Group 4.4.2: read and write                               Line: 2726 */
-/*     Group 4.4.3: create mutable value                         Line: 2823 */
-/*   Section 4.5: ArrayIterator Methods                          Line: 2848 */
-/*   Section 4.6: ObjectIterator Methods                         Line: 2881 */
-/*   Section 4.7: MutableArrayIterator Methods                   Line: 2935 */
-/*   Section 4.8: MutableObjectIterator Methods                  Line: 3044 */
-/* Part 5: Operator Interface                                    Line: 3222 */
-/*   Section 5.1: Primary Path Access                            Line: 3225 */
-/*   Section 5.2: Conversion Unary Operator                      Line: 3332 */
-/*   Section 5.3: Comparison Operator                            Line: 3380 */
-/*   Section 5.4: Create and Bind KeyValue                       Line: 3466 */
-/*   Section 5.5: Stream and Input Operator                      Line: 3498 */
-/*   Section 5.6: Iterator Creation and Operation                Line: 3569 */
-/*   Section 5.7: Document Forward Root Operator                 Line: 3708 */
-/*   Section 5.8: User-defined Literal Operator                  Line: 3773 */
-/* Part 6: Last Definitions                                      Line: 3790 */
+/* Part 1: Front Definitions                                       Line: 97 */
+/*   Section 1.1: Conditional Compilation Macros                  Line: 100 */
+/*   Section 1.2: Forward Class Declarations                      Line: 124 */
+/*   Section 1.3: Type and Operator Constants                     Line: 152 */
+/*   Section 1.4: Type Traits                                     Line: 195 */
+/* Part 2: Class Definitions                                      Line: 342 */
+/*   Section 2.1: Read-only Json Model                            Line: 345 */
+/*   Section 2.2: Mutable Json Model                              Line: 630 */
+/*   Section 2.3: Helper Class for Mutable Json                  Line: 1050 */
+/*   Section 2.4: Iterator for Json Container                    Line: 1117 */
+/*   Section 2.5: Container-specific Wrapper Classes             Line: 1465 */
+/* Part 3: Non-Class Functions                                   Line: 1535 */
+/*   Section 3.1: Underlying mut_val Creation                    Line: 1548 */
+/*   Section 3.2: Conversion Helper Functions                    Line: 1758 */
+/* Part 4: Class Implementations                                 Line: 1916 */
+/*   Section 4.1: Value Methods                                  Line: 1919 */
+/*     Group 4.1.1: get and getor                                Line: 1922 */
+/*     Group 4.1.2: size and index/path                          Line: 2028 */
+/*     Group 4.1.3: create iterator                              Line: 2061 */
+/*     Group 4.1.4: others                                       Line: 2129 */
+/*   Section 4.2: Document Methods                               Line: 2179 */
+/*     Group 4.2.1: primary manage                               Line: 2182 */
+/*     Group 4.2.2: read and write                               Line: 2224 */
+/*   Section 4.3: MutableValue Methods                           Line: 2318 */
+/*     Group 4.3.1: get and getor                                Line: 2321 */
+/*     Group 4.3.2: size and index/path                          Line: 2433 */
+/*     Group 4.3.3: assignment set                               Line: 2507 */
+/*     Group 4.3.4: array and object add                         Line: 2629 */
+/*     Group 4.3.5: smart input and tag                          Line: 2675 */
+/*     Group 4.3.6: create iterator                              Line: 2779 */
+/*     Group 4.3.7: others                                       Line: 2847 */
+/*   Section 4.4: MutableDocument Methods                        Line: 2897 */
+/*     Group 4.4.1: primary manage                               Line: 2900 */
+/*     Group 4.4.2: read and write                               Line: 2952 */
+/*     Group 4.4.3: create mutable value                         Line: 3057 */
+/*   Section 4.5: ArrayIterator Methods                          Line: 3082 */
+/*   Section 4.6: ObjectIterator Methods                         Line: 3125 */
+/*   Section 4.7: MutableArrayIterator Methods                   Line: 3189 */
+/*   Section 4.8: MutableObjectIterator Methods                  Line: 3309 */
+/* Part 5: Operator Interface                                    Line: 3532 */
+/*   Section 5.1: Primary Path Access                            Line: 3535 */
+/*   Section 5.2: Conversion Unary Operator                      Line: 3642 */
+/*   Section 5.3: Comparison Operator                            Line: 3690 */
+/*   Section 5.4: Create and Bind KeyValue                       Line: 3776 */
+/*   Section 5.5: Stream and Input Operator                      Line: 3808 */
+/*   Section 5.6: Iterator Creation and Operation                Line: 3879 */
+/*   Section 5.7: Document Forward Root Operator                 Line: 4054 */
+/*   Section 5.8: User-defined Literal Operator                  Line: 4119 */
+/* Part 6: Last Definitions                                      Line: 4131 */
 /* ======================================================================== */
 
 namespace yyjson
@@ -80,37 +99,57 @@ namespace yyjson
 
 /* @Section 1.1: Conditional Compilation Macros */
 /* ------------------------------------------------------------------------ */
-// Define these macros to disable specific features and reduce binary size
 
-// Disable chained input like "<< key << value"
+/**
+ * @brief Disable chained input operators (<<)
+ * 
+ * When defined, disables chained input syntax like "json << key << value".
+ * This reduces sizeof MutableValue and improve efficiency.
+ * 
+ * @note Chained input is only available for mutable JSON objects.
+ */
 #ifndef XYJSON_DISABLE_CHAINED_INPUT
 #endif
 
-// Disable all mutable (writable) JSON features
+/**
+ * @brief Disable all mutable JSON features
+ * 
+ * When defined, completely disables mutable JSON functionality, including
+ * MutableValue, MutableDocument, and all write operations. This significantly
+ * reduces binary size when only read-only JSON processing is needed.
+ */
 #ifndef XYJSON_DISABLE_MUTABLE
 #endif
 
 /* @Section 1.2: Forward Class Declarations */
 /* ------------------------------------------------------------------------ */
+/**
+ * @brief Forward declarations of all major classes in the library
+ * 
+ * These declarations provide the basic class structure without exposing
+ * implementation details, enabling proper dependency management and
+ * compilation efficiency.
+ */
 
 class Value;
 class Document;
 class MutableValue;
 class MutableDocument;
+
 class ArrayIterator;
 class ObjectIterator;
 class MutableArrayIterator;
 class MutableObjectIterator;
+
 class KeyValue;
 class StringRef;
 
-// Standard iterator support classes
 class ConstArray;
 class ConstObject;
 class MutableArray;
 class MutableObject;
 
-/* @Section 1.2: Type and Operator Constants */
+/* @Section 1.3: Type and Operator Constants */
 /* ------------------------------------------------------------------------ */
 
 // Special representation type
@@ -153,52 +192,78 @@ constexpr const char* okConvert = "~";
 constexpr const char* okIterator = "%";
 constexpr const char* okIncreace = "++";
 
-/* @Section 1.3: Type Traits */
+/* @Section 1.4: Type Traits */
 /* ------------------------------------------------------------------------ */
 
+/**
+ * @brief Type traits and metaprogramming utilities
+ * 
+ * This namespace contains type traits used for template metaprogramming,
+ * SFINAE techniques, and compile-time type checking throughout the library.
+ */
 namespace trait
 {
-/**
- * @brief Type traits for yyjson wrapper classes
- * 
- * These traits can be used with std::enable_if, std::conditional, etc.
- * for template metaprogramming and SFINAE techniques.
- */
 
-// is_value<T> Specializations for Value and MutableValue
+/**
+ * @brief Check if type T is a JSON value wrapper
+ * 
+ * Specialized for both Value and MutableValue types.
+ */
 template<typename T> struct is_value : std::false_type {};
 template<> struct is_value<Value> : std::true_type {};
 template<> struct is_value<MutableValue> : std::true_type {};
 
-// is_document<T> Specializations for Document and MutableDocument
+/**
+ * @brief Check if type T is a JSON document wrapper
+ * 
+ * Specialized for both Document and MutableDocument types.
+ */
 template<typename T> struct is_document : std::false_type {};
 template<> struct is_document<Document> : std::true_type {};
 template<> struct is_document<MutableDocument> : std::true_type {};
 
-// is_iterator<T> Specializations for all iterator types
+/**
+ * @brief Check if type T is a JSON iterator
+ * 
+ * Specialized for all iterator types (both read-only and mutable).
+ */
 template<typename T> struct is_iterator : std::false_type {};
 template<> struct is_iterator<ArrayIterator> : std::true_type {};
 template<> struct is_iterator<ObjectIterator> : std::true_type {};
 template<> struct is_iterator<MutableArrayIterator> : std::true_type {};
 template<> struct is_iterator<MutableObjectIterator> : std::true_type {};
 
-// is_key<T> Type trait for supported key string types
+/**
+ * @brief Check if type T can be used as an object key
+ * 
+ * Valid key types include C-style strings, std::string, and their
+ * various decayed forms (const char[N], char[N], etc.).
+ */
 template<typename T> struct is_key : std::false_type {};
-template<> struct is_key<const char*> : std::true_type {}; // and decay const char[N]
-template<> struct is_key<char*> : std::true_type {};       // and decay char[N]
+template<> struct is_key<const char*> : std::true_type {}; // includes decayed const char[N]
+template<> struct is_key<char*> : std::true_type {};       // includes decayed char[N]
 template<> struct is_key<std::string> : std::true_type {};
+
 template<typename T>
 constexpr bool is_key_v = is_key<std::decay_t<T>>::value;
 
-// Helper constexpr function to check if a type is a C-style string
-// Handles both const char* and char* types
+/**
+ * @brief Check if type T is a C-style string
+ * 
+ * Handles both const char* and char* types, including array decay.
+ */
 template<typename T>
 constexpr bool is_cstr_type() {
     using decayed_t = std::decay_t<T>;
     return std::is_same<decayed_t, const char*>::value || std::is_same<decayed_t, char*>::value;
 }
 
-// is_scalar<T> Type trait for supported scalar types
+/**
+ * @brief Check if type T is a supported scalar type
+ * 
+ * Scalar types are the basic JSON value types that can be extracted
+ * from JSON values using get() and getor() methods.
+ */
 template<typename T> struct is_scalar : std::false_type {};
 template<> struct is_scalar<bool> : std::true_type {};
 template<> struct is_scalar<int> : std::true_type {};
@@ -207,10 +272,17 @@ template<> struct is_scalar<uint64_t> : std::true_type {};
 template<> struct is_scalar<double> : std::true_type {};
 template<> struct is_scalar<const char*> : std::true_type {};
 template<> struct is_scalar<std::string> : std::true_type {};
+
 template<typename T>
 constexpr bool is_scalar_v = is_scalar<std::decay_t<T>>::value;
 
-// enable_getor<T>: types eligible for getor(default)
+/**
+ * @brief Check if type T is eligible for getor(default) operations
+ * 
+ * This trait determines which types can be used as default values
+ * in the getor() method, including all scalar types, pointer types,
+ * and special empty types.
+ */
 template<typename T>
 struct enable_getor : std::bool_constant<
     is_scalar<std::decay_t<T>>::value ||
@@ -227,7 +299,12 @@ struct enable_getor : std::bool_constant<
 template<typename T>
 constexpr bool enable_getor_v = enable_getor<T>::value;
 
-// Check if funcT is callable with any supported scalar type
+/**
+ * @brief Check if function type can be called with supported scalar types
+ * 
+ * Used for pipe() operations to determine if a callable can accept
+ * JSON-extracted scalar values.
+ */
 template<typename funcT>
 struct is_callable_with_scalar {
     static constexpr bool value =
@@ -243,7 +320,12 @@ struct is_callable_with_scalar {
 template<typename funcT>
 constexpr bool is_callable_with_scalar_v = is_callable_with_scalar<funcT>::value;
 
-// Detect callable type (lambda, std::function, function pointer)
+/**
+ * @brief Detect callable types (lambda, std::function, function pointer)
+ * 
+ * Generic callable detection that works with various function-like types
+ * including lambdas, function objects, and function pointers.
+ */
 template<typename F>
 struct is_callable_type : std::bool_constant<
     std::is_class<std::decay_t<F>>::value ||
@@ -263,9 +345,18 @@ constexpr bool is_callable_type_v = is_callable_type<F>::value;
 /* @Section 2.1: Read-only Json Model */
 /* ------------------------------------------------------------------------ */
 
-/** 
- * @brief Simple wrapper for yyjson_val with operator overloading
- * Provides basic read-only operations with operator overloading
+/**
+ * @brief Read-only JSON value wrapper with comprehensive operator overloading
+ * 
+ * This class provides a read-only interface to yyjson_val pointers with
+ * extensive operator overloading for intuitive JSON manipulation. It serves
+ * as the foundation for read-only JSON operations throughout the library.
+ * 
+ * @note This wrapper maintains const-correctness - all operations are
+ *       read-only. Use MutableValue for write operations.
+ * 
+ * @see MutableValue for the writable counterpart
+ * @see Document for document-level operations
  * 
  * Supported operators:
  * - Access: json[index] (index access), json / path (path access)
@@ -273,7 +364,7 @@ constexpr bool is_callable_type_v = is_callable_type<F>::value;
  * - Pipe: json | func (custom transformation)
  * - Type: json & type (check type)
  * - Scalar output: json >> value
- * - Steam output: os << json
+ * - Stream output: os << json
  * - Boolean: !json, bool(json) (error checking)
  * - Comparison: ==, != (calls equal())
  * - Unary: +json (convert to number), -json (convert to string)  
@@ -437,12 +528,19 @@ private:
     yyjson_val* m_val = nullptr;
 };
 
-/** 
- * @brief Wrapper for yyjson_doc with operator overloading
- */
 /**
- * @brief Read-only JSON document wrapper for yyjson_doc
- * Provides read-only access to JSON data with operator overloading
+ * @brief Read-only JSON document wrapper with comprehensive operator support
+ * 
+ * This class provides document-level operations for read-only JSON data,
+ * wrapping yyjson_doc with intuitive operator overloading. It manages
+ * the lifecycle of JSON documents and provides root value access.
+ * 
+ * @note Documents own their underlying yyjson_doc resources and handle
+ *       proper cleanup automatically. Copy operations are disabled to
+ *       prevent double-free issues.
+ * 
+ * @see Value for value-level operations
+ * @see MutableDocument for writable document operations
  * 
  * Supported operators:
  * - Unary: +doc (convert root to number), -doc (convert root to string), *doc (access root), ~doc (convert to mutable)
@@ -534,9 +632,19 @@ private:
 #ifndef XYJSON_DISABLE_MUTABLE
 
 /**
- * @brief Writable wrapper for yyjson_mut_val
- * Provides read-write access to yyjson values with operator overloading
- *
+ * @brief Writable JSON value wrapper with comprehensive read-write operations
+ * 
+ * This class extends the Value interface with full read-write capabilities,
+ * providing mutable operations on yyjson_mut_val pointers. It supports
+ * value modification, container manipulation, and complex data building.
+ * 
+ * @note MutableValue instances must be associated with a MutableDocument
+ *       for memory allocation. Use the assignment operators carefully to
+ *       avoid unintended modifications.
+ * 
+ * @see Value for read-only operations
+ * @see MutableDocument for document-level writable operations
+ * 
  * Supported operators:
  * - Access: json[index] (index access), json / path (path access)
  * - Unary: +json (convert to number), -json (convert to string)
@@ -547,7 +655,7 @@ private:
  * - Key-value: json * key, key * json (KeyValue creation)
  * - Input: json << value (smart input)
  * - Scalar output: json >> value
- * - Steam output: os << json
+ * - Stream output: os << json
  * - Boolean: !json, bool(json) (error checking)
  * - Comparison: ==, != (calls equal())
  * - Iterator: json % index (array), json % key (object)
@@ -826,8 +934,18 @@ private:
 };
 
 /**
- * @brief Mutable JSON document wrapper for yyjson_mut_doc
- * Provides read-write access to JSON data with operator overloading
+ * @brief Mutable JSON document wrapper with comprehensive read-write operations
+ * 
+ * This class provides document-level read-write operations, managing
+ * yyjson_mut_doc resources with full lifecycle control. It serves as
+ * the foundation for building and modifying JSON data structures.
+ * 
+ * @note MutableDocument owns the underlying yyjson_mut_doc and handles
+ *       all memory allocation. Copy operations are disabled to prevent
+ *       resource management issues.
+ * 
+ * @see Document for read-only document operations
+ * @see MutableValue for value-level writable operations
  * 
  * Supported operators:
  * - Unary: +doc (convert root to number), -doc (convert root to string), *doc (access root), ~doc (convert to read-only)
@@ -933,19 +1051,30 @@ private:
 /* ------------------------------------------------------------------------ */
 #ifndef XYJSON_DISABLE_MUTABLE
 
-/// Helper class to optimize create json node from string literal.
+/**
+ * @brief String reference wrapper for optimized literal handling
+ * 
+ * This structure provides efficient string handling for JSON creation,
+ * particularly optimizing string literals by avoiding unnecessary
+ * copying when the string has static lifetime.
+ * 
+ * @note The private constructor for mutable char arrays prevents
+ *       accidental use of mutable strings without proper copying.
+ */
 struct StringRef
 {
-    const char* str = nullptr;
-    size_t len = 0;
+    const char* str = nullptr;  ///< Pointer to string data
+    size_t len = 0;             ///< Length of string data
 
     template <size_t N> 
     StringRef(const char(&value)[N]) : StringRef(value, N-1) { }
 
     explicit
     StringRef(const char* value, size_t n) : str(value), len(n) { }
+    
     explicit
     StringRef(const char* value) : StringRef(value, ::strlen(value)) { }
+    
     explicit
     StringRef(const std::string& value) : StringRef(value.c_str(), value.size()) { }
 
@@ -957,31 +1086,43 @@ private:
 };
 
 /** 
- * @brief Key-Value pair for optimized object insertion
- * Simple structure containing key and value for efficient object insertion
+ * @brief Key-Value pair structure for optimized object insertion
+ * 
+ * This simple structure holds key and value pointers for efficient
+ * object insertion operations. It provides validation methods and
+ * supports boolean context checking.
+ * 
+ * @note KeyValue instances are typically created using operator*
+ *       and consumed by object insertion methods.
  */
 struct KeyValue
 {
-    yyjson_mut_val* key = nullptr;   // The key for object insertion
-    yyjson_mut_val* value = nullptr;  // The value for object insertion
+    yyjson_mut_val* key = nullptr;    ///< The key for object insertion
+    yyjson_mut_val* value = nullptr;  ///< The value for object insertion
     
     KeyValue() : key(nullptr), value(nullptr) {}
+    
     KeyValue(yyjson_mut_val* k, yyjson_mut_val* v) 
         : key(k), value(v) {}
     
-    // Check if KeyValue is valid
+    /// Check if KeyValue contains valid key and value pointers
     bool isValid() const { return key && value; }
+    
     explicit operator bool() const { return isValid(); }
+    
     bool operator!() const { return !isValid(); }
 };
 #endif // XYJSON_DISABLE_MUTABLE
 
-/* @Section 2.4: Iterator Json */
+/* @Section 2.4: Iterator for Json Container */
 /* ------------------------------------------------------------------------ */
 
 /**
- * @brief Iterator for JSON array elements
- * Provides efficient iteration over array elements
+ * @brief Four iterator from Value/MutableValue array/object.
+ * 
+ * These iterators provides efficient forward iteration over JSON array elements
+ * using the underlying yyjson's iterator structure. It supports standard
+ * iterator operations and provides value access through operator overloading.
  * 
  * Supported operators:
  * - Dereference: *iter, iter-> (access current item)
@@ -991,7 +1132,10 @@ struct KeyValue
  * - Unary: +iter (get current index), -iter (no-op), ~iter (no-op)
  * - Comparison: ==, != (calls equal())
  * - Boolean: if (iter), !iter
+ * - Mutable iterator support << >> for insert and remove
+ * - Object iterator support / for fast seek
  */
+
 class ArrayIterator
 {
 public:
@@ -1059,20 +1203,6 @@ private:
     yyjson_val* m_arr = nullptr;
 };
 
-/**
- * @brief Iterator for JSON object key-value pairs
- * Provides efficient iteration over object properties
- * 
- * Supported operators:
- * - Dereference: *iter, iter-> (access value node)
- * - Increment: ++iter, iter++ (calls next())
- * - Advance: iter + n, iter += n (calls advance(n))
- * - Position: iter % key , iter %= key (calls advance(key))
- * - Fast Seek: / (sequential static seek)
- * - Unary: +iter(current index), -iter(current key name), ~iter(current key node)
- * - Comparison: ==, != (calls equal())
- * - Boolean: if (iter), !iter
- */
 class ObjectIterator
 {
 public:
@@ -1149,19 +1279,6 @@ private:
 };
 
 #ifndef XYJSON_DISABLE_MUTABLE
-/** 
- * @brief Mutable iterator for JSON array elements
- * Provides efficient iteration over mutable array elements with write access
- * 
- * Supported operators:
- * - Dereference: *iter, iter-> (access current mutable item)
- * - Increment: ++iter, iter++ (calls next())
- * - Advance: iter + n, iter += n (calls advance(n))
- * - Position: iter % n , iter %= n (calls advance(n))
- * - Unary: +iter (get current index), -iter (no-op), ~iter (no-op)
- * - Comparison: ==, != (calls equal())
- * - Boolean: if (iter), !iter
- */
 class MutableArrayIterator
 {
 public:
@@ -1239,20 +1356,6 @@ private:
     yyjson_mut_doc* m_doc = nullptr;
 };
 
-/** 
- * @brief Mutable iterator for JSON object key-value pairs
- * Provides efficient iteration over mutable object properties with write access
- * 
- * Supported operators:
- * - Dereference: *iter, iter-> (access current mutable key-value pair)
- * - Increment: ++iter, iter++ (calls next())
- * - Advance: iter + n, iter += n (calls advance(n))
- * - Position: iter % key , iter %= key (calls advance(key))
- * - Fast Seek: / (sequential static seek)
- * - Unary: +iter(current index), -iter(current key name), ~iter(current key node)
- * - Comparison: ==, != (calls equal())
- * - Boolean: if (iter), !iter
- */
 class MutableObjectIterator
 {
 public:
@@ -1363,9 +1466,10 @@ private:
 /* ------------------------------------------------------------------------ */
 
 /**
- * @brief Array-specific wrapper for Value that provides standard iterator interface
- * Provides begin() and end() methods for standard C++ iteration
+ * @brief Four container-specific wrapper for Value/Mutable array/object
+ * that provides standard iterator interface of begin() and end() methods.
  */
+
 class ConstArray : public Value
 {
 public:
@@ -1374,18 +1478,13 @@ public:
     ConstArray() : Value() {}
     explicit ConstArray(const Value& val) : Value(val) 
     {
-        if (yyjson_unlikely(!val.isArray())) { set(nullptr); } // Invalidate if not an array
+        if (yyjson_unlikely(!val.isArray())) { set(nullptr); }
     }
     
-    // Standard iterator interface
     iterator begin() const { return Value::beginArray(); }
     iterator end() const { return Value::endArray(); }
 };
 
-/**
- * @brief Object-specific wrapper for Value that provides standard iterator interface
- * Provides begin() and end() methods for standard C++ iteration
- */
 class ConstObject : public Value
 {
 public:
@@ -1394,19 +1493,14 @@ public:
     ConstObject() : Value() {}
     explicit ConstObject(const Value& val) : Value(val) 
     {
-        if (yyjson_unlikely(!val.isObject())) { set(nullptr); } // Invalidate if not an object
+        if (yyjson_unlikely(!val.isObject())) { set(nullptr); }
     }
     
-    // Standard iterator interface
     iterator begin() const { return Value::beginObject(); }
     iterator end() const { return Value::endObject(); }
 };
 
 #ifndef XYJSON_DISABLE_MUTABLE
-/**
- * @brief Array-specific wrapper for MutableValue that provides standard iterator interface
- * Provides begin() and end() methods for standard C++ iteration
- */
 class MutableArray : public MutableValue
 {
 public:
@@ -1415,18 +1509,13 @@ public:
     MutableArray() : MutableValue() {}
     explicit MutableArray(const MutableValue& val) : MutableValue(val) 
     {
-        if (yyjson_unlikely(!val.isArray())) { set(nullptr); } // Invalidate if not an array
+        if (yyjson_unlikely(!val.isArray())) { set(nullptr); }
     }
     
-    // Standard iterator interface
     iterator begin() const { return MutableValue::beginArray(); }
     iterator end() const { return MutableValue::endArray(); }
 };
 
-/**
- * @brief Object-specific wrapper for MutableValue that provides standard iterator interface
- * Provides begin() and end() methods for standard C++ iteration
- */
 class MutableObject : public MutableValue
 {
 public:
@@ -1435,10 +1524,9 @@ public:
     MutableObject() : MutableValue() {}
     explicit MutableObject(const MutableValue& val) : MutableValue(val) 
     {
-        if (yyjson_unlikely(!val.isObject())) { set(nullptr); } // Invalidate if not an object
+        if (yyjson_unlikely(!val.isObject())) { set(nullptr); }
     }
     
-    // Standard iterator interface
     iterator begin() const { return MutableValue::beginObject(); }
     iterator end() const { return MutableValue::endObject(); }
 };
@@ -1447,11 +1535,25 @@ public:
 /* @Part 3: Non-Class Functions */
 /* ======================================================================== */
 
+/**
+ * @brief Utility functions for JSON value creation and manipulation
+ * 
+ * This namespace contains helper functions that support the main class
+ * functionality, providing value creation, type conversion, and other
+ * utility operations used throughout the library.
+ */
 namespace util
 {
 
 /* @Section 3.1: Underlying mut_val Creation */
 /* ------------------------------------------------------------------------ */
+/**
+ * @brief JSON value creation utilities for mutable operations
+ * 
+ * These functions create yyjson_mut_val instances from various C++ types,
+ * handling type conversion and memory allocation through the provided
+ * document. They form the foundation for mutable JSON operations.
+ */
 
 #ifndef XYJSON_DISABLE_MUTABLE
 
@@ -1655,10 +1757,29 @@ inline yyjson_mut_val* createKey(yyjson_mut_doc* doc, MutableValue&& key)
 
 /* @Section 3.2: Conversion Helper Functions */
 /* ------------------------------------------------------------------------ */
+/**
+ * @brief Type conversion and comparison utilities
+ * 
+ * These functions provide type conversion and comparison operations
+ * that work with both Value and MutableValue types, enabling unified
+ * handling of JSON values regardless of mutability.
+ */
 
-// Helper function to get yyjson_val* from both Value and MutableValue
-
-/// Compare two JSON values (Value or MutableValue) using hybrid logic.
+/**
+ * @brief Compare two JSON values using hybrid comparison logic
+ * 
+ * This function provides a comprehensive comparison of JSON values
+ * following these rules:
+ * 1. Invalid values are considered less than valid values
+ * 2. Values of different types are compared by type order
+ * 3. Values of the same type are compared by their actual values
+ * 4. Containers are compared by size first, then by pointer
+ * 
+ * @tparam T JSON value type (Value or MutableValue)
+ * @param lhs Left-hand side value
+ * @param rhs Right-hand side value
+ * @return bool True if lhs is less than rhs
+ */
 template<typename T>
 inline typename std::enable_if<trait::is_value<T>::value, bool>::type
 lessCompare(const T& lhs, const T& rhs)
@@ -1707,7 +1828,21 @@ lessCompare(const T& lhs, const T& rhs)
     }
 }
 
-/// Convert JSON(Value or MutableValue) values to integers
+/**
+ * @brief Convert JSON values to integers with type-specific logic
+ * 
+ * This function converts JSON values to integers using appropriate
+ * conversion rules for each JSON type:
+ * - Strings: parsed using atoi()
+ * - Numbers: direct conversion
+ * - Booleans: true=1, false=0
+ * - Containers: returns size
+ * - Invalid/null: returns 0
+ * 
+ * @tparam jsonT JSON value type
+ * @param val JSON value to convert
+ * @return int Converted integer value
+ */
 template<typename jsonT>
 inline typename std::enable_if<trait::is_value<jsonT>::value, int>::type
 toIntegerCast(const jsonT& val)
@@ -1732,9 +1867,23 @@ toIntegerCast(const jsonT& val)
     return 0;
 }
 
-// Apply function to json value with smart scalar mapping
-// Prefer callable with json type, else map to supported scalars,
-// finally fallback to getor(default) when func itself is a default value.
+/**
+ * @brief Apply function to JSON value with intelligent parameter mapping
+ * 
+ * This function provides the implementation for pipe() operations,
+ * automatically mapping JSON values to appropriate function parameters:
+ * 1. Prefer direct JSON value parameter
+ * 2. Map to supported scalar types based on function signature
+ * 3. Fallback to getor() with function as default value
+ * 
+ * @tparam jsonT JSON value type
+ * @tparam funcT Function or callable type
+ * @param json JSON value to process
+ * @param func Function to apply
+ * @return auto Result of function application
+ * 
+ * @throws static_assert if function signature is unsupported
+ */
 template<typename jsonT, typename funcT>
 inline auto pipeApply(const jsonT& json, funcT&& func)
 {
@@ -3683,10 +3832,10 @@ operator<<(std::ostream& os, const jsonT& json)
     return os << json.toString();
 }
 
-// MutableValue array/object input operators
-// `json << value` --> `json.push(value)`
 #ifndef XYJSON_DISABLE_MUTABLE
 
+// MutableValue array/object input operators
+// `json << value` --> `json.push(value)`
 template <typename T>
 inline MutableValue& operator<<(MutableValue& json, T&& value)
 {
