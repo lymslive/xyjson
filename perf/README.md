@@ -170,7 +170,7 @@ make release  # 编译 release 版本，包含性能测试
 
 ### 总体性能表现
 - **总测试用例**：45个
-- **平均通过率**：26个通过（58%通过率）
+- **平均通过率**：34个通过（76%通过率）
 - **通过阈值**：5%允许开销
 
 ### 性能表现突出领域
@@ -196,10 +196,10 @@ make release  # 编译 release 版本，包含性能测试
 - `mutable_object_100`：10.49%开销
 - `mutable_object_500`：8.79%开销
 - `mutable_object_1000`：13.55%开销
+- `mutable_set`：14.50%开销
 
 #### 3. 特殊操作
 - `chained_deep_path`：9.14%开销
-- `mutable_set`：57.14%开销（显著需要优化）
 
 ### 稳定性分析
 
@@ -278,7 +278,7 @@ make release  # 编译 release 版本，包含性能测试
 | mutable_object_100         |     2.40      |    17.60      |    10.49      |    15.0    | FAIL   |
 | mutable_object_1000        |     6.60      |    21.50      |    13.55      |     0.0    | FAIL   |
 | mutable_object_500         |    -9.70      |    16.90      |     8.79      |     5.0    | FAIL   |
-| mutable_set                |    41.00      |    71.10      |    57.14      |     0.0    | FAIL   |
+| mutable_set                |     5.60      |    22.00      |    14.50      |     0.0    | FAIL   |
 | parse_complex              |    -4.30      |    27.90      |     2.13      |    85.0    | PASS   |
 | parse_file                 |   -39.30      |    10.60      |    -2.85      |    90.0    | PASS   |
 | parse_large                |    -7.10      |    12.90      |     0.48      |    95.0    | PASS   |

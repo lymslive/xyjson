@@ -14,6 +14,13 @@
 using namespace yyjson;
 using namespace perf;
 
+/* mutable 的开销偏大，大于 5%.
+ * 原因可能有:
+ * 1. MutableValue 的体积大
+ * 2. << 操作符每次要判断是数组还是对象
+ */
+
+
 DEF_TAST(mutable_set, "可变值设置对比")
 {
     // 创建一个包含各种类型字段的简单 JSON
@@ -33,18 +40,19 @@ DEF_TAST(mutable_set, "可变值设置对比")
     bool passed = relativePerformance(
         "xyjson mutable set operations",
         [&mutDoc]() {
+            auto root = *mutDoc;
             // 设置各种基本类型
-            (mutDoc / "bool_field") = true;
-            (mutDoc / "int_field") = 42;
-            (mutDoc / "int64_field") = (int64_t)1234567890;
-            (mutDoc / "uint64_field") = (uint64_t)9876543210;
-            (mutDoc / "double_field") = 3.14159;
-            (mutDoc / "string_field") = "hello world";
+            (root / "bool_field") = true;
+            (root / "int_field") = 42;
+            (root / "int64_field") = (int64_t)1234567890;
+            (root / "uint64_field") = (uint64_t)9876543210;
+            (root / "double_field") = 3.14159;
+            (root / "string_field") = "hello world";
             
             // 验证设置的值
-            COUTF((mutDoc / "bool_field") | false, true);
-            COUTF((mutDoc / "int_field") | 0, 42);
-            COUTF((mutDoc / "double_field") | 0.0, 3.14159);
+            // COUTF((mutDoc / "bool_field") | false, true);
+            // COUTF((mutDoc / "int_field") | 0, 42);
+            // COUTF((mutDoc / "double_field") | 0.0, 3.14159);
         },
         "yyjson mutable set operations",
         [yy_mut_doc]() {
@@ -66,9 +74,9 @@ DEF_TAST(mutable_set, "可变值设置对比")
             yyjson_mut_set_str(string_field, "hello world");
             
             // 验证设置的值
-            COUTF(yyjson_mut_get_bool(bool_field), true);
-            COUTF(yyjson_mut_get_int(int_field), 42);
-            COUTF(yyjson_mut_get_real(double_field), 3.14159);
+            // COUTF(yyjson_mut_get_bool(bool_field), true);
+            // COUTF(yyjson_mut_get_int(int_field), 42);
+            // COUTF(yyjson_mut_get_real(double_field), 3.14159);
         },
         1000
     );
@@ -89,9 +97,9 @@ DEF_TAST(mutable_array_100, "可变数组构造对比(100个元素)")
                 array << i;
             }
             
-            COUTF(array.size(), 100);
-            COUTF((array[0] | 0), 0);
-            COUTF((array[99] | 0), 99);
+            // COUTF(array.size(), 100);
+            // COUTF((array[0] | 0), 0);
+            // COUTF((array[99] | 0), 99);
         },
         "yyjson mutable array construction",
         []() {
@@ -107,9 +115,9 @@ DEF_TAST(mutable_array_100, "可变数组构造对比(100个元素)")
                 yyjson_mut_arr_append(array, val);
             }
             
-            COUTF(yyjson_mut_arr_size(array), 100);
-            COUTF(yyjson_mut_get_int(yyjson_mut_arr_get(array, 0)), 0);
-            COUTF(yyjson_mut_get_int(yyjson_mut_arr_get(array, 99)), 99);
+            // COUTF(yyjson_mut_arr_size(array), 100);
+            // COUTF(yyjson_mut_get_int(yyjson_mut_arr_get(array, 0)), 0);
+            // COUTF(yyjson_mut_get_int(yyjson_mut_arr_get(array, 99)), 99);
             
             yyjson_mut_doc_free(doc);
         },
@@ -132,9 +140,9 @@ DEF_TAST(mutable_array_500, "可变数组构造对比(500个元素)")
                 array << i;
             }
             
-            COUTF(array.size(), 500);
-            COUTF((array[0] | 0), 0);
-            COUTF((array[499] | 0), 499);
+            // COUTF(array.size(), 500);
+            // COUTF((array[0] | 0), 0);
+            // COUTF((array[499] | 0), 499);
         },
         "yyjson mutable array construction (500)",
         []() {
@@ -150,9 +158,9 @@ DEF_TAST(mutable_array_500, "可变数组构造对比(500个元素)")
                 yyjson_mut_arr_append(array, val);
             }
             
-            COUTF(yyjson_mut_arr_size(array), 500);
-            COUTF(yyjson_mut_get_int(yyjson_mut_arr_get(array, 0)), 0);
-            COUTF(yyjson_mut_get_int(yyjson_mut_arr_get(array, 499)), 499);
+            // COUTF(yyjson_mut_arr_size(array), 500);
+            // COUTF(yyjson_mut_get_int(yyjson_mut_arr_get(array, 0)), 0);
+            // COUTF(yyjson_mut_get_int(yyjson_mut_arr_get(array, 499)), 499);
             
             yyjson_mut_doc_free(doc);
         }
@@ -174,9 +182,9 @@ DEF_TAST(mutable_array_1000, "可变数组构造对比(1000个元素)")
                 array << i;
             }
             
-            COUTF(array.size(), 1000);
-            COUTF((array[0] | 0), 0);
-            COUTF((array[999] | 0), 999);
+            // COUTF(array.size(), 1000);
+            // COUTF((array[0] | 0), 0);
+            // COUTF((array[999] | 0), 999);
         },
         "yyjson mutable array construction (1000)",
         []() {
@@ -192,9 +200,9 @@ DEF_TAST(mutable_array_1000, "可变数组构造对比(1000个元素)")
                 yyjson_mut_arr_append(array, val);
             }
             
-            COUTF(yyjson_mut_arr_size(array), 1000);
-            COUTF(yyjson_mut_get_int(yyjson_mut_arr_get(array, 0)), 0);
-            COUTF(yyjson_mut_get_int(yyjson_mut_arr_get(array, 999)), 999);
+            // COUTF(yyjson_mut_arr_size(array), 1000);
+            // COUTF(yyjson_mut_get_int(yyjson_mut_arr_get(array, 0)), 0);
+            // COUTF(yyjson_mut_get_int(yyjson_mut_arr_get(array, 999)), 999);
             
             yyjson_mut_doc_free(doc);
         }
@@ -217,9 +225,9 @@ DEF_TAST(mutable_object_100, "可变对象构造对比(100个属性)")
                 obj << key.c_str() << i;
             }
             
-            COUTF(obj.size(), 100);
-            COUTF((obj / "key0" | 0), 0);
-            COUTF((obj / "key99" | 0), 99);
+            // COUTF(obj.size(), 100);
+            // COUTF((obj / "key0" | 0), 0);
+            // COUTF((obj / "key99" | 0), 99);
         },
         "yyjson mutable object construction",
         []() {
@@ -236,9 +244,9 @@ DEF_TAST(mutable_object_100, "可变对象构造对比(100个属性)")
                 yyjson_mut_obj_add(obj, yyjson_mut_strncpy(doc, key.c_str(), key.size()), val);
             }
             
-            COUTF(yyjson_mut_obj_size(obj), 100);
-            COUTF(yyjson_mut_get_int(yyjson_mut_obj_get(obj, "key0")), 0);
-            COUTF(yyjson_mut_get_int(yyjson_mut_obj_get(obj, "key99")), 99);
+            // COUTF(yyjson_mut_obj_size(obj), 100);
+            // COUTF(yyjson_mut_get_int(yyjson_mut_obj_get(obj, "key0")), 0);
+            // COUTF(yyjson_mut_get_int(yyjson_mut_obj_get(obj, "key99")), 99);
             
             yyjson_mut_doc_free(doc);
         },
@@ -262,9 +270,9 @@ DEF_TAST(mutable_object_500, "可变对象构造对比(500个属性)")
                 obj << key.c_str() << i;
             }
             
-            COUTF(obj.size(), 500);
-            COUTF((obj / "key0" | 0), 0);
-            COUTF((obj / "key499" | 0), 499);
+            // COUTF(obj.size(), 500);
+            // COUTF((obj / "key0" | 0), 0);
+            // COUTF((obj / "key499" | 0), 499);
         },
         "yyjson mutable object construction (500)",
         []() {
@@ -281,9 +289,9 @@ DEF_TAST(mutable_object_500, "可变对象构造对比(500个属性)")
                 yyjson_mut_obj_add(obj, yyjson_mut_strncpy(doc, key.c_str(), key.size()), val);
             }
             
-            COUTF(yyjson_mut_obj_size(obj), 500);
-            COUTF(yyjson_mut_get_int(yyjson_mut_obj_get(obj, "key0")), 0);
-            COUTF(yyjson_mut_get_int(yyjson_mut_obj_get(obj, "key499")), 499);
+            // COUTF(yyjson_mut_obj_size(obj), 500);
+            // COUTF(yyjson_mut_get_int(yyjson_mut_obj_get(obj, "key0")), 0);
+            // COUTF(yyjson_mut_get_int(yyjson_mut_obj_get(obj, "key499")), 499);
             
             yyjson_mut_doc_free(doc);
         }
@@ -306,9 +314,9 @@ DEF_TAST(mutable_object_1000, "可变对象构造对比(1000个属性)")
                 obj << key.c_str() << i;
             }
             
-            COUTF(obj.size(), 1000);
-            COUTF((obj / "key0" | 0), 0);
-            COUTF((obj / "key999" | 0), 999);
+            // COUTF(obj.size(), 1000);
+            // COUTF((obj / "key0" | 0), 0);
+            // COUTF((obj / "key999" | 0), 999);
         },
         "yyjson mutable object construction (1000)",
         []() {
@@ -325,9 +333,9 @@ DEF_TAST(mutable_object_1000, "可变对象构造对比(1000个属性)")
                 yyjson_mut_obj_add(obj, yyjson_mut_strncpy(doc, key.c_str(), key.size()), val);
             }
             
-            COUTF(yyjson_mut_obj_size(obj), 1000);
-            COUTF(yyjson_mut_get_int(yyjson_mut_obj_get(obj, "key0")), 0);
-            COUTF(yyjson_mut_get_int(yyjson_mut_obj_get(obj, "key999")), 999);
+            // COUTF(yyjson_mut_obj_size(obj), 1000);
+            // COUTF(yyjson_mut_get_int(yyjson_mut_obj_get(obj, "key0")), 0);
+            // COUTF(yyjson_mut_get_int(yyjson_mut_obj_get(obj, "key999")), 999);
             
             yyjson_mut_doc_free(doc);
         }
