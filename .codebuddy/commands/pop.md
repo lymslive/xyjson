@@ -6,11 +6,11 @@ description: "核心代码开发 TODO 需求"
 !date +"%Y%m%d-%H%M%S"
 
 需求 ID:
-**$1**
+$1
 
 需求内容（可用脚本从 `task_todo.md` 读取如下）：
 =========================
-!perl script/todo.pl **$1**
+!perl script/todo.pl $1
 =========================
 
 请仔细分析如上需求内容，大致工作流：
@@ -23,7 +23,7 @@ description: "核心代码开发 TODO 需求"
   * 以任务 ID 为标题在 `tast_log.md` 末尾记录日志，参考已有格式
   * 将任务 ID 写回 `task_todo.md` 关联需求 ID
     + 可用更新脚本： perl script/todo.pl "需求ID" "任务ID"
-  * 提交 git ，提交消息的 scope 为需求ID(**$1**)
+  * 提交 git ，提交消息的 scope 为需求ID($1)
     + 不要提交写在临时目录的计划文档，以及其他为调试所写的临时文件
 - 如果任务失败，也在 `task_log.md` 记录日志，但不要后续提交
 
