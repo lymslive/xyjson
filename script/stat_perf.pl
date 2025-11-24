@@ -131,19 +131,17 @@ Notes:
 HELP
 }
 
+# Find repository root by checking for .git directory
 sub find_repo_root {
-    # Find repository root by looking for task_todo.md
-    require File::Basename;
-    require File::Spec;
-    
+    require Cwd; require File::Basename; require File::Spec;
     my $dir = File::Basename::dirname(File::Spec->rel2abs($0));
     for (1..5) {
         my $candidate = File::Spec->catdir($dir, '..');
         $candidate = Cwd::realpath($candidate);
-        if (-f File::Spec->catfile($dir, 'task_todo.md')) {
+        if (-d File::Spec->catdir($dir, '.git')) {
             return $dir;
         }
-        if (-f File::Spec->catfile($candidate, 'task_todo.md')) {
+        if (-d File::Spec->catdir($candidate, '.git')) {
             return $candidate;
         }
         $dir = $candidate;

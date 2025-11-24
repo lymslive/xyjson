@@ -126,17 +126,17 @@ sub locate_section {
     return ($beg, $end);
 }
 
+# Find repository root by checking for .git directory
 sub find_repo_root {
-    # Walk up from script directory to repo root that contains task_todo.md
     require Cwd; require File::Basename; require File::Spec;
     my $dir = File::Basename::dirname(File::Spec->rel2abs($0));
     for (1..5) {
         my $candidate = File::Spec->catdir($dir, '..');
         $candidate = Cwd::realpath($candidate);
-        if (-f File::Spec->catfile($dir, 'task_todo.md')) {
+        if (-d File::Spec->catdir($dir, '.git')) {
             return $dir;
         }
-        if (-f File::Spec->catfile($candidate, 'task_todo.md')) {
+        if (-d File::Spec->catdir($candidate, '.git')) {
             return $candidate;
         }
         $dir = $candidate;
