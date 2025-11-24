@@ -129,47 +129,12 @@ for (auto iter = doc / "user" % ""; iter; ++iter) {
 }
 ```
 
-## 文档导航
-
-- 📖 [使用指南](docs/usage.md) - 详细的使用教程和最佳实践
-- 🔧 [API 参考](docs/api.md) - 完整的操作符和类方法文档
-- 🎨 [设计理念](docs/design.md) - 库的设计思路和哲学
-- 🧪 [单元测试](utest/README.md) - 单元测试说明
-- 🧪 [性能测试](perf/README.md) - 性能测试说明
-- 🧪 [应用示例](examples/README.md) - 应用用例说明
-- 📋 [开发需求](task_todo.md) - 当前项目开发的需求列表
-- 📊 [任务日志](task_log.md) - AI 协作的任务完成记录
-
 ## 项目状态
 
 - ✅ **稳定可用** - 核心功能已完成并通过测试
 - 🔄 **持续开发** - 按 [需求列表](task_todo.md) 逐步完善功能
 - 🧪 **测试覆盖** - 完善的单元测试确保质量
-
-### 持续集成
-
-项目配置了 GitHub Actions CI/CD 流水线：
-
-- ✅ **自动构建**: main 分支提交时自动构建
-- ✅ **自动测试**: 运行所有单元测试
-- ✅ **依赖管理**: 自动下载并构建依赖库
-- ✅ **跨平台**: 支持 Ubuntu Linux 环境
-
-查看 [Actions](https://github.com/lymslive/xyjson/actions) 页面获取构建状态。
-
-<!--
-## 示例代码
-
-项目暂无单独的 `examples/` 目录，但 `utest/` 子目录中的测试用例提供了详尽的用法示例，可作为学习和参考的资源。
-
-## 性能优化
-
-基于 yyjson 的高性能特性，xyjson 在保持易用性的同时提供优秀的性能：
-
-- **零拷贝解析** - 直接操作原始 JSON 数据
-- **高效内存管理** - RAII 自动资源释放
-- **字符串优化** - 字面量引用减少拷贝
--->
+- ✅ **持续集成** - 配置了 [Actions](https://github.com/lymslive/xyjson/actions) CI/CD 流水线
 
 ## 开发流程
 
@@ -196,6 +161,17 @@ xyjson/
 ├── task_log.md          # 任务完成记录
 └── CMakeLists.txt       # 构建配置（支持 find_package）
 ```
+
+### 文档导航
+
+- 📖 [使用指南](docs/usage.md) - 详细的使用教程和最佳实践
+- 🔧 [API 参考](docs/api.md) - 完整的操作符和类方法文档
+- 🎨 [设计理念](docs/design.md) - 库的设计思路和哲学
+- 🧪 [单元测试](utest/README.md) - 单元测试说明
+- 🧪 [性能测试](perf/README.md) - 性能测试说明
+- 🧪 [应用示例](examples/README.md) - 应用用例说明
+- 📋 [开发需求](task_todo.md) - 当前项目开发的需求列表
+- 📊 [任务日志](task_log.md) - AI 协作的任务完成记录
 
 ## 贡献
 

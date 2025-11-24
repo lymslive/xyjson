@@ -1,7 +1,7 @@
 /**
  * @file xyjson.h
  * @author lymslive
- * @date 2025-09-15
+ * @date 2025-09-15 / 2025-11-24
  *
  * @brief C++ wrapper for yyjson library with advanced operator overloading
  *
@@ -131,34 +131,34 @@ namespace yyjson
  * compilation efficiency.
  */
 
-class Value;
-class Document;
-class MutableValue;
-class MutableDocument;
+class Value;           //< Read-only json node proxy
+class Document;        //< Read-only json document tree
+class MutableValue;    //< Mutable json node proxy
+class MutableDocument; //< Mutable json document tree
 
-class ArrayIterator;
-class ObjectIterator;
-class MutableArrayIterator;
-class MutableObjectIterator;
+class ArrayIterator;         //< Iterator for json array of Value type
+class ObjectIterator;        //< Iterator for json object of Value type
+class MutableArrayIterator;  //< Iterator for json array of MutableValue type
+class MutableObjectIterator; //< Iterator for json object of MutableValue type
 
-class KeyValue;
-class StringRef;
+class KeyValue;  //< Helper type to insert/remove key-value pair in object
+class StringRef; //< Helper type to optimized literal reference
 
-class ConstArray;
-class ConstObject;
-class MutableArray;
-class MutableObject;
+class ConstArray;    //< Specialized array in Value type
+class ConstObject;   //< Specialized object in Value type
+class MutableArray;  //< Specialized array in MutableValue type
+class MutableObject; //< Specialized object in MutableValue type
 
 /* @Section 1.3: Type and Operator Constants */
 /* ------------------------------------------------------------------------ */
 
 // Special representation type
-struct ZeroNumber {};
-struct EmptyString {};
-struct EmptyArray {};
-struct EmptyObject {};
+struct ZeroNumber {};  //< Type flag for json number
+struct EmptyString {}; //< Type flag for json string
+struct EmptyArray {};  //< Type flag for json array
+struct EmptyObject {}; //< Type flag for json object
 
-// Type representative constants for type checking
+/// Type representative constants in operand.
 constexpr std::nullptr_t kNull = nullptr;
 constexpr bool kBool = false;
 constexpr int kInt = 0;
@@ -176,21 +176,28 @@ constexpr yyjson_mut_val* kMutNode = nullptr;
 constexpr yyjson_mut_doc* kMutDoc = nullptr;
 
 // Operator name constants (ok stands for operator const)
-constexpr const char* okExtract = "|";
-constexpr const char* okPipe = "|";
-constexpr const char* okType = "&";
-constexpr const char* okPath = "/";
-constexpr const char* okAssign = "=";
-constexpr const char* okInput = "<<";
-constexpr const char* okOutput = ">>";
-constexpr const char* okEqual = "==";
-constexpr const char* okCreate = "*";
-constexpr const char* okRoot = "*";
-constexpr const char* okNumberify = "+";
-constexpr const char* okStringify = "-";
-constexpr const char* okConvert = "~";
-constexpr const char* okIterator = "%";
-constexpr const char* okIncreace = "++";
+constexpr const char* okExtract = "|";   //< extract scalar from json node
+constexpr const char* okPipe = "|";      //< pipe json node to custome function
+constexpr const char* okType = "&";      //< check json type
+constexpr const char* okPath = "/";      //< access json node by path
+constexpr const char* okIndex = "[]";    //< access json node by single index
+constexpr const char* okAssign = "=";    //< modify scalar json node
+constexpr const char* okInput = "<<";    //< read in json document
+constexpr const char* okOutput = ">>";   //< write out json document
+constexpr const char* okPush = "<<";     //< push to json container at end
+constexpr const char* okPop = ">>";      //< pop from json container at end
+constexpr const char* okInsert = "<<";   //< insert to json container iterator
+constexpr const char* okRemove = ">>";   //< remove from json container iterator
+constexpr const char* okEqual = "==";    //< check equality
+constexpr const char* okCreate = "*";    //< create mutable json node
+constexpr const char* okRoot = "*";      //< access root node from document
+constexpr const char* okBind = "*";      //< bind mutable json node with key
+constexpr const char* okNumberify = "+"; //< cast any json to interger
+constexpr const char* okStringify = "-"; //< cast any json to string
+constexpr const char* okConvert = "~";   //< convert between (Mutable)Document
+constexpr const char* okIterator = "%";  //< create json iterator
+constexpr const char* okIncreace = "++"; //< iterator next forward
+constexpr const char* okDecreace = "--"; //< iterator prev backward
 
 /* @Section 1.4: Type Traits */
 /* ------------------------------------------------------------------------ */
@@ -4039,7 +4046,7 @@ inline MutableObjectIterator& operator>>(MutableObjectIterator& iter, KeyValue& 
 
 #endif
 
-// Iterator fast seek operator: iter / key (calls iter.seek(key))
+// `iter / key`: iterator fast seek
 // Only for object iterators, should fail to compile for array iterators
 template<typename iteratorT, typename T>
 inline typename std::enable_if<
