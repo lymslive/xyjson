@@ -3,8 +3,28 @@ name: perf_test
 on:
   push:
     branches: [ main ]
+    paths:
+      - 'perf/**'
+      - 'script/stat_perf.pl'
+      - '.github/workflows/perf.yml'
   pull_request:
     branches: [ main ]
+    paths:
+      - 'perf/**'
+      - 'script/stat_perf.pl'
+      - '.github/workflows/perf.yml'
+  workflow_dispatch:
+    inputs:
+      stat_run:
+        description: 'Number of statistical runs'
+        required: false
+        default: '20'
+        type: string
+      runtime_ms:
+        description: 'Runtime per test in milliseconds'
+        required: false
+        default: '1000'
+        type: string
 
 jobs:
   build-and-test:
@@ -26,4 +46,9 @@ jobs:
       run: cd build && make VERBOSE=1
     
     - name: Run perf tests
-      run: ./script/stat_perf.pl --stat_run=20 --runtime_ms=1000
+      run: |
+        if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+          ./script/stat_perf.pl --stat_run=${{ github.event.inputs.stat_run }} --runtime_ms=${{ github.event.inputs.runtime_ms }}
+        else
+          ./script/stat_perf.pl --stat_run=20 --runtime_ms=1000
+        fi

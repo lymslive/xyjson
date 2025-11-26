@@ -2,6 +2,7 @@
  * @file xyjson.h
  * @author lymslive
  * @date 2025-09-15 / 2025-11-24
+ * @version v1.0.0
  *
  * @brief C++ wrapper for yyjson library with advanced operator overloading
  *

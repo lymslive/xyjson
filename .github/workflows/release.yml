@@ -1,12 +1,14 @@
-name: Release single header after CI
+name: Release single header
 
-# Trigger when CI workflow completes successfully. This ensures tests run
-# for both branch and tag pushes before a release is created.
 on:
-  workflow_run:
-    workflows: [CI]
-    types:
-      - completed
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release (optional)'
+        required: false
 
 jobs:
   release:
@@ -15,60 +17,50 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Check workflow run conclusion and identify tag
-        id: find_tag
+      - name: Resolve tag
+        id: resolve_tag
         run: |
           set -euo pipefail
-          if [ "${{ github.event.workflow_run.conclusion }}" != "success" ]; then
-            echo "CI did not succeed (conclusion=${{ github.event.workflow_run.conclusion }}). Exiting." >&2
-            exit 1
-          fi
-
-          # Fetch tags and find tags pointing at the workflow run head_sha
-          HEAD_SHA="${{ github.event.workflow_run.head_sha }}"
-          git fetch --tags --prune
-          TAGS=$(git tag --points-at "$HEAD_SHA" || true)
-          echo "Tags pointing at $HEAD_SHA: $TAGS"
-          # Pick the first tag that matches v* (semantic release tags)
-          SELECTED_TAG=""
-          for t in $TAGS; do
-            if [[ $t == v* ]]; then
-              SELECTED_TAG=$t
-              break
+          # Prefer manual input tag
+          if [ -n "${{ github.event.inputs.tag || '' }}" ]; then
+            TAG="${{ github.event.inputs.tag }}"
+          else
+            # For push events, extract tag name
+            if [[ "${GITHUB_REF:-}" == refs/tags/* ]]; then
+              TAG="${GITHUB_REF#refs/tags/}"
+            else
+              echo "No tag found in context and no input provided; exiting." >&2
+              exit 1
             fi
-          done
-
-          if [ -z "$SELECTED_TAG" ]; then
-            echo "No v* tag points at the CI commit; skipping release." >&2
-            exit 0
           fi
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
 
-          echo "selected_tag=$SELECTED_TAG" >> $GITHUB_OUTPUT
-
-      - name: Prepare release assets (script)
-        if: steps.find_tag.outputs.selected_tag != ''
+      - name: Prepare release assets
         run: |
-          chmod +x script/release_zip.sh
-          script/release_zip.sh "${{ steps.find_tag.outputs.selected_tag }}"
+          chmod +x script/release || true
+          if [ -x script/release ]; then
+            script/release "${{ steps.resolve_tag.outputs.tag }}"
+          else
+            chmod +x script/release_zip.sh || true
+            script/release_zip.sh "${{ steps.resolve_tag.outputs.tag }}"
+          fi
         shell: bash
 
       - name: Create Release
         id: create_release
-        if: steps.find_tag.outputs.selected_tag != ''
         uses: actions/create-release@v1
         with:
-          tag_name: ${{ steps.find_tag.outputs.selected_tag }}
-          release_name: ${{ steps.find_tag.outputs.selected_tag }}
+          tag_name: ${{ steps.resolve_tag.outputs.tag }}
+          release_name: ${{ steps.resolve_tag.outputs.tag }}
           body: |
-            Release ${{ steps.find_tag.outputs.selected_tag }} - single-header release
-            Assets: xyjson.h, and a zip package containing README, LICENSE, docs, utest, examples, cmake.
+            Release ${{ steps.resolve_tag.outputs.tag }} - single-header release
+            Assets: xyjson.h and single zip package.
           draft: false
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload header asset
-        if: steps.find_tag.outputs.selected_tag != ''
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
@@ -77,10 +69,9 @@ jobs:
           asset_content_type: text/x-c++hdr
 
       - name: Upload zip asset
-        if: steps.find_tag.outputs.selected_tag != ''
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: release/xyjson-${{ steps.find_tag.outputs.selected_tag }}.zip
-          asset_name: xyjson-${{ steps.find_tag.outputs.selected_tag }}.zip
+          asset_path: release/xyjson-${{ steps.resolve_tag.outputs.tag }}.zip
+          asset_name: xyjson-${{ steps.resolve_tag.outputs.tag }}.zip
           asset_content_type: application/zip
