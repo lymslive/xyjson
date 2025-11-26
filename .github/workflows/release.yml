@@ -1,5 +1,10 @@
 name: Release single header
 
+# Grant minimal permissions so the default GITHUB_TOKEN can create releases and upload assets
+permissions:
+  contents: write
+  packages: write
+
 on:
   push:
     tags:
