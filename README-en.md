@@ -4,35 +4,34 @@
 [![C++](https://img.shields.io/badge/C%2B%2B-17-blue.svg)](https://en.cppreference.com/w/cpp/17)
 [English Version](README-en.md) | [中文文档](README.md)
 
-C++ wrapper library for JSON operations, based on high-performance [yyjson](https://github.com/ibireme/yyjson), providing intuitive JSON processing experience through operator overloading.
+xyjson is a header-only C++ wrapper library built on the high-performance [yyjson](https://github.com/ibireme/yyjson). It provides an intuitive JSON handling experience via operator overloading.
 
-## Project Name Meaning
-
-- Based on the yyjson library, the wrapped C++ classes act as proxies for the corresponding yyjson structures, and the namespace also continues to use `yyjson::`
-- **x y** are commonly used as mathematical symbols, and the xyjson library aims to operate JSON data like mathematical variable symbols.
+Meaning of the project name:
+- The library is based on yyjson. The wrapped C++ classes act as proxies for the corresponding yyjson structures (hence the proxy/"xy" implication), and the namespace continues to use `yyjson::`.
+- The symbols **x** and **y** are commonly used in mathematics; xyjson aims to let you operate on JSON data as conveniently as you would with mathematical variables.
 
 ## Features
 
-- 🚀 **High Performance** - Built on yyjson with zero-copy design
-- ✨ **Intuitive Syntax** - Rich operator overloading, similar to native C++
-- 🔒 **Type Safety** - Compile-time type checking, runtime-safe value extraction
-- 📚 **Complete Functionality** - Supports read/write, iteration, file operations, etc.
-- 🛠️ **Easy Integration** - **Header-only library**, CMake build support, `find_package` integration
+- 🚀 **High performance** — built on yyjson with a zero-copy design
+- ✨ **Intuitive syntax** — rich operator overloads, similar to native C++
+- 🔒 **Type safe** — compile-time checks and safe runtime extraction
+- 📚 **Full functionality** — supports read/write, iteration, file operations, etc.
+- 🛠️ **Easy to integrate** — header-only, with CMake support and `find_package` integration
 
 ## Dependencies
 
-- **[yyjson](https://github.com/ibireme/yyjson)** - Core dependency, high-performance JSON parsing library
-- **[couttast](https://github.com/lymslive/couttast)** - Optional dependency, only for testing and development
-- **C++ Standard**: C++17 or higher
-- **Platform**: Linux, macOS, Windows (MinGW)
+- **[yyjson](https://github.com/ibireme/yyjson)** — core dependency, high-performance JSON parser
+- **[couttast](https://github.com/lymslive/couttast)** — optional, used for testing and development only
+- **C++ standard**: C++17 or newer
+- **Platforms**: Linux, macOS, Windows (MinGW)
 
-## Quick Start
+## Quick start
 
-### Direct Usage Without Installation
+### Use without installation
 
-After installing the underlying yyjson library, simply copy the single header file `include/xyjson.h` to an appropriate location in your project and use it out of the box.
+If you have the underlying yyjson library available, simply copy the single header file `include/xyjson.h` into your project and use it directly.
 
-**Code Example:**
+**Code example:**
 <!-- example:readme_quick_start -->
 ```cpp
 #include "xyjson.h"
@@ -42,13 +41,14 @@ std::string json = R"({"name": "Alice", "age": 30})";
 yyjson::Document doc(json);
 
 // Extract values
-std::string name = doc / "name" | ""; // Get "Alice"
-int age = doc / "age" | 0;            // Get 30
+std::string name = doc / "name" | ""; // reads "Alice"
+int age = doc / "age" | 0;            // reads 30
 ```
 
-### CMake Integration Installation
+### CMake integration / Install
 
-Supports standard CMake build process:
+Supports a standard CMake build flow:
+
 ```bash
 # Clone project
 git clone https://github.com/lymslive/xyjson
@@ -58,25 +58,61 @@ cd xyjson
 mkdir build && cd build
 cmake .. && make
 
-# Install
+# Install to system directories
 sudo make install
 ```
 
-Then use `find_package` integration in client projects:
-<!-- example:NO_TEST -->
+By default the project performs a full build: unit tests and examples are built, but performance tests are not included unless you enable them with `-DBUILD_PERF=ON`.
+
+#### Minimal build and custom install
+
+If you only need the library as a dependency, you can skip tests and examples by enabling `-DXYJSON_LIB_ONLY=ON` when configuring CMake. If you don't have permission to write to system directories, set `CMAKE_INSTALL_PREFIX` to a directory you control (for example `$HOME`).
+
+```bash
+# Build only the library and skip tests/examples
+mkdir build && cd build
+cmake .. -DXYJSON_LIB_ONLY=ON -DCMAKE_INSTALL_PREFIX=$HOME && make
+
+# Install to $HOME
+make install
+```
+
+#### Consume xyjson from other projects
+
+After installation you can use `find_package` in downstream projects:
+
 ```cmake
-# Use in CMakeLists.txt
+# In your CMakeLists.txt
 find_package(xyjson REQUIRED)
 target_link_libraries(your-target PRIVATE xyjson::xyjson)
 ```
 
-## Core Usage Examples
+If you prefer not to pre-install xyjson, you can use FetchContent to pull it at configure time. It is recommended to pass `-DXYJSON_LIB_ONLY=ON` to avoid building tests and examples unnecessarily:
 
-### Basic Operations
+```cmake
+include(FetchContent)
+
+FetchContent_Declare(
+    xyjson
+    GIT_REPOSITORY https://github.com/lymslive/xyjson.git
+    GIT_TAG main
+    # Build only the library, skip tests and examples (recommended)
+    OPTIONS "-DXYJSON_LIB_ONLY=ON"
+)
+
+FetchContent_MakeAvailable(xyjson)
+target_link_libraries(your-target PRIVATE xyjson::xyjson)
+```
+
+For more details see the FetchContent usage guide: [docs/fetchcontent_usage.md](docs/fetchcontent_usage.md)
+
+## Core usage examples
+
+### Basic operations
 
 <!-- example:readme_basic_ops -->
 ```cpp
-// Create document object from JSON string, also can use doc << json_string to parse
+// Create a document from a JSON string; you can also parse by doing doc << json_string
 yyjson::Document doc(R"({"name": "Alice", "scores": [95, 87]})");
 
 // Path access
@@ -85,29 +121,29 @@ std::string name = doc / "name" | ""; // "Alice"
 // Array access
 int firstScore = doc / "scores" / 0 | 0; // 95
 
-// Type checking
+// Type checks
 bool isString = doc / "name" & ""; // true
 bool isNumber = doc / "scores" / 0 & 0;   // true
 ```
 
-### Mutable Document Operations
+### Mutable document operations
 
 <!-- example:readme_mutable_ops -->
 ```cpp
-// Create mutable document object, default construction also creates empty {} root node
-yyjson::MutableDocument mutDoc("{}"); // Special literal represents empty object
+// Create a mutable document; default construction also creates an empty {} root
+yyjson::MutableDocument mutDoc("{}"); // special literal denotes empty object
 
-// Cannot use path operator / to add new keys, index operator [] supports auto-addition
+// You cannot add new keys with the path operator /; use the index operator [] which supports auto-add
 mutDoc["name"] = "Bob";
-mutDoc["scores"] = "[]"; // Special literal represents empty array
+mutDoc["scores"] = "[]"; // special literal denotes empty array
 
-// Array appending
+// Append to array
 mutDoc / "scores" << 95 << 87;
 
-// File writing
+// Write to file
 mutDoc.writeFile("output.json");
 
-// Standard stream output: {"name":"Bob","scores":[95,87]}
+// Stream output: {"name":"Bob","scores":[95,87]}
 std::cout << mutDoc << std::endl;
 ```
 
@@ -117,74 +153,74 @@ std::cout << mutDoc << std::endl;
 ```cpp
 yyjson::Document doc(R"({"user":{"name":"Alice", "age":"30"}, "items": ["apple","banana","cherry"]})");
 
-// Array iteration, iter.value() can be simplified to dereference *iter
+// Array iteration; iter.value() can be simplified by dereferencing *iter
 for (auto iter = doc / "items" % 0; iter; ++iter) {
     std::cout << "Item " << iter.index() << ": " << (iter.value() | "") << std::endl;
 }
 
-// Object iteration, iter.value() can be simplified to dereference *iter
+// Object iteration; iter.value() can be simplified by dereferencing *iter
 for (auto iter = doc / "user" % ""; iter; ++iter) {
     std::cout << iter.name() << " = " << (iter.value() | "") << std::endl;
 }
 ```
 
-## Project Status
+## Project status
 
-- ✅ **Stable and Usable** - Core functionality completed and tested
-- 🔄 **Continuous Development** - Gradually improving features according to [requirements list](task_todo.md)
-- 🧪 **Test Coverage** - Comprehensive unit tests ensure quality
-- ✅ **Continuous Integration** - Configured [Actions](https://github.com/lymslive/xyjson/actions) CI/CD pipeline
+- ✅ **Stable and usable** — core functionality is complete and tested
+- 🔄 **Active development** — features are continuously improved per [task list](task_todo.md)
+- 🧪 **Test coverage** — comprehensive unit tests ensure quality
+- ✅ **CI** — GitHub Actions CI/CD is configured: https://github.com/lymslive/xyjson/actions
 
-## Development Workflow
+## Development workflow
 
-See [Development Guide](DEVELOPMENT_GUIDE.md) for details.
+See the [DEVELOPMENT_GUIDE.md](DEVELOPMENT_GUIDE.md) for details.
 
-### Running Tests
+### Running tests
 
 ```bash
 cd build
-./utxyjson --cout=silent  # Silent mode
-./utxyjson                # Verbose output
+./utxyjson --cout=silent  # silent mode
+./utxyjson                # verbose output
 ```
 
-### Code Structure
+### Code layout
 
 ```
 xyjson/
-├── include/xyjson.h     # Main header file (header-only library)
-├── utest/               # Unit tests (with rich examples)
-├── examples/            # Application examples (no dependency on test framework)
-├── perf/                # Performance tests (mainly compared with native yyjson)
-├── docs/                # Detailed documentation
-├── task_todo.md         # Development requirements management
-├── task_log.md          # Task completion records
-└── CMakeLists.txt       # Build configuration (supports find_package)
+├── include/xyjson.h     # main header (header-only library)
+├── utest/               # unit tests (with rich examples)
+├── examples/            # application examples (no dependency on test framework)
+├── perf/                # performance tests (mainly compared with native yyjson)
+├── docs/                # detailed documentation
+├── task_todo.md         # development requirements
+├── task_log.md          # task completion records
+└── CMakeLists.txt       # build configuration (supports find_package)
 ```
 
-### Documentation Navigation
+### Documentation navigation
 
-- 📖 [Usage Guide](docs/usage.md) - Detailed usage tutorials and best practices
-- 🔧 [API Reference](docs/api.md) - Complete operator and class method documentation
-- 🎨 [Design Philosophy](docs/design.md) - Library design ideas and philosophy
-- 🧪 [Unit Tests](utest/README.md) - Unit tests documentation
-- 🧪 [Performance Tests](perf/README.md) - Performance tests documentation
-- 🧪 [Application Examples](examples/README.md) - Application use case documentation
-- 📋 [Development Requirements](task_todo.md) - Current project development requirements list
-- 📊 [Task Log](task_log.md) - AI collaboration task completion records
+- 📖 [Usage guide](docs/usage.md) - detailed tutorials and best practices
+- 🔧 [API reference](docs/api.md) - full operator and class method documentation
+- 🎨 [Design notes](docs/design.md) - library design and philosophy
+- 🧪 [Unit tests](utest/README.md) - unit test documentation
+- 🧪 [Performance tests](perf/README.md) - performance test documentation
+- 🧪 [Examples](examples/README.md) - application examples
+- 📋 [Development requirements](task_todo.md) - current project tasks
+- 📊 [Task log](task_log.md) - AI collaboration task records
 
 ## Contributing
 
-Welcome to submit Issues and Pull Requests!
+Contributions via Issues and Pull Requests are welcome.
 
 ## License
 
-MIT License - See [LICENSE](LICENSE) file for details
+MIT License — see [LICENSE](LICENSE) for details
 
-## Related Projects
+## Related projects
 
-- [yyjson](https://github.com/ibireme/yyjson) - Underlying high-performance JSON library
-- [couttast](https://github.com/lymslive/couttast) - Unit testing framework
+- [yyjson](https://github.com/ibireme/yyjson) - underlying high-performance JSON library
+- [couttast](https://github.com/lymslive/couttast) - unit test framework
 
 ---
 
-*Simple and intuitive JSON operations, making C++ development more enjoyable!*
+*Concise and intuitive JSON operations to make C++ development more pleasant.*

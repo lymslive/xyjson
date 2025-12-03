@@ -14,6 +14,9 @@ list(APPEND CMAKE_PREFIX_PATH "$ENV{HOME}")
 # Try to find packages first, fallback to FetchContent if not found
 option(USE_FETCHCONTENT "Use FetchContent for dependencies if not found" ON)
 
+# Option to build only the interface library (skip tests and examples)
+option(XYJSON_LIB_ONLY "Build only the header-only interface library (skip tests and examples)" OFF)
+
 # Add FetchContent module if CMake version supports it
 if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.14 AND USE_FETCHCONTENT)
     include(FetchContent)
@@ -37,23 +40,6 @@ else()
     message(STATUS "Found yyjson via find_package")
 endif()
 
-# Try to find couttast
-find_package(couttast QUIET)
-if(NOT couttast_FOUND)
-    if(USE_FETCHCONTENT AND CMAKE_VERSION VERSION_GREATER_EQUAL 3.14)
-        message(STATUS "couttast not found, using FetchContent...")
-        FetchContent_Declare(
-            couttast
-            GIT_REPOSITORY https://github.com/lymslive/couttast.git
-            GIT_TAG main
-        )
-        FetchContent_MakeAvailable(couttast)
-    else()
-        message(FATAL_ERROR "couttast not found and FetchContent not available/disabled")
-    endif()
-else()
-    message(STATUS "Found couttast via find_package")
-endif()
 
 # Create interface library for header-only xyjson
 add_library(xyjson INTERFACE)
@@ -90,52 +76,42 @@ install(EXPORT xyjsonTargets
 )
 
 # ------------------------------------------------------------ #
-# Unit Test:
-
-# Source files for test executable (main tests)
-set(TEST_SOURCES
-    utest/t_basic.cpp
-    utest/t_mutable.cpp
-    utest/t_stream.cpp
-    utest/t_iterator.cpp
-    utest/t_conversion.cpp
-    utest/t_advanced.cpp
-    utest/t_experiment.cpp
-)
-
-# Create main test executable
-add_executable(utxyjson ${TEST_SOURCES})
-target_link_libraries(utxyjson PRIVATE xyjson couttast)
-
-# Document examples test executable
-set(DOC_TEST_SOURCES
-    utest/t_readme.cpp
-    utest/t_usage.cpp
-    utest/t_api.cpp
-    utest/t_design.cpp
-)
-
-add_executable(utdocs ${DOC_TEST_SOURCES})
-target_link_libraries(utdocs PRIVATE xyjson couttast)
-
-# miniut: Minimal unit test (readonly only, no mutable features)
-add_executable(miniut
-    utest/t_basic.cpp
-    utest/t_experiment.cpp
-)
-target_link_libraries(miniut PRIVATE xyjson couttast)
-target_compile_definitions(miniut PRIVATE XYJSON_DISABLE_MUTABLE XYJSON_DISABLE_CHAINED_INPUT)
+# Try to find couttast (needed for tests and performance tests)
+if(NOT XYJSON_LIB_ONLY)
+    find_package(couttast QUIET)
+    if(NOT couttast_FOUND)
+        if(USE_FETCHCONTENT AND CMAKE_VERSION VERSION_GREATER_EQUAL 3.14)
+            message(STATUS "couttast not found, using FetchContent...")
+            FetchContent_Declare(
+                couttast
+                GIT_REPOSITORY https://github.com/lymslive/couttast.git
+                GIT_TAG main
+            )
+            FetchContent_MakeAvailable(couttast)
+        else()
+            message(FATAL_ERROR "couttast not found and FetchContent not available/disabled")
+        endif()
+    else()
+        message(STATUS "Found couttast via find_package")
+    endif()
+endif()
 
 # ------------------------------------------------------------ #
-# Examples:
+# Unit Test, Examples, and Performance Test (only if not lib-only mode)
 
-add_subdirectory(examples)
+if(NOT XYJSON_LIB_ONLY)
+    # Unit Test:
+    add_subdirectory(utest)
 
-# ------------------------------------------------------------ #
-# Performance Test:
+    # Examples:
+    add_subdirectory(examples)
 
-option(BUILD_PERF "Build performance tests" OFF)
-if(BUILD_PERF)
-    add_subdirectory(perf)
+    # Performance Test:
+    option(BUILD_PERF "Build performance tests" OFF)
+    if(BUILD_PERF)
+        add_subdirectory(perf)
+    endif()
+else()
+    message(STATUS "XYJSON_LIB_ONLY enabled: skipping tests, examples, and performance tests")
 endif()
 

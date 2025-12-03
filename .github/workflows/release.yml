@@ -67,6 +67,8 @@ jobs:
 
       - name: Upload header asset
         uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: include/xyjson.h
@@ -75,6 +77,8 @@ jobs:
 
       - name: Upload zip asset
         uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: release/xyjson-${{ steps.resolve_tag.outputs.tag }}.zip

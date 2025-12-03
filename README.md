@@ -50,6 +50,7 @@ int age = doc / "age" | 0;            // 读到 30
 ### CMake 集成安装
 
 支持 cmake 的标准构建流程：
+
 ```bash
 # 克隆项目
 git clone https://github.com/lymslive/xyjson
@@ -59,17 +60,54 @@ cd xyjson
 mkdir build && cd build
 cmake .. && make
 
-# 安装
+# 安装到系统目录
 sudo make install
 ```
 
-然后在客户项目中使用 `find_package` 集成：
-<!-- example:NO_TEST -->
+默认是完整构建，包含单元测试与示例，但不包括性能测试（需 `BUILD_PERF=ON` 选项开启）。
+
+#### 最小化构建与自定义安装
+
+如果仅为依赖安装，可在克隆项目后指定 `XYJSON_LIB_ONLY=ON` 选项，跳过单元测试与示例构建，只安装库文件。
+如果没有系统目录写入权限，可以通过标准选项 `CMAKE_INSTALL_PREFIX` 指定安装路径，如 `$HOME` 。
+
+```bash
+# 只构建库文件，跳过测试和示例
+mkdir build && cd build
+cmake .. -DXYJSON_LIB_ONLY=ON -DCMAKE_INSTALL_PREFIX=$HOME && make
+
+# 安装到 $HOME 目录
+make install
+```
+
+#### 其他目依赖集成 xyjson
+
+安装后可在客户项目中使用 `find_package` 集成：
+
 ```cmake
 # 在 CMakeLists.txt 中使用
 find_package(xyjson REQUIRED)
 target_link_libraries(your-target PRIVATE xyjson::xyjson)
 ```
+
+或者在不想独立预安装时，可以用 FetchContent 自动下载并集成 xyjson，也推荐使用 `XYJSON_LIB_ONLY=ON` 选项来避免编译不必要的测试和示例：
+
+```cmake
+include(FetchContent)
+
+FetchContent_Declare(
+    xyjson
+    GIT_REPOSITORY https://github.com/lymslive/xyjson.git
+    GIT_TAG main
+    # 只构建库，跳过测试和示例（推荐）
+    OPTIONS "-DXYJSON_LIB_ONLY=ON"
+)
+
+FetchContent_MakeAvailable(xyjson)
+target_link_libraries(your-target PRIVATE xyjson::xyjson)
+```
+
+详细用法请参考 [FetchContent 使用指南](docs/fetchcontent_usage.md)。
 
 ## 核心用法示例
 
@@ -167,6 +205,7 @@ xyjson/
 - 📖 [使用指南](docs/usage.md) - 详细的使用教程和最佳实践
 - 🔧 [API 参考](docs/api.md) - 完整的操作符和类方法文档
 - 🎨 [设计理念](docs/design.md) - 库的设计思路和哲学
+- 📦 [依赖集成](docs/fetchcontent_usage.md) - 在其他项目中集成 xyjson 的详细指南
 - 🧪 [单元测试](utest/README.md) - 单元测试说明
 - 🧪 [性能测试](perf/README.md) - 性能测试说明
 - 🧪 [应用示例](examples/README.md) - 应用用例说明

@@ -15,3 +15,11 @@ xyjson v1.0 版本已完成主要开发目标，实现了对 yyjson 库的 C++ �
 
 [task_todo v1.0](changelog/v1.0/task_todo.md)
 <!-- 新的 TODO 需求将从下面开始记录 -->
+
+## TODO:2025-12-03/1 优化 CMake 构建脚本利于其他项目集成依赖
+
+发现将 xyjson 也作为其他项目的依赖时，用 FetchContent 下载后会把 xyjson 的单元测试、example
+也编译，这是不必要的。需要增加一个选项，略过那些编译，只编译 xyjson 接口库的最小实现。
+
+### DONE:2025-12-03~151520
+@Glm4.6
