@@ -38,7 +38,7 @@ jobs:
     - name: Build with Jekyll
       run: |
         bundle install
-        bundle exec jekyll build
+        bundle exec jekyll build --verbose
         
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v3
