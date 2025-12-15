@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ site.title }}{% if page.title %} - {{ page.title }}{% endif %}</title>
+  
+  <!-- GitHub Markdown CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown.min.css">
+  
+  <!-- Highlight.js for code syntax highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+  
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.6;
+      color: #24292f;
+      background-color: #ffffff;
+    }
+    
+    .markdown-body {
+      box-sizing: border-box;
+      min-width: 200px;
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 45px;
+    }
+    
+    @media (max-width: 767px) {
+      .markdown-body {
+        padding: 15px;
+      }
+    }
+    
+    .header {
+      border-bottom: 1px solid #d1d9e0;
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+    }
+    
+    .header h1 {
+      margin: 0;
+      font-size: 2.5em;
+      color: #0969da;
+    }
+    
+    .header p {
+      margin: 8px 0 0 0;
+      color: #656d76;
+      font-size: 1.1em;
+    }
+    
+    .nav {
+      background: #f6f8fa;
+      border: 1px solid #d0d7de;
+      border-radius: 6px;
+      padding: 16px;
+      margin-bottom: 24px;
+    }
+    
+    .nav ul {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    
+    .nav a {
+      color: #0969da;
+      text-decoration: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+      transition: background-color 0.2s;
+    }
+    
+    .nav a:hover {
+      background-color: #ddf4ff;
+      text-decoration: none;
+    }
+    
+    .nav a.active {
+      background-color: #0969da;
+      color: white;
+    }
+    
+    .toc {
+      background: #f6f8fa;
+      border: 1px solid #d0d7de;
+      border-radius: 6px;
+      padding: 16px;
+      margin-bottom: 24px;
+    }
+    
+    .toc h3 {
+      margin-top: 0;
+      margin-bottom: 12px;
+      font-size: 1.1em;
+      color: #24292f;
+    }
+    
+    .toc ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+    
+    .toc li {
+      margin: 4px 0;
+    }
+    
+    .toc a {
+      color: #0969da;
+      text-decoration: none;
+      font-size: 0.9em;
+    }
+    
+    .toc a:hover {
+      text-decoration: underline;
+    }
+    
+    .footer {
+      margin-top: 48px;
+      padding-top: 24px;
+      border-top: 1px solid #d1d9e0;
+      text-align: center;
+      color: #656d76;
+      font-size: 0.9em;
+    }
+    
+    .footer a {
+      color: #0969da;
+      text-decoration: none;
+    }
+    
+    .footer a:hover {
+      text-decoration: underline;
+    }
+    
+    /* 代码高亮 */
+    pre, code {
+      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    }
+    
+    .markdown-body pre {
+      background-color: #f6f8fa;
+      border-radius: 6px;
+      padding: 16px;
+      overflow: auto;
+    }
+    
+    .markdown-body code {
+      background-color: rgba(175, 184, 193, 0.2);
+      padding: 0.2em 0.4em;
+      border-radius: 6px;
+      font-size: 85%;
+    }
+    
+    .markdown-body pre code {
+      background-color: transparent;
+      padding: 0;
+    }
+    
+    /* 表格样式 */
+    .markdown-body table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    
+    .markdown-body table th,
+    .markdown-body table td {
+      border: 1px solid #d0d7de;
+      padding: 8px 12px;
+      text-align: left;
+    }
+    
+    .markdown-body table th {
+      background-color: #f6f8fa;
+      font-weight: 600;
+    }
+    
+    /* 引用样式 */
+    .markdown-body blockquote {
+      border-left: 4px solid #d0d7de;
+      padding: 0 16px;
+      margin: 0;
+      color: #656d76;
+    }
+    
+    /* 响应式设计 */
+    @media (max-width: 768px) {
+      .nav ul {
+        flex-direction: column;
+        gap: 8px;
+      }
+      
+      .markdown-body {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>xyjson</h1>
+    <p>C++ wrapper library around yyjson with operator-overloaded JSON manipulation</p>
+  </div>
+  
+  <div class="nav">
+    <ul>
+      <li><a href="{{ site.baseurl }}/" {% if page.url == '/' %}class="active"{% endif %}>首页</a></li>
+      <li><a href="{{ site.baseurl }}/api.html" {% if page.url contains 'api' %}class="active"{% endif %}>API 文档</a></li>
+      <li><a href="{{ site.baseurl }}/usage.html" {% if page.url contains 'usage' %}class="active"{% endif %}>使用指南</a></li>
+      <li><a href="{{ site.baseurl }}/design.html" {% if page.url contains 'design' %}class="active"{% endif %}>设计文档</a></li>
+      <li><a href="{{ site.baseurl }}/fetchcontent_usage.html" {% if page.url contains 'fetchcontent' %}class="active"{% endif %}>FetchContent</a></li>
+    </ul>
+  </div>
+  
+  <article class="markdown-body">
+    {{ content }}
+  </article>
+  
+  <div class="footer">
+    <p>
+      <a href="https://github.com/lymslive/xyjson">xyjson</a> - 
+      Documentation generated by 
+      <a href="https://jekyllrb.com/">Jekyll</a>
+    </p>
+    <p>
+      © {{ site.time | date: "%Y" }} {{ site.author }}
+    </p>
+  </div>
+  
+  <script>
+    // 初始化代码高亮
+    hljs.highlightAll();
+    
+    // 设置导航活动状态
+    document.addEventListener('DOMContentLoaded', function() {
+      const currentPath = window.location.pathname;
+      const navLinks = document.querySelectorAll('.nav a');
+      
+      navLinks.forEach(link => {
+        if (link.getAttribute('href') === currentPath) {
+          link.classList.add('active');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

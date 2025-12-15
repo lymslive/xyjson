@@ -1,0 +1,38 @@
+title: xyjson Documentation
+description: C++ wrapper library around yyjson with operator-overloaded JSON manipulation
+baseurl: /xyjson
+url: https://lymslive.github.io
+
+# Markdown 处理器
+markdown: kramdown
+highlighter: rouge
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+  hard_wrap: false
+  syntax_highlighter_opts:
+    block:
+      line_numbers: false
+
+# 插件
+plugins:
+  - jekyll-sitemap
+  - jekyll-feed
+
+# 包含文档相关文件
+include:
+  - docs
+  - _layouts
+
+# 默认设置
+defaults:
+  - scope:
+      path: "docs"
+      type: "pages"
+    values:
+      layout: "default"
+
+# 文档元数据
+author: lymslive
+lang: zh-CN
+timezone: Asia/Shanghai
