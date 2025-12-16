@@ -1,7 +1,7 @@
 ---
 title: xyjson Documentation
 layout: default
-redirect_to: /xyjson/docs/
+redirect_to: {{ site.baseurl }}/docs/
 ---
 
 # xyjson Documentation

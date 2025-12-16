@@ -3,7 +3,13 @@ name: Deploy Documentation to GitHub Pages
 on:
   push:
     branches: [ main ]
-    paths: [ 'docs/**' ]
+    paths: 
+      - 'docs/**'
+      - '_config.yml'
+      - '_layouts/**'
+      - 'index.md'
+      - 'Gemfile'
+      - '.github/workflows/docs.yml'
   workflow_dispatch:
 
 permissions:

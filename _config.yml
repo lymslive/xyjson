@@ -32,13 +32,13 @@ defaults:
       type: "pages"
     values:
       layout: "default"
-      permalink: /:basename/
+#     permalink: /docs/:basename/
   - scope:
       path: "index.md"
       type: "pages"
     values:
       layout: "default"
-      permalink: /index.html
+#     permalink: /index.html
 
 # 文档元数据
 author: lymslive
