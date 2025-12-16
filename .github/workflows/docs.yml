@@ -37,6 +37,30 @@ jobs:
         
     - name: Build with Jekyll
       run: |
+        # 为没有 Front Matter 的 markdown 文件临时添加 Front Matter
+        for file in docs/*.md; do
+          if [ -f "$file" ]; then
+            # 检查文件是否已有 Front Matter（检查开头是否有 ---）
+            if ! head -n 1 "$file" | grep -q "^---\?$"; then
+              echo "Adding Front Matter to $file"
+              # 创建临时文件
+              temp_file=$(mktemp)
+              # 添加 Front Matter
+              echo "---" > "$temp_file"
+              echo "layout: default" >> "$temp_file"
+              echo "---" >> "$temp_file"
+              echo "" >> "$temp_file"
+              # 追加原文件内容
+              cat "$file" >> "$temp_file"
+              # 替换原文件
+              mv "$temp_file" "$file"
+            else
+              echo "$file already has Front Matter"
+            fi
+          fi
+        done
+        
+        # 运行 Jekyll 构建
         bundle install
         bundle exec jekyll build --verbose
         
