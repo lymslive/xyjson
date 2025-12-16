@@ -1,3 +1,9 @@
+---
+layout: default
+title: 使用指南
+toc: true
+---
+
 # xyjson 使用指南
 
 本指南从库使用者的角度，详述如何利用 xyjson 库在 C++ 项目中执行常见的 JSON 操作。

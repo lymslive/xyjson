@@ -13,6 +13,27 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
   
   <style>
+    .container {
+      display: flex;
+      max-width: 1200px;
+      margin: 0 auto;
+      gap: 24px;
+    }
+    
+    .sidebar {
+      width: 250px;
+      flex-shrink: 0;
+      position: sticky;
+      top: 20px;
+      max-height: calc(100vh - 40px);
+      overflow-y: auto;
+    }
+    
+    .main-content {
+      flex: 1;
+      min-width: 0;
+    }
+    
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
       max-width: 1200px;
@@ -26,12 +47,28 @@
     .markdown-body {
       box-sizing: border-box;
       min-width: 200px;
-      max-width: 980px;
-      margin: 0 auto;
-      padding: 45px;
+      max-width: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    
+    @media (max-width: 992px) {
+      .container {
+        flex-direction: column;
+      }
+      
+      .sidebar {
+        width: 100%;
+        position: static;
+        max-height: none;
+      }
     }
     
     @media (max-width: 767px) {
+      body {
+        padding: 15px;
+      }
+      
       .markdown-body {
         padding: 15px;
       }
@@ -107,7 +144,8 @@
     
     .toc ul {
       margin: 0;
-      padding-left: 20px;
+      padding-left: 0;
+      list-style: none;
     }
     
     .toc li {
@@ -118,10 +156,42 @@
       color: #0969da;
       text-decoration: none;
       font-size: 0.9em;
+      display: block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: background-color 0.2s;
     }
     
     .toc a:hover {
-      text-decoration: underline;
+      background-color: #ddf4ff;
+      text-decoration: none;
+    }
+    
+    .toc .toc-level-1 {
+      font-weight: 600;
+      margin-left: 0;
+    }
+    
+    .toc .toc-level-2 {
+      margin-left: 16px;
+      font-weight: normal;
+    }
+    
+    .toc .toc-level-3 {
+      margin-left: 32px;
+      font-weight: normal;
+      font-size: 0.85em;
+    }
+    
+    .toc .toc-level-4 {
+      margin-left: 48px;
+      font-weight: normal;
+      font-size: 0.8em;
+    }
+    
+    .toc .active {
+      background-color: #0969da;
+      color: white;
     }
     
     .footer {
@@ -217,13 +287,29 @@
       <li><a href="{{ site.baseurl }}/docs/api.html" {% if page.url contains 'docs/api' %}class="active"{% endif %}>API 文档</a></li>
       <li><a href="{{ site.baseurl }}/docs/usage.html" {% if page.url contains 'docs/usage' %}class="active"{% endif %}>使用指南</a></li>
       <li><a href="{{ site.baseurl }}/docs/design.html" {% if page.url contains 'docs/design' %}class="active"{% endif %}>设计思想</a></li>
-      <li><a href="{{ site.baseurl }}/docs/fetchcontent_usage.html" {% if page.url contains 'docs/fetchcontent' %}class="active"{% endif %}>FetchContent</a></li>
     </ul>
   </div>
   
-  <article class="markdown-body">
-    {{ content }}
-  </article>
+  <div class="container">
+    <!-- 侧边栏 TOC -->
+    <div class="sidebar">
+      {% if page.toc %}
+      <div class="toc">
+        <h3>目录</h3>
+        <div id="table-of-contents">
+          {% toc %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+    
+    <!-- 主内容区域 -->
+    <div class="main-content">
+      <article class="markdown-body">
+        {{ content }}
+      </article>
+    </div>
+  </div>
   
   <div class="footer">
     <p>
@@ -250,7 +336,101 @@
           link.classList.add('active');
         }
       });
+      
+      // 自动生成目录
+      generateTOC();
+      
+      // 设置目录高亮和滚动监听
+      setupTOCScrolling();
     });
+    
+    function generateTOC() {
+      const tocContainer = document.getElementById('table-of-contents');
+      if (!tocContainer) return;
+      
+      const content = document.querySelector('.markdown-body');
+      if (!content) return;
+      
+      const headings = content.querySelectorAll('h1, h2, h3, h4, h5, h6');
+      if (headings.length === 0) return;
+      
+      let tocHTML = '<ul class="toc-list">';
+      
+      headings.forEach((heading, index) => {
+        const level = parseInt(heading.tagName.substring(1));
+        const id = heading.id || `heading-${index}`;
+        heading.id = id;
+        
+        const text = heading.textContent.trim();
+        const tocClass = `toc-level-${Math.min(level - 1, 4)}`;
+        
+        tocHTML += `<li class="${tocClass}"><a href="#${id}" data-level="${level}">${text}</a></li>`;
+      });
+      
+      tocHTML += '</ul>';
+      tocContainer.innerHTML = tocHTML;
+    }
+    
+    function setupTOCScrolling() {
+      const tocLinks = document.querySelectorAll('.toc a');
+      const headings = document.querySelectorAll('.markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4, .markdown-body h5, .markdown-body h6');
+      
+      if (tocLinks.length === 0) return;
+      
+      // 点击目录项时的处理
+      tocLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+          e.preventDefault();
+          const targetId = this.getAttribute('href').substring(1);
+          const targetElement = document.getElementById(targetId);
+          
+          if (targetElement) {
+            const offset = targetElement.getBoundingClientRect().top + window.pageYOffset - 100;
+            window.scrollTo({ top: offset, behavior: 'smooth' });
+            
+            // 更新活动状态
+            tocLinks.forEach(l => l.classList.remove('active'));
+            this.classList.add('active');
+          }
+        });
+      });
+      
+      // 滚动时更新目录高亮
+      function updateActiveTOC() {
+        const scrollPosition = window.pageYOffset + 150;
+        
+        let activeHeading = null;
+        headings.forEach(heading => {
+          if (heading.offsetTop <= scrollPosition) {
+            activeHeading = heading;
+          }
+        });
+        
+        if (activeHeading) {
+          tocLinks.forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('href') === `#${activeHeading.id}`) {
+              link.classList.add('active');
+            }
+          });
+        }
+      }
+      
+      // 节流函数
+      function throttle(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+          const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+          };
+          clearTimeout(timeout);
+          timeout = setTimeout(later, wait);
+        };
+      }
+      
+      window.addEventListener('scroll', throttle(updateActiveTOC, 100));
+    }
   </script>
 </body>
 </html>

@@ -1,3 +1,9 @@
+---
+layout: default
+title: 设计思路
+toc: true
+---
+
 # xyjson 操作符重载设计思路
 
 本文档介绍 xyjson 库的设计思路，尤其是操作符重载的选择考量。

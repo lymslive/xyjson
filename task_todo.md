@@ -28,6 +28,7 @@ xyjson v1.0 版本已完成主要开发目标，实现了对 yyjson 库的 C++ �
 
 - 使用默认的 Jekyll 简单方案构建文档网页；
 - 自动为 md 添加 Front Matter；
+- 长文档 TOC 目录表支持
 
 ### DONE:20251216~102630
 
