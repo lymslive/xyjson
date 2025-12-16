@@ -68,6 +68,14 @@ jobs:
         
         # 运行 Jekyll 构建
         bundle install
+        echo "当前工作目录:"
+        pwd
+        echo "检查 kramdown 版本:"
+        bundle exec kramdown --version
+        echo "检查 docs 目录内容:"
+        ls -la docs/
+        echo "测试简单表格渲染:"
+        echo "| A | B |\n|---|---|\n| 1 | 2 |" | bundle exec kramdown
         bundle exec jekyll build --verbose
         
     - name: Upload artifact

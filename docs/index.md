@@ -1,7 +1,7 @@
 ---
 title: xyjson Documentation
 layout: default
-permalink: /index.html
+permalink: /
 ---
 
 # xyjson Documentation
@@ -63,8 +63,16 @@ newDoc["features"] = {"header-only", "fast", "safe"};
 
 xyjson 维护两个并行的层次结构：
 
-- **只读**: `Document` → `Value` 与 `ArrayIterator`/`ObjectIterator`
-- **可变**: `MutableDocument` → `MutableValue` 与 `MutableArrayIterator`/`MutableObjectIterator`
+| 特性 | 只读模型 | 可写模型 |
+|------|---------|----------|
+| **文档类** | Document | MutableDocument |
+| **值结点** | Value | MutableValue |
+| **数组迭代器** | ArrayIterator | MutableArrayIterator |
+| **对象迭代器** | ObjectIterator | MutableObjectIterator |
+| **主要用途** | 高效访问、只读操作 | 动态构建、内容修改 |
+| **内存管理** | 只读访问，不可修改 | 读写权限，可动态修改 |
+| **性能特点** | 零拷贝，最高性能 | 支持修改，稍有开销 |
+| **操作符支持** | `/`, `|`, `=`, `!`, `==` 等 | 额外支持 `<<`, `>>`, `+=` 等 |
 
 ### 核心设计模式
 

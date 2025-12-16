@@ -13,6 +13,10 @@ kramdown:
   syntax_highlighter_opts:
     block:
       line_numbers: false
+  # 启用表格支持
+  tables: true
+  # 启用 GFM 表格扩展
+  gfm_quirks: [paragraph_end]
 
 # 插件
 plugins:
