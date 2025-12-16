@@ -23,7 +23,6 @@ plugins:
 include:
   - docs
   - _layouts
-  - index.md
 
 # 默认设置
 defaults:
@@ -32,13 +31,6 @@ defaults:
       type: "pages"
     values:
       layout: "default"
-#     permalink: /docs/:basename/
-  - scope:
-      path: "index.md"
-      type: "pages"
-    values:
-      layout: "default"
-#     permalink: /index.html
 
 # 文档元数据
 author: lymslive

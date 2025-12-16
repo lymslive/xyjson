@@ -1,6 +1,7 @@
 ---
 title: xyjson Documentation
 layout: default
+permalink: /index.html
 ---
 
 # xyjson Documentation
