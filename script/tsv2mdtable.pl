@@ -9,6 +9,11 @@
 #                               如果未指定，默认使用输入的第一行作为表头
 #   file1 file2 ...             输入文件名，如果省略则从标准输入读取
 #
+# 注意事项:
+#   - 生成的表格前后会添加空行，以确保与前后内容（如HTML注释）有清晰分隔
+#   - 这对于Jekyll/kramdown正确解析表格特别重要，避免被前面的注释行干扰
+#   - 空行也有助于确保后续的内容不会误认为是表格的一部分
+#
 # 示例:
 #   ./build/utxyjson --List | tsv2mdtable.pl --head=序号,测试用例名称,文件,行号,描述
 #   cat data.tsv | tsv2mdtable.pl --head=Name,Age,City > output.md
@@ -81,6 +86,9 @@ if (!@headers) {
 # 生成 markdown 表格
 my $output = "";
 
+# 添加表格前的空行，确保与前面的内容（如注释）有清晰的分隔
+$output .= "\n";
+
 # 生成表头行
 $output .= "| " . join(" | ", @headers) . " |\n";
 # 生成分隔行
@@ -109,6 +117,9 @@ foreach my $line (@lines) {
     $output .= "| " . join(" | ", @cols) . " |\n";
     $row_num++;
 }
+
+# 添加表格后的空行，确保与后面的内容有清晰的分隔
+$output .= "\n";
 
 # 输出结果
 print $output;

@@ -38,6 +38,7 @@
 ### 2.1 操作符总览表
 
 <!-- begin operator table -->
+
 | 优先级 | 操作符 | 适用类 | 左参类型 | 右参类型 | 返回类型 | 对应方法 | 功能描述 | 推荐度 |
 |------|------|------|------|------|------|------|------|------|
 | 0 | "{}"_xyjson | 只读文档 | 字符串字面量 | 无 | Document | 构造函数 | 字符串字面量自定义转换 | ★★★☆☆ |
@@ -99,13 +100,14 @@
 | 16 | it += n | 迭代器类 | iteratorT | size_t | iteratorT& | advance | 迭代器多步前进 | ★★★☆☆ |
 | 16 | it %= key | 迭代器类 | iteratorT | 字符串、整数 | iteratorT& | advance | 迭代器重定位 | ★★★☆☆ |
 |  |  |  |  |  |  |  | Document 转调 root 的操作符 |  |
-| 2 | doc[key] | Json文档 | docT | 字符串、整数 |  | index | 取根结点单层索引 | ★★★★☆ |
-| 3 | +doc | Json文档 | 无 | jsonT |  | toInteger | 取根结点转整数 | ★★★☆☆ |
-| 3 | -doc | Json文档 | 无 | jsonT |  | toString | 取根结点转字符串 | ★★★☆☆ |
+| 2 | doc[key] | Json文档 | docT | 字符串、整数 | jsonT | index | 取根结点单层索引 | ★★★★☆ |
+| 3 | +doc | Json文档 | 无 | jsonT | int | toInteger | 取根结点转整数 | ★★★☆☆ |
+| 3 | -doc | Json文档 | 无 | jsonT | std::string | toString | 取根结点转字符串 | ★★★☆☆ |
 | 5 | doc / path | Json文档 | docT | 字符串、整数 | jsonT | pathto | 根结点路径访问 | ★★★★★ |
 | 5 | doc % key | Json文档 | docT | 字符串、整数 | iteratorT | iterator | 根结点创建迭代器 | ★★★★☆ |
 | 7 | os << doc | Json文档 | 输出流 | docT | os& | toString | 根结点序列化流输出 | ★★★★☆ |
 | 10 | doc == doc | Json文档 | docT | docT | bool | equal | 根结点相等性判断 | ★★★★☆ |
+
 <!-- end operator table -->
 
 > **重要说明**：
