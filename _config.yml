@@ -1,5 +1,5 @@
 title: xyjson Documentation
-description: C++ wrapper library around yyjson with operator-overloaded JSON manipulation
+description: 基于 yyjson 的 C++ 封装库，支持操作符重载的 JSON 操作
 baseurl: /xyjson
 url: https://lymslive.github.io
 
@@ -33,6 +33,12 @@ defaults:
     values:
       layout: "default"
       permalink: /:basename/
+  - scope:
+      path: "index.md"
+      type: "pages"
+    values:
+      layout: "default"
+      permalink: /index.html
 
 # 文档元数据
 author: lymslive
