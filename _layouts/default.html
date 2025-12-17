@@ -340,9 +340,62 @@
       // 自动生成目录
       generateTOC();
       
+      // 修复中文换行空格
+      fixChineseLineBreakSpaces();
+      
       // 设置目录高亮和滚动监听
       setupTOCScrolling();
-    });
+    }
+    
+    // 修复中文换行导致的空格问题
+    function fixChineseLineBreakSpaces() {
+      const content = document.querySelector('.markdown-body');
+      if (!content) return;
+      
+      // 获取所有文本节点
+      const walker = document.createTreeWalker(
+        content,
+        NodeFilter.SHOW_TEXT,
+        null,
+        false
+      );
+      
+      const textNodes = [];
+      let node;
+      while (node = walker.nextNode()) {
+        // 跳过代码块和行内代码
+        const parent = node.parentElement;
+        if (parent && (parent.tagName === 'CODE' || 
+                      parent.tagName === 'PRE' || 
+                      parent.classList.contains('highlight'))) {
+          continue;
+        }
+        textNodes.push(node);
+      }
+      
+      // 处理每个文本节点
+      textNodes.forEach(textNode => {
+        let text = textNode.nodeValue;
+        
+        // 修复换行导致的中文文本中的多余空格
+        text = text.replace(/([\u4e00-\u9fff])\s+([\u4e00-\u9fff])/g, '$1$2');
+        
+        // 修复中文标点符号与汉字之间的多余空格
+        text = text.replace(/([，。！？；：""''（）【】《》])\s+([\u4e00-\u9fff])/g, '$1$2');
+        text = text.replace(/([\u4e00-\u9fff])\s+([，。！？；：""''（）【】《》])/g, '$1$2');
+        
+        textNode.nodeValue = text;
+      });
+      
+      // 额外处理：合并相邻的文本节点之间可能的问题
+      const paragraphs = content.querySelectorAll('p, li, td');
+      paragraphs.forEach(element => {
+        let html = element.innerHTML;
+        // 处理标签之间的空格问题
+        html = html.replace(/>([\u4e00-\u9fff])<\/(\w+)>[\s]*<\2>([\u4e00-\u9fff])</g, '>$1</$2><$2>$3');
+        element.innerHTML = html;
+      });
+    }
     
     function generateTOC() {
       const tocContainer = document.getElementById('table-of-contents');
