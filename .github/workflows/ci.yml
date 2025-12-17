@@ -3,8 +3,12 @@ name: CI
 on:
   push:
     branches: [ main ]
+    paths:
+      - 'include/**'
+      - 'utest/**'
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build-and-test:

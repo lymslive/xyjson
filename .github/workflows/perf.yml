@@ -4,6 +4,7 @@ on:
   push:
     branches: [ main ]
     paths:
+      - 'include/**'
       - 'perf/**'
       - 'script/stat_perf.pl'
       - '.github/workflows/perf.yml'
