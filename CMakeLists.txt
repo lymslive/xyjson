@@ -47,7 +47,7 @@ target_include_directories(xyjson INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
-target_link_libraries(xyjson INTERFACE yyjson)
+target_link_libraries(xyjson INTERFACE yyjson::yyjson)
 
 # Install headers only for header-only library
 install(DIRECTORY include/

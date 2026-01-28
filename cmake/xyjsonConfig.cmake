@@ -4,6 +4,10 @@
 # Set package version
 set(xyjson_VERSION "1.0.0")
 
+# Find yyjson dependency (required for xyjson)
+include(CMakeFindDependencyMacro)
+find_dependency(yyjson REQUIRED)
+
 # Import targets from the installation
 include("${CMAKE_CURRENT_LIST_DIR}/xyjsonTargets.cmake")
 
